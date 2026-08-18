@@ -273,18 +273,18 @@
             <!-- Secure Login Form with E-mail Verification -->
             <form id="email-login-form" onsubmit="handleEmailLogin(event)" class="space-y-3.5">
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">E-mail ผู้รับสิทธิ์ในชีท User <span class="text-red-500">*</span></label>
+                    <label class="block font-semibold text-slate-700 mb-1">E-mail ผู้ดูแลระบบ <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <i class="fa-solid fa-envelope absolute left-3.5 top-3 text-purple-400"></i>
-                        <input type="email" id="login-email" required placeholder="เช่น amornrath.f@gmail.com หรือ iacmu04@gmail.com" value="iacmu04@gmail.com" class="w-full pl-10 pr-3 py-2.5 bg-white/80 border border-purple-200/80 rounded-xl outline-none focus:ring-2 focus:ring-[#A393EB] font-medium">
+                        <input type="email" id="login-email" required placeholder="กรอก E-mail เช่น admintest@cmu.ac.th" value="" class="w-full pl-10 pr-3 py-2.5 bg-white/80 border border-purple-200/80 rounded-xl outline-none focus:ring-2 focus:ring-[#A393EB] font-medium">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">รหัสผ่าน / PIN <span class="text-slate-400 font-normal">(PIN เริ่มต้น: 123456)</span></label>
+                    <label class="block font-semibold text-slate-700 mb-1">รหัสผ่าน <span class="text-red-500">*</span></label>
                     <div class="relative">
                         <i class="fa-solid fa-key absolute left-3.5 top-3 text-purple-400"></i>
-                        <input type="password" id="login-password" placeholder="123456" value="123456" class="w-full pl-10 pr-3 py-2.5 bg-white/80 border border-purple-200/80 rounded-xl outline-none focus:ring-2 focus:ring-[#A393EB] font-medium">
+                        <input type="password" id="login-password" required placeholder="กรอกรหัสผ่าน" value="" class="w-full pl-10 pr-3 py-2.5 bg-white/80 border border-purple-200/80 rounded-xl outline-none focus:ring-2 focus:ring-[#A393EB] font-medium">
                     </div>
                 </div>
 
@@ -297,13 +297,6 @@
                     <i class="fa-solid fa-lock-open"></i> ยืนยันรหัสผ่านและเข้าสู่ระบบ
                 </button>
             </form>
-
-            <div class="mt-4 pt-3 border-t border-purple-100 text-center text-[11px] text-slate-500 space-y-2">
-                <div>สิทธิ์ทดลองเข้าใช้งาน: <span class="font-bold text-slate-700">iacmu04@gmail.com / 123456</span></div>
-                <button type="button" onclick="bypassLoginDirectly()" class="text-purple-700 hover:underline font-bold text-xs flex items-center justify-center gap-1 mx-auto pt-1">
-                    <i class="fa-solid fa-bolt text-[#A393EB]"></i> เข้าสู่หน้าจอหลักทันที (Quick Access)
-                </button>
-            </div>
         </div>
     </div>
 
@@ -1273,8 +1266,27 @@
         function handleEmailLogin(e) {
             if (e) e.preventDefault();
             const emailInput = document.getElementById("login-email");
-            const email = (emailInput && emailInput.value.trim()) ? emailInput.value.trim() : 'iacmu04@gmail.com';
-            verifyAndLoginUser(email, email.split('@')[0], '', 'Email');
+            const passInput = document.getElementById("login-password");
+
+            const email = (emailInput && emailInput.value.trim()) ? emailInput.value.trim().toLowerCase() : '';
+            const password = (passInput && passInput.value.trim()) ? passInput.value.trim() : '';
+
+            if (email === 'admintest@cmu.ac.th' && password === 'Ia13579') {
+                currentUser = {
+                    email: 'admintest@cmu.ac.th',
+                    name: 'Admin (ผู้ดูแลระบบ)',
+                    role: 'Admin',
+                    department: 'ส่วนงานตรวจสอบภายใน',
+                    picture: '',
+                    loginType: 'Admin Passcode'
+                };
+                sessionStorage.setItem("audit_user", JSON.stringify(currentUser));
+                hideLoginModal();
+                updateUserDisplayUI();
+                initDashboard();
+            } else {
+                showLoginError("🔴 อีเมลหรือรหัสผ่านไม่ถูกต้อง เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถเข้าสู่ระบบด้วยรหัสผ่านได้ สำหรับผู้ใช้งานทั่วไปกรุณาล็อกอินผ่าน Google Account");
+            }
         }
 
         function verifyAndLoginUser(email, name, picture, loginType) {
@@ -1288,14 +1300,14 @@
                 });
             }
 
-            if (userRecord || normEmail === 'iacmu04@gmail.com' || normEmail === 'amornrath.f@gmail.com' || (systemUsers.length === 0)) {
+            if (userRecord || normEmail === 'admintest@cmu.ac.th') {
                 currentUser = {
                     email: email,
-                    name: userRecord ? (userRecord['ชื่อ-นามสกุล'] || userRecord['name'] || name) : name,
+                    name: userRecord ? (userRecord['ชื่อ-นามสกุล'] || userRecord['name'] || name) : (name || 'Admin'),
                     role: userRecord ? (userRecord['สิทธิ์'] || userRecord['role'] || 'Admin') : 'Admin',
                     department: userRecord ? (userRecord['ส่วนงาน'] || userRecord['department'] || 'ส่วนงานตรวจสอบภายใน') : 'ส่วนงานตรวจสอบภายใน',
                     picture: picture || '',
-                    loginType: loginType || 'Google'
+                    loginType: loginType || 'Google Sign-In'
                 };
                 sessionStorage.setItem("audit_user", JSON.stringify(currentUser));
                 hideLoginModal();
@@ -1304,56 +1316,6 @@
             } else {
                 showLoginError(`🔴 ขออภัย อีเมล "${email}" ยังไม่ได้รับสิทธิ์เข้าใช้งานระบบ กรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่มสิทธิ์ในแท็บ User`);
             }
-        }
-
-        function showLoginError(msg) {
-            const errDiv = document.getElementById("login-error");
-            const errTxt = document.getElementById("login-error-text");
-            if (errDiv && errTxt) {
-                errTxt.innerText = msg;
-                errDiv.classList.remove("hidden");
-            }
-        }
-
-        function applyUserRolePermissions() {
-            const isViewer = currentUser && (String(currentUser.role).toLowerCase() === 'viewer' || currentUser.role === 'ผู้ดูรายงาน' || currentUser.role === 'ผู้บริหาร');
-            
-            const btnAddNew = document.getElementById("btn-add-new-record");
-            if (btnAddNew) btnAddNew.style.display = isViewer ? 'none' : 'inline-flex';
-        }
-
-        function updateUserDisplayUI() {
-            const userDisp = document.getElementById("user-display-name");
-            if (userDisp && currentUser) {
-                let badge = currentUser.loginType === 'Google Sign-In' ? ' <span class="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">Google Verified</span>' : '';
-                let roleBadge = currentUser.role ? ` <span class="text-[10px] bg-purple-200 text-purple-900 px-1.5 py-0.5 rounded font-bold">${currentUser.role}</span>` : '';
-                userDisp.innerHTML = `${currentUser.name} (${currentUser.email})${badge}${roleBadge}`;
-            }
-            applyUserRolePermissions();
-        }
-
-        function checkAuthSession() {
-            const sess = sessionStorage.getItem("audit_user");
-            if (sess) {
-                try {
-                    currentUser = JSON.parse(sess);
-                    hideLoginModal();
-                    updateUserDisplayUI();
-                    initDashboard();
-                } catch(e) {
-                    showLoginModal();
-                }
-            } else {
-                showLoginModal();
-            }
-        }
-
-        function bypassLoginDirectly() {
-            currentUser = { email: 'iacmu04@gmail.com', name: 'iacmu04', role: 'Admin', department: 'ส่วนงานตรวจสอบภายใน', loginType: 'Quick Access' };
-            sessionStorage.setItem("audit_user", JSON.stringify(currentUser));
-            hideLoginModal();
-            updateUserDisplayUI();
-            initDashboard();
         }
 
         let DYNAMIC_MEETING_ROUNDS = ["ครั้งที่ 1/2568", "ครั้งที่ 2/2568", "ครั้งที่ 1/2569", "ครั้งที่ 2/2569", "ครั้งที่ 3/2569", "ครั้งที่ 1/2570", "ครั้งที่ 2/2570"];
@@ -1393,8 +1355,17 @@
                             const reportRows = [];
                             const clarifyRows = [];
 
+                            // Filter out empty blank rows from Google Sheets
+                            const validRows = res.report.filter(r => {
+                                const f = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
+                                const d = String(r['ส่วนงาน'] || r['department'] || '').trim();
+                                const rec = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
+                                const clar = String(r['รายละเอียดผลการดำเนินงาน'] || r['Clarification'] || r['clarification_summary'] || '').trim();
+                                return (f.length > 0 || d.length > 0 || rec.length > 0 || clar.length > 0);
+                            });
+
                             // Classify incoming rows into Report (Base Findings) and Clarify (Recommendations)
-                            res.report.forEach(r => {
+                            validRows.forEach(r => {
                                 const src = String(r._source || '').toLowerCase();
                                 const hasClarifyText = r['Recommendation'] || r['Clarification'] || r['Action Status'] || (r['Risk Level'] && String(r['Risk Level']).includes('ต่อ'));
                                 
