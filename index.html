@@ -409,6 +409,7 @@
                             <option value="ดำเนินการแล้ว">🟢 ดำเนินการแล้ว</option>
                             <option value="อยู่ระหว่างดำเนินการ">🟡 อยู่ระหว่างดำเนินการ</option>
                             <option value="ยังไม่ได้ชี้แจง">🔴 ยังไม่ได้ชี้แจง</option>
+                            <option value="ไม่มีข้อเสนอแนะ">⚪ ไม่มีข้อเสนอแนะ</option>
                         </select>
                     </div>
 
@@ -537,7 +538,7 @@
                 </h3>
                 <span class="text-[10px] font-bold text-purple-900 bg-purple-100/70 px-2.5 py-0.5 rounded-full border border-purple-200/80">3D Liquid Glass</span>
             </div>
-            <div class="relative py-2 h-[260px] w-full">
+            <div class="relative py-2 h-[450px] w-full">
                 <canvas id="top10DeptsChart"></canvas>
             </div>
         </div>
@@ -646,6 +647,7 @@
                         <option value="ดำเนินการแล้ว">🟢 ดำเนินการแล้ว</option>
                         <option value="อยู่ระหว่างดำเนินการ">🟡 อยู่ระหว่างดำเนินการ</option>
                         <option value="ยังไม่ได้ชี้แจง">🔴 ยังไม่ได้ชี้แจง</option>
+                        <option value="ไม่มีข้อเสนอแนะ">⚪ ไม่มีข้อเสนอแนะ</option>
                     </select>
                 </div>
 
@@ -1323,6 +1325,8 @@
                                     const rawRisk = String(r['ระดับความเสี่ยง'] || r['Risk Level'] || r['risk_level'] || 'ต่ำ').trim();
                                     const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
 
+                                    const recFromReport = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
+
                                     const newRecord = {
                                         finding_id: fid,
                                         year: String(r['ปี'] || r['year'] || '2570').trim(),
@@ -1334,7 +1338,8 @@
                                         risk_level: cleanRisk,
                                         finding: fText,
                                         report_url: String(r['รายงานฉบับเต็ม'] || r['report_url'] || '').trim(),
-                                        overall_status: 'ยังไม่ได้ชี้แจง',
+                                        initial_rec: recFromReport,
+                                        overall_status: recFromReport ? 'ยังไม่ได้ชี้แจง' : 'ไม่มีข้อเสนอแนะ',
                                         items: []
                                     };
 
@@ -1367,7 +1372,7 @@
                                     }
                                 });
 
-                                // Phase 3: Recalculate overall status
+                                // Phase 3: Recalculate overall status based on Clarify items and Report Col J recommendation
                                 consolidatedData.forEach(p => {
                                     if (p.items.length > 0) {
                                         if (p.items.every(i => i.status === 'ดำเนินการแล้ว')) {
@@ -1376,6 +1381,17 @@
                                             p.overall_status = 'อยู่ระหว่างดำเนินการ';
                                         } else {
                                             p.overall_status = 'ยังไม่ได้ชี้แจง';
+                                        }
+                                    } else {
+                                        if (p.initial_rec) {
+                                            p.overall_status = 'ยังไม่ได้ชี้แจง';
+                                            p.items.push({
+                                                recommendation: p.initial_rec,
+                                                clarification: 'ยังไม่มีข้อมูลชี้แจง',
+                                                status: 'ยังไม่ได้ชี้แจง'
+                                            });
+                                        } else {
+                                            p.overall_status = 'ไม่มีข้อเสนอแนะ';
                                         }
                                     }
                                 });
@@ -3278,14 +3294,14 @@
 
                         const xEnd = bar.x;
                         const yCenter = bar.y;
-                        const badgeRadius = Math.min(bar.height * 0.42, 14);
+                        const badgeRadius = Math.max(Math.min(bar.height * 0.46, 16.5), 13);
 
-                        // Draw floating 3D white circle badge at end of horizontal bar (Matching Sample Picture!)
+                        // Draw floating 3D white circle badge at end of horizontal bar
                         ctx.save();
                         ctx.beginPath();
                         ctx.arc(xEnd, yCenter, badgeRadius, 0, Math.PI * 2);
                         ctx.fillStyle = '#ffffff';
-                        ctx.shadowColor = 'rgba(163, 147, 235, 0.35)';
+                        ctx.shadowColor = 'rgba(115, 68, 155, 0.28)';
                         ctx.shadowBlur = 8;
                         ctx.shadowOffsetY = 3;
                         ctx.fill();
@@ -3295,8 +3311,8 @@
                         ctx.strokeStyle = (index % 2 === 0) ? '#A393EB' : '#776AD6';
                         ctx.stroke();
 
-                        // Draw value text inside circle badge
-                        ctx.font = 'bold 11px Prompt, sans-serif';
+                        // Draw value text inside circle badge clearly
+                        ctx.font = 'bold 12px Prompt, sans-serif';
                         ctx.fillStyle = '#0f172a';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
@@ -3307,7 +3323,7 @@
                         ctx.save();
                         ctx.beginPath();
                         const topY = bar.y - bar.height / 2 + 2;
-                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
                         ctx.lineWidth = 2;
                         ctx.moveTo(chart.chartArea.left + 6, topY);
                         ctx.lineTo(Math.max(chart.chartArea.left + 10, bar.x - 6), topY);
@@ -3318,7 +3334,7 @@
                 }
             };
 
-            // Alternating between EXACTLY 2 colors: #A393EB and #776AD6 for Top 10 Departments (Matching User Request & Image 2!)
+            // Alternating between EXACTLY 2 colors: #A393EB and #776AD6 for Top 10 Departments
             const bgGradients = sortedDeptsList.map((dept, idx) => {
                 const grad = ctx.createLinearGradient(0, 0, 400, 0);
                 if (idx % 2 === 0) {
@@ -3342,8 +3358,8 @@
                         data: counts,
                         backgroundColor: bgGradients,
                         borderRadius: { topRight: 14, bottomRight: 14, topLeft: 4, bottomLeft: 4 },
-                        categoryPercentage: 0.8,
-                        barPercentage: 0.85
+                        categoryPercentage: 0.82,
+                        barPercentage: 0.88
                     }]
                 },
                 plugins: [glossy3DHorizontalPillPlugin],
@@ -3362,7 +3378,7 @@
                         },
                         y: {
                             ticks: {
-                                font: { family: 'Prompt', size: 11, weight: 'bold' }
+                                font: { family: 'Prompt', size: 12, weight: 'bold' }
                             }
                         }
                     }
