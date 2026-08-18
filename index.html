@@ -1266,17 +1266,19 @@
                             const reportMap = {};
                             const consolidatedData = [];
 
-                            // Phase 1: Build Base Finding records strictly from Report sheet using Finding_ID
+                            // Phase 1: Build Base Finding records strictly from Report sheet (563 in 2568, 276 in 2569)
                             res.report.forEach((r, idx) => {
                                 const src = String(r._source || '').toLowerCase();
                                 const recInReport = r['Recommendation'] || r['ข้อเสนอแนะ'];
                                 if (src === 'report' || src === 'auditreport' || (src === '' && !recInReport)) {
-                                    const fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
-                                    if (!fid) return; // Skip if no Finding_ID
-
                                     const fText = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
                                     const dText = String(r['ส่วนงาน'] || r['department'] || '').trim();
-                                    if (!fText && !dText) return; // Skip blank rows
+                                    if (!fText && !dText) return; // Skip completely blank rows
+
+                                    let fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
+                                    if (!fid) {
+                                        fid = 'AUTO-R-' + (idx + 1);
+                                    }
 
                                     const rawRisk = String(r['ระดับความเสี่ยง'] || r['Risk Level'] || r['risk_level'] || 'ต่ำ').trim();
                                     const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
@@ -1306,18 +1308,19 @@
                                 }
                             });
 
-                            // Phase 2: Attach recommendation items from Clarify sheet using Finding_ID (Col I, J, K)
+                            // Phase 2: Attach recommendation items from Clarify sheet (Col I: ข้อเสนอแนะ, Col J: สถานะ, Col K: ชี้แจง)
                             res.report.forEach(r => {
                                 const src = String(r._source || '').toLowerCase();
                                 const recInClarify = r['Recommendation'] || r['ข้อเสนอแนะ'];
                                 const clarTextRaw = r['รายละเอียดผลการดำเนินงาน'] || r['รายละเอียดการชี้แจง'] || r['Clarification'];
                                 if (src === 'clarify' || (src === '' && (recInClarify || clarTextRaw))) {
                                     const fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
-                                    if (!fid) return;
-
                                     const recText = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
                                     const clarText = String(r['รายละเอียดผลการดำเนินงาน'] || r['รายละเอียดการชี้แจง'] || r['Clarification'] || '').trim();
                                     const statText = String(r['สถานะผลการดำเนินงาน'] || r['สถานะการดำเนินงาน'] || r['Action Status'] || 'ยังไม่ได้ชี้แจง').trim();
+
+                                    const year = String(r['ปี'] || r['year'] || '').trim();
+                                    const dept = String(r['ส่วนงาน'] || r['department'] || '').trim();
 
                                     if (recText || clarText || statText) {
                                         const recItem = {
@@ -1326,8 +1329,14 @@
                                             status: statText
                                         };
 
-                                        if (reportMap[fid]) {
+                                        if (fid && reportMap[fid]) {
                                             reportMap[fid].items.push(recItem);
+                                        } else {
+                                            // Fallback to same department and year finding
+                                            const sameDeptYear = consolidatedData.filter(p => p.department === dept && p.year === year);
+                                            if (sameDeptYear.length > 0) {
+                                                sameDeptYear[sameDeptYear.length - 1].items.push(recItem);
+                                            }
                                         }
                                     }
                                 }
@@ -1347,7 +1356,7 @@
                             });
 
                             rawData = consolidatedData;
-                            resetFilters(); // RE-RENDER DASHBOARD UI WITH LIVE DATA IMMEDIATELY!
+                            initDashboard(); // RE-RENDER DASHBOARD UI WITH LIVE DATA IMMEDIATELY!
                         }
                     })
                     .catch(err => {
