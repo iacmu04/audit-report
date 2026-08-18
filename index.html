@@ -1141,6 +1141,40 @@
             }
         }
 
+        function showLoginError(msg) {
+            const errDiv = document.getElementById("login-error");
+            const errText = document.getElementById("login-error-text");
+            if (errDiv && errText) {
+                errText.innerText = msg;
+                errDiv.classList.remove("hidden");
+                errDiv.style.display = "flex";
+            } else {
+                alert(msg);
+            }
+        }
+
+        function updateUserDisplayUI() {
+            const userDisp = document.getElementById("user-display-name");
+            if (userDisp && currentUser) {
+                userDisp.innerText = `${currentUser.name || currentUser.email}`;
+            }
+        }
+
+        function checkAuthSession() {
+            try {
+                const saved = sessionStorage.getItem("audit_user");
+                if (saved) {
+                    currentUser = JSON.parse(saved);
+                    hideLoginModal();
+                    updateUserDisplayUI();
+                } else {
+                    showLoginModal();
+                }
+            } catch(e) {
+                showLoginModal();
+            }
+        }
+
         function parseJwt(token) {
             try {
                 var base64Url = token.split('.')[1];
@@ -1367,31 +1401,6 @@
             }
         }
 
-        function handleEmailLogin(e) {
-            if (e) e.preventDefault();
-            const emailInput = document.getElementById("login-email");
-            const passInput = document.getElementById("login-password");
-
-            const email = (emailInput && emailInput.value.trim()) ? emailInput.value.trim().toLowerCase() : '';
-            const password = (passInput && passInput.value.trim()) ? passInput.value.trim() : '';
-
-            if (email === 'admintest@cmu.ac.th' && password === 'Ia13579') {
-                currentUser = {
-                    email: 'admintest@cmu.ac.th',
-                    name: 'Admin (ผู้ดูแลระบบ)',
-                    role: 'Admin',
-                    department: 'ส่วนงานตรวจสอบภายใน',
-                    picture: '',
-                    loginType: 'Admin Passcode'
-                };
-                sessionStorage.setItem("audit_user", JSON.stringify(currentUser));
-                hideLoginModal();
-                updateUserDisplayUI();
-                initDashboard();
-            } else {
-                showLoginError("🔴 อีเมลหรือรหัสผ่านไม่ถูกต้อง เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถเข้าสู่ระบบด้วยรหัสผ่านได้ สำหรับผู้ใช้งานทั่วไปกรุณาล็อกอินผ่าน Google Account");
-            }
-        }
 
         function handleLogout() {
             sessionStorage.removeItem("audit_user");
