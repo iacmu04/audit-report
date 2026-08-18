@@ -1390,12 +1390,26 @@
                         }
 
                         if (res && res.status === 'success' && Array.isArray(res.report) && res.report.length > 0) {
-                            const consolidatedData = [];
-                            let lastPrimaryRecord = null;
+                            const reportRows = [];
+                            const clarifyRows = [];
 
-                            res.report.forEach((r, idx) => {
+                            // Classify incoming rows into Report (Base Findings) and Clarify (Recommendations)
+                            res.report.forEach(r => {
+                                const src = String(r._source || '').toLowerCase();
+                                const hasClarifyText = r['Recommendation'] || r['Clarification'] || r['Action Status'] || (r['Risk Level'] && String(r['Risk Level']).includes('ต่อ'));
+                                
+                                if (src === 'clarify' || (src === '' && hasClarifyText)) {
+                                    clarifyRows.push(r);
+                                } else {
+                                    reportRows.push(r);
+                                }
+                            });
+
+                            const consolidatedData = [];
+
+                            // Phase 1: Build exact 1-to-1 Base Finding records from Report sheet
+                            reportRows.forEach((r, idx) => {
                                 const rawRisk = String(r['ระดับความเสี่ยง'] || r['Risk Level'] || r['risk_level'] || 'ต่ำ').trim();
-                                const isContinuation = rawRisk.includes("(ต่อ)") || rawRisk.includes("ต่อ");
                                 const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
 
                                 const year = String(r['ปี'] || r['year'] || '2570').trim();
@@ -1404,154 +1418,106 @@
                                 const main = String(r['ประเด็นหลัก'] || r['Activity / Topic'] || r['main_topic'] || '').trim();
                                 const sub = String(r['ประเด็นย่อย'] || r['sub_topic'] || '').trim();
                                 const finding = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
-                                const rec = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
-                                const clar = String(r['รายละเอียดผลการดำเนินงาน'] || r['Clarification'] || r['clarification_summary'] || '').trim();
-                                const stat = String(r['สถานะผลการดำเนินงาน'] || r['Action Status'] || r['overall_status'] || 'ยังไม่ได้ชี้แจง').trim();
+                                const url = String(r['รายงานฉบับเต็ม'] || r['report_url'] || '').trim();
 
                                 let rowItems = [];
                                 try {
                                     if (r['items_json']) rowItems = JSON.parse(r['items_json']);
                                 } catch(e) {}
 
-                                if (!rowItems || rowItems.length === 0) {
-                                    if (rec || clar) {
-                                        rowItems = [{
-                                            recommendation: rec,
-                                            clarification: clar || 'ยังไม่มีข้อมูลชี้แจง',
-                                            status: stat
-                                        }];
-                                    }
-                                }
+                                consolidatedData.push({
+                                    finding_id: r['Finding_ID'] || r['finding_id'] || ('R' + (new Date().getTime() + idx)),
+                                    year: year,
+                                    department: dept,
+                                    meeting_round: round,
+                                    main_topic: main,
+                                    sub_topic: sub,
+                                    type: r['ประเภท'] || r['type'] || 'ข้อตรวจพบปีปัจจุบัน',
+                                    risk_level: cleanRisk,
+                                    finding: finding,
+                                    report_url: url,
+                                    overall_status: 'ยังไม่ได้ชี้แจง',
+                                    items: rowItems
+                                });
+                            });
+
+                            // Phase 2: Attach recommendation items from Clarify sheet to Base Findings
+                            let lastMatchedRecord = null;
+
+                            clarifyRows.forEach((r, idx) => {
+                                const rawRisk = String(r['ระดับความเสี่ยง'] || r['Risk Level'] || r['risk_level'] || 'ต่ำ').trim();
+                                const isContinuation = rawRisk.includes("(ต่อ)") || rawRisk.includes("ต่อ");
+                                const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
+
+                                const year = String(r['ปี'] || r['year'] || '2570').trim();
+                                const dept = String(r['ส่วนงาน'] || r['department'] || '').trim();
+                                const main = String(r['ประเด็นหลัก'] || r['Activity / Topic'] || r['main_topic'] || '').trim();
+                                const sub = String(r['ประเด็นย่อย'] || r['sub_topic'] || '').trim();
+                                const finding = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
+                                const rec = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
+                                const clar = String(r['รายละเอียดผลการดำเนินงาน'] || r['Clarification'] || r['clarification_summary'] || '').trim();
+                                const stat = String(r['สถานะผลการดำเนินงาน'] || r['Action Status'] || r['overall_status'] || 'อยู่ระหว่างดำเนินการ').trim();
+
+                                const recItem = {
+                                    recommendation: rec || '-',
+                                    clarification: clar || 'ยังไม่มีข้อมูลชี้แจง',
+                                    status: stat
+                                };
 
                                 let targetRecord = null;
 
-                                if (isContinuation) {
-                                    // Rule: If (ต่อ), it ALWAYS belongs to the top primary finding record above it
-                                    if (lastPrimaryRecord && lastPrimaryRecord.department === dept && lastPrimaryRecord.year === year) {
-                                        targetRecord = lastPrimaryRecord;
-                                    } else if (consolidatedData.length > 0) {
-                                        const prev = consolidatedData[consolidatedData.length - 1];
-                                        if (prev.department === dept && prev.year === year) {
-                                            targetRecord = prev;
-                                        }
-                                    }
+                                if (isContinuation && lastMatchedRecord && lastMatchedRecord.department === dept && lastMatchedRecord.year === year) {
+                                    targetRecord = lastMatchedRecord;
                                 } else {
-                                    // Rule: If NOT (ต่อ), Risk Level MUST match strictly!
-                                    let bestMatchRecord = null;
+                                    let bestMatch = null;
                                     let highestScore = 0;
 
                                     consolidatedData.forEach(p => {
-                                        // Strict Department, Year AND Risk Level match required for non-(ต่อ) rows!
                                         if (p.department !== dept || p.year !== year) return;
-                                        if (p.risk_level !== cleanRisk) return;
-
                                         let score = 0;
-
-                                        // Finding text overlap check (High Weight: +60)
                                         if (finding && p.finding) {
                                             const f1 = finding.trim();
                                             const f2 = p.finding.trim();
-                                            if (f1 === f2) {
-                                                score += 60;
-                                            } else if (f1.includes(f2) || f2.includes(f1)) {
-                                                score += 50;
-                                            } else {
-                                                const sub1 = f1.substring(0, 15);
-                                                const sub2 = f2.substring(0, 15);
-                                                if (sub1 && sub2 && (sub1.includes(sub2) || sub2.includes(sub1))) {
-                                                    score += 40;
-                                                }
-                                            }
+                                            if (f1 === f2) score += 60;
+                                            else if (f1.includes(f2) || f2.includes(f1)) score += 50;
+                                            else if (f1.substring(0, 15) === f2.substring(0, 15)) score += 40;
                                         }
-
-                                        // Main Topic Match (Medium Weight: +30)
-                                        if (main && p.main_topic && (main === p.main_topic || normalizeMainTopic(main) === normalizeMainTopic(p.main_topic))) {
-                                            score += 30;
-                                        }
-
-                                        // Sub Topic Match (Bonus Weight: +20)
-                                        if (sub && p.sub_topic && sub === p.sub_topic) {
-                                            score += 20;
-                                        }
+                                        if (main && p.main_topic && normalizeMainTopic(main) === normalizeMainTopic(p.main_topic)) score += 30;
+                                        if (sub && p.sub_topic && sub === p.sub_topic) score += 20;
+                                        if (cleanRisk && p.risk_level && cleanRisk === p.risk_level) score += 10;
 
                                         if (score > highestScore) {
                                             highestScore = score;
-                                            bestMatchRecord = p;
+                                            bestMatch = p;
                                         }
                                     });
 
-                                    if (highestScore >= 40) {
-                                        targetRecord = bestMatchRecord;
+                                    if (highestScore >= 30) {
+                                        targetRecord = bestMatch;
+                                    } else {
+                                        // Fallback to latest finding of same department & year
+                                        const sameDeptYear = consolidatedData.filter(p => p.department === dept && p.year === year);
+                                        if (sameDeptYear.length > 0) {
+                                            targetRecord = sameDeptYear[sameDeptYear.length - 1];
+                                        }
                                     }
                                 }
 
                                 if (targetRecord) {
-                                    // If adding real recommendation/clarification items, purge dummy empty items
-                                    if (rowItems.length > 0 || rec || clar) {
-                                        targetRecord.items = targetRecord.items.filter(i => 
-                                            (i.recommendation && i.recommendation !== '-' && i.recommendation.trim() !== '') || 
-                                            (i.clarification && i.clarification !== 'ยังไม่มีข้อมูลชี้แจง' && i.clarification.trim() !== '')
-                                        );
-                                    }
+                                    targetRecord.items.push(recItem);
+                                    lastMatchedRecord = targetRecord;
+                                }
+                            });
 
-                                    // Merge recommendation & clarification items into targetRecord
-                                    if (rowItems.length > 0) {
-                                        rowItems.forEach(ni => {
-                                            if (!targetRecord.items.some(ei => ei.recommendation === ni.recommendation && ei.clarification === ni.clarification)) {
-                                                targetRecord.items.push(ni);
-                                            }
-                                        });
-                                    } else if (rec || clar) {
-                                        if (!targetRecord.items.some(ei => ei.recommendation === rec && ei.clarification === clar)) {
-                                            targetRecord.items.push({
-                                                recommendation: rec,
-                                                clarification: clar || 'ยังไม่มีข้อมูลชี้แจง',
-                                                status: stat
-                                            });
-                                        }
-                                    }
-
-                                    // Recalculate overall status based on valid items
-                                    const validItems = targetRecord.items.filter(i => 
-                                        (i.recommendation && i.recommendation !== '-' && i.recommendation.trim() !== '') || 
-                                        (i.clarification && i.clarification !== 'ยังไม่มีข้อมูลชี้แจง' && i.clarification.trim() !== '')
-                                    );
-
-                                    if (validItems.length > 0) {
-                                        if (validItems.every(i => i.status === 'ดำเนินการแล้ว')) {
-                                            targetRecord.overall_status = 'ดำเนินการแล้ว';
-                                        } else if (validItems.some(i => i.status === 'อยู่ระหว่างดำเนินการ')) {
-                                            targetRecord.overall_status = 'อยู่ระหว่างดำเนินการ';
-                                        } else {
-                                            targetRecord.overall_status = 'ยังไม่ได้ชี้แจง';
-                                        }
-                                    } else if (stat && stat !== 'ยังไม่ได้ชี้แจง') {
-                                        targetRecord.overall_status = stat;
-                                    }
-                                } else {
-                                    // New primary finding record
-                                    const hasRealDetails = rowItems.length > 0 || rec || clar;
-                                    const newRecord = {
-                                        finding_id: r['Finding_ID'] || r['finding_id'] || ('R' + (new Date().getTime() + idx)),
-                                        year: year,
-                                        department: dept,
-                                        meeting_round: round,
-                                        main_topic: main,
-                                        sub_topic: sub,
-                                        type: r['ประเภท'] || r['type'] || 'ข้อตรวจพบปีปัจจุบัน',
-                                        risk_level: cleanRisk,
-                                        finding: finding,
-                                        report_url: r['รายงานฉบับเต็ม'] || r['report_url'] || '',
-                                        overall_status: stat,
-                                        items: rowItems.length > 0 ? rowItems : (hasRealDetails ? [{
-                                            recommendation: rec,
-                                            clarification: clar || 'ยังไม่มีข้อมูลชี้แจง',
-                                            status: stat
-                                        }] : [])
-                                    };
-                                    consolidatedData.push(newRecord);
-                                    if (!isContinuation) {
-                                        lastPrimaryRecord = newRecord;
+                            // Phase 3: Recalculate overall_status for each finding record based on its attached items
+                            consolidatedData.forEach(p => {
+                                if (p.items.length > 0) {
+                                    if (p.items.every(i => i.status === 'ดำเนินการแล้ว')) {
+                                        p.overall_status = 'ดำเนินการแล้ว';
+                                    } else if (p.items.some(i => i.status === 'อยู่ระหว่างดำเนินการ')) {
+                                        p.overall_status = 'อยู่ระหว่างดำเนินการ';
+                                    } else {
+                                        p.overall_status = 'ยังไม่ได้ชี้แจง';
                                     }
                                 }
                             });
