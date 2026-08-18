@@ -1352,135 +1352,77 @@
                         }
 
                         if (res && res.status === 'success' && Array.isArray(res.report) && res.report.length > 0) {
-                            const reportRows = [];
-                            const clarifyRows = [];
+                            const reportMap = {};
+                            const consolidatedData = [];
 
-                            // Filter out empty blank rows from Google Sheets
-                            const validRows = res.report.filter(r => {
-                                const f = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
-                                const d = String(r['ส่วนงาน'] || r['department'] || '').trim();
-                                const rec = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
-                                const clar = String(r['รายละเอียดผลการดำเนินงาน'] || r['Clarification'] || r['clarification_summary'] || '').trim();
-                                return (f.length > 0 || d.length > 0 || rec.length > 0 || clar.length > 0);
-                            });
-
-                            // Classify incoming rows into Report (Base Findings) and Clarify (Recommendations)
-                            validRows.forEach(r => {
+                            // Phase 1: Build Base Finding records strictly from Report sheet using Finding_ID
+                            res.report.forEach((r, idx) => {
                                 const src = String(r._source || '').toLowerCase();
-                                const hasClarifyText = r['Recommendation'] || r['Clarification'] || r['Action Status'] || (r['Risk Level'] && String(r['Risk Level']).includes('ต่อ'));
-                                
-                                if (src === 'clarify' || (src === '' && hasClarifyText)) {
-                                    clarifyRows.push(r);
-                                } else {
-                                    reportRows.push(r);
+                                const recInReport = r['Recommendation'] || r['ข้อเสนอแนะ'];
+                                if (src === 'report' || src === 'auditreport' || (src === '' && !recInReport)) {
+                                    const fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
+                                    if (!fid) return; // Skip if no Finding_ID
+
+                                    const fText = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
+                                    const dText = String(r['ส่วนงาน'] || r['department'] || '').trim();
+                                    if (!fText && !dText) return; // Skip blank rows
+
+                                    const rawRisk = String(r['ระดับความเสี่ยง'] || r['Risk Level'] || r['risk_level'] || 'ต่ำ').trim();
+                                    const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
+
+                                    let rowItems = [];
+                                    try {
+                                        if (r['items_json']) rowItems = JSON.parse(r['items_json']);
+                                    } catch(e) {}
+
+                                    const newRecord = {
+                                        finding_id: fid,
+                                        year: String(r['ปี'] || r['year'] || '2570').trim(),
+                                        department: dText,
+                                        meeting_round: String(r['รอบการประชุม คตส.'] || r['meeting_round'] || '').trim(),
+                                        main_topic: String(r['กิจกรรม'] || r['ประเด็นหลัก'] || r['Activity / Topic'] || r['main_topic'] || '').trim(),
+                                        sub_topic: String(r['ประเด็น'] || r['ประเด็นย่อย'] || r['sub_topic'] || '').trim(),
+                                        type: String(r['ประเภท'] || r['type'] || 'ข้อตรวจพบปีปัจจุบัน').trim(),
+                                        risk_level: cleanRisk,
+                                        finding: fText,
+                                        report_url: String(r['รายงานฉบับเต็ม'] || r['report_url'] || '').trim(),
+                                        overall_status: 'ยังไม่ได้ชี้แจง',
+                                        items: rowItems
+                                    };
+
+                                    reportMap[fid] = newRecord;
+                                    consolidatedData.push(newRecord);
                                 }
                             });
 
-                            const consolidatedData = [];
+                            // Phase 2: Attach recommendation items from Clarify sheet using Finding_ID (Col I, J, K)
+                            res.report.forEach(r => {
+                                const src = String(r._source || '').toLowerCase();
+                                const recInClarify = r['Recommendation'] || r['ข้อเสนอแนะ'];
+                                const clarTextRaw = r['รายละเอียดผลการดำเนินงาน'] || r['รายละเอียดการชี้แจง'] || r['Clarification'];
+                                if (src === 'clarify' || (src === '' && (recInClarify || clarTextRaw))) {
+                                    const fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
+                                    if (!fid) return;
 
-                            // Phase 1: Build exact 1-to-1 Base Finding records from Report sheet
-                            reportRows.forEach((r, idx) => {
-                                const rawRisk = String(r['ระดับความเสี่ยง'] || r['Risk Level'] || r['risk_level'] || 'ต่ำ').trim();
-                                const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
+                                    const recText = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
+                                    const clarText = String(r['รายละเอียดผลการดำเนินงาน'] || r['รายละเอียดการชี้แจง'] || r['Clarification'] || '').trim();
+                                    const statText = String(r['สถานะผลการดำเนินงาน'] || r['สถานะการดำเนินงาน'] || r['Action Status'] || 'ยังไม่ได้ชี้แจง').trim();
 
-                                const year = String(r['ปี'] || r['year'] || '2570').trim();
-                                const dept = String(r['ส่วนงาน'] || r['department'] || '').trim();
-                                const round = String(r['รอบการประชุม คตส.'] || r['meeting_round'] || '').trim();
-                                const main = String(r['ประเด็นหลัก'] || r['Activity / Topic'] || r['main_topic'] || '').trim();
-                                const sub = String(r['ประเด็นย่อย'] || r['sub_topic'] || '').trim();
-                                const finding = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
-                                const url = String(r['รายงานฉบับเต็ม'] || r['report_url'] || '').trim();
+                                    if (recText || clarText || statText) {
+                                        const recItem = {
+                                            recommendation: recText || '-',
+                                            clarification: clarText || 'ยังไม่มีข้อมูลชี้แจง',
+                                            status: statText
+                                        };
 
-                                let rowItems = [];
-                                try {
-                                    if (r['items_json']) rowItems = JSON.parse(r['items_json']);
-                                } catch(e) {}
-
-                                consolidatedData.push({
-                                    finding_id: r['Finding_ID'] || r['finding_id'] || ('R' + (new Date().getTime() + idx)),
-                                    year: year,
-                                    department: dept,
-                                    meeting_round: round,
-                                    main_topic: main,
-                                    sub_topic: sub,
-                                    type: r['ประเภท'] || r['type'] || 'ข้อตรวจพบปีปัจจุบัน',
-                                    risk_level: cleanRisk,
-                                    finding: finding,
-                                    report_url: url,
-                                    overall_status: 'ยังไม่ได้ชี้แจง',
-                                    items: rowItems
-                                });
-                            });
-
-                            // Phase 2: Attach recommendation items from Clarify sheet to Base Findings
-                            let lastMatchedRecord = null;
-
-                            clarifyRows.forEach((r, idx) => {
-                                const rawRisk = String(r['ระดับความเสี่ยง'] || r['Risk Level'] || r['risk_level'] || 'ต่ำ').trim();
-                                const isContinuation = rawRisk.includes("(ต่อ)") || rawRisk.includes("ต่อ");
-                                const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
-
-                                const year = String(r['ปี'] || r['year'] || '2570').trim();
-                                const dept = String(r['ส่วนงาน'] || r['department'] || '').trim();
-                                const main = String(r['ประเด็นหลัก'] || r['Activity / Topic'] || r['main_topic'] || '').trim();
-                                const sub = String(r['ประเด็นย่อย'] || r['sub_topic'] || '').trim();
-                                const finding = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
-                                const rec = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
-                                const clar = String(r['รายละเอียดผลการดำเนินงาน'] || r['Clarification'] || r['clarification_summary'] || '').trim();
-                                const stat = String(r['สถานะผลการดำเนินงาน'] || r['Action Status'] || r['overall_status'] || 'อยู่ระหว่างดำเนินการ').trim();
-
-                                const recItem = {
-                                    recommendation: rec || '-',
-                                    clarification: clar || 'ยังไม่มีข้อมูลชี้แจง',
-                                    status: stat
-                                };
-
-                                let targetRecord = null;
-
-                                if (isContinuation && lastMatchedRecord && lastMatchedRecord.department === dept && lastMatchedRecord.year === year) {
-                                    targetRecord = lastMatchedRecord;
-                                } else {
-                                    let bestMatch = null;
-                                    let highestScore = 0;
-
-                                    consolidatedData.forEach(p => {
-                                        if (p.department !== dept || p.year !== year) return;
-                                        let score = 0;
-                                        if (finding && p.finding) {
-                                            const f1 = finding.trim();
-                                            const f2 = p.finding.trim();
-                                            if (f1 === f2) score += 60;
-                                            else if (f1.includes(f2) || f2.includes(f1)) score += 50;
-                                            else if (f1.substring(0, 15) === f2.substring(0, 15)) score += 40;
-                                        }
-                                        if (main && p.main_topic && normalizeMainTopic(main) === normalizeMainTopic(p.main_topic)) score += 30;
-                                        if (sub && p.sub_topic && sub === p.sub_topic) score += 20;
-                                        if (cleanRisk && p.risk_level && cleanRisk === p.risk_level) score += 10;
-
-                                        if (score > highestScore) {
-                                            highestScore = score;
-                                            bestMatch = p;
-                                        }
-                                    });
-
-                                    if (highestScore >= 30) {
-                                        targetRecord = bestMatch;
-                                    } else {
-                                        // Fallback to latest finding of same department & year
-                                        const sameDeptYear = consolidatedData.filter(p => p.department === dept && p.year === year);
-                                        if (sameDeptYear.length > 0) {
-                                            targetRecord = sameDeptYear[sameDeptYear.length - 1];
+                                        if (reportMap[fid]) {
+                                            reportMap[fid].items.push(recItem);
                                         }
                                     }
                                 }
-
-                                if (targetRecord) {
-                                    targetRecord.items.push(recItem);
-                                    lastMatchedRecord = targetRecord;
-                                }
                             });
 
-                            // Phase 3: Recalculate overall_status for each finding record based on its attached items
+                            // Phase 3: Recalculate overall status for each finding record based on its attached items
                             consolidatedData.forEach(p => {
                                 if (p.items.length > 0) {
                                     if (p.items.every(i => i.status === 'ดำเนินการแล้ว')) {
@@ -1494,14 +1436,15 @@
                             });
 
                             rawData = consolidatedData;
+                            resetFilters(); // RE-RENDER DASHBOARD UI WITH LIVE DATA IMMEDIATELY!
                         }
-                        initDashboard();
                     })
                     .catch(err => {
-                        console.log("Using default embedded dataset", err);
+                        console.log("Error loading live data:", err);
                         initDashboard();
                     });
             } catch(err) {
+                console.error("Fetch exception:", err);
                 initDashboard();
             }
         }
@@ -1509,13 +1452,27 @@
         function handleEmailLogin(e) {
             if (e) e.preventDefault();
             const emailInput = document.getElementById("login-email");
-            const email = (emailInput && emailInput.value.trim()) ? emailInput.value.trim() : 'iacmu04@gmail.com';
-            currentUser = { email: email, name: email.split('@')[0], role: 'Admin', department: 'ส่วนงานตรวจสอบภายใน' };
-            sessionStorage.setItem("audit_user", JSON.stringify(currentUser));
-            hideLoginModal();
-            const userDisp = document.getElementById("user-display-name");
-            if (userDisp) userDisp.innerText = `${currentUser.name} (${currentUser.email})`;
-            initDashboard();
+            const passInput = document.getElementById("login-password");
+
+            const email = (emailInput && emailInput.value.trim()) ? emailInput.value.trim().toLowerCase() : '';
+            const password = (passInput && passInput.value.trim()) ? passInput.value.trim() : '';
+
+            if (email === 'admintest@cmu.ac.th' && password === 'Ia13579') {
+                currentUser = {
+                    email: 'admintest@cmu.ac.th',
+                    name: 'Admin (ผู้ดูแลระบบ)',
+                    role: 'Admin',
+                    department: 'ส่วนงานตรวจสอบภายใน',
+                    picture: '',
+                    loginType: 'Admin Passcode'
+                };
+                sessionStorage.setItem("audit_user", JSON.stringify(currentUser));
+                hideLoginModal();
+                updateUserDisplayUI();
+                initDashboard();
+            } else {
+                showLoginError("🔴 อีเมลหรือรหัสผ่านไม่ถูกต้อง เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถเข้าสู่ระบบด้วยรหัสผ่านได้ สำหรับผู้ใช้งานทั่วไปกรุณาล็อกอินผ่าน Google Account");
+            }
         }
 
         function handleLogout() {
