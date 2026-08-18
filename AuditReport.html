@@ -2889,6 +2889,54 @@
                         }
                     }
                     ctx.restore();
+                },
+                afterDraw(chart) {
+                    const { ctx, chartArea } = chart;
+                    const meta = chart.getDatasetMeta(0);
+                    if (!meta || !meta.data || meta.data.length === 0) return;
+
+                    const numYears = activeYears.length;
+                    if (numYears === 0) return;
+
+                    ctx.save();
+
+                    // 1. Draw crisp vertical divider lines between activity sections
+                    STRICT_MAIN_TOPICS.forEach((topic, tIdx) => {
+                        if (tIdx > 0) {
+                            const startIdx = tIdx * numYears;
+                            const prevBar = meta.data[startIdx - 1];
+                            const currBar = meta.data[startIdx];
+                            if (prevBar && currBar) {
+                                const dividerX = (prevBar.x + currBar.x) / 2;
+                                ctx.beginPath();
+                                ctx.strokeStyle = '#475569';
+                                ctx.lineWidth = 1.5;
+                                ctx.moveTo(dividerX, chartArea.top);
+                                ctx.lineTo(dividerX, chartArea.bottom);
+                                ctx.stroke();
+                            }
+                        }
+                    });
+
+                    // 2. Draw perfectly centered activity (Main Topic) name below each activity group
+                    STRICT_MAIN_TOPICS.forEach((topic, tIdx) => {
+                        const startIdx = tIdx * numYears;
+                        const endIdx = (tIdx + 1) * numYears - 1;
+                        const startBar = meta.data[startIdx];
+                        const endBar = meta.data[endIdx];
+                        if (startBar && endBar) {
+                            const centerX = (startBar.x + endBar.x) / 2;
+                            const labelY = chartArea.bottom + 10;
+
+                            ctx.font = 'bold 12px Prompt, sans-serif';
+                            ctx.fillStyle = '#1e293b';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'top';
+                            ctx.fillText(topic, centerX, labelY);
+                        }
+                    });
+
+                    ctx.restore();
                 }
             };
 
@@ -2981,28 +3029,17 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        layout: {
+                            padding: { bottom: 32, top: 12, left: 8, right: 8 }
+                        },
                         plugins: {
                             legend: { display: false },
                             tooltip: { enabled: true }
                         },
                         scales: {
                             x: {
-                                grid: {
-                                    display: true,
-                                    color: function(context) {
-                                        if (context.index !== undefined && context.index > 0 && activeYears.length > 0 && context.index % activeYears.length === 0) {
-                                            return '#475569';
-                                        }
-                                        return 'transparent';
-                                    },
-                                    lineWidth: 2
-                                },
-                                ticks: {
-                                    autoSkip: false,
-                                    maxRotation: 0,
-                                    minRotation: 0,
-                                    font: { family: 'Prompt', size: 13, weight: 'bold' }
-                                }
+                                grid: { display: false },
+                                ticks: { display: false }
                             },
                             y: { 
                                 beginAtZero: true, 
@@ -3131,28 +3168,17 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        layout: {
+                            padding: { bottom: 32, top: 12, left: 8, right: 8 }
+                        },
                         plugins: {
                             legend: { display: false }
                         },
                         scales: {
                             x: { 
                                 stacked: true,
-                                grid: {
-                                    display: true,
-                                    color: function(context) {
-                                        if (context.index !== undefined && context.index > 0 && activeYears.length > 0 && context.index % activeYears.length === 0) {
-                                            return '#475569';
-                                        }
-                                        return 'transparent';
-                                    },
-                                    lineWidth: 2
-                                },
-                                ticks: {
-                                    autoSkip: false,
-                                    maxRotation: 0,
-                                    minRotation: 0,
-                                    font: { family: 'Prompt', size: 13, weight: 'bold' }
-                                }
+                                grid: { display: false },
+                                ticks: { display: false }
                             },
                             y: { 
                                 beginAtZero: true, 
