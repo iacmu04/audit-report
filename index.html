@@ -2697,13 +2697,19 @@
         let customRiskDetailTableOverrides = {};
         let riskDetailSource = "report"; // "report" or "clarify"
 
+        function getRiskDetailTargetDepts() {
+            // ดึงเฉพาะส่วนงานที่ผ่านตัวกรองบน Dashboard (เช่น กรองแล้วได้ 7 ส่วนงาน)
+            return [...new Set(filteredData.map(d => d.department))].sort();
+        }
+
         function getRiskDetailSourceItems(source = riskDetailSource) {
+            const targetDepts = getRiskDetailTargetDepts();
             if (source === 'report') {
-                // ดึงข้อตรวจพบ/ประเด็นย่อยทั้งหมดจากชีท Report (rawData) ตามตัวกรองพื้นฐาน โดยไม่ตัดข้อที่ยังไม่มีชี้แจงออก
+                // ดึงประเด็นทั้งหมดในชีท Report (rawData) ของเฉพาะส่วนงานที่ผ่านตัวกรอง (เช่น 7 ส่วนงานนั้น)
                 return rawData.filter(item => {
+                    if (!targetDepts.includes(item.department)) return false;
                     if (selectedYears && selectedYears.length > 0 && !selectedYears.includes(item.year)) return false;
                     if (selectedRisks && selectedRisks.length > 0 && !selectedRisks.includes(item.risk_level)) return false;
-                    if (selectedDept !== "ALL" && item.department !== selectedDept) return false;
                     if (selectedRound !== "ALL" && item.meeting_round !== selectedRound) return false;
                     if (selectedType !== "ALL" && item.type !== selectedType) return false;
                     if (selectedMain !== "ALL" && normalizeMainTopic(item.main_topic) !== normalizeMainTopic(selectedMain)) return false;
@@ -2711,7 +2717,7 @@
                     return true;
                 });
             } else {
-                // ดึงจากรายการตามตัวกรองปัจจุบัน (ที่มีข้อมูลชี้แจง/Clarify)
+                // ดึงจากชีท Clarify ตามตัวกรองปัจจุบันของเฉพาะส่วนงานเหล่านั้น
                 return filteredData;
             }
         }
@@ -2719,13 +2725,12 @@
         function setRiskDetailSource(source) {
             riskDetailSource = source;
             customRiskDetailTableOverrides = {};
-            const sourceItems = getRiskDetailSourceItems(source);
-            const depts = [...new Set(sourceItems.map(d => d.department))].sort();
-            initCustomRiskDetailData(depts, source);
+            const targetDepts = getRiskDetailTargetDepts();
+            initCustomRiskDetailData(targetDepts, source);
             renderPdfPreEditor();
         }
 
-        function initCustomRiskDetailData(depts, source = riskDetailSource) {
+        function initCustomRiskDetailData(depts = getRiskDetailTargetDepts(), source = riskDetailSource) {
             const allSourceItems = getRiskDetailSourceItems(source);
             depts.forEach(dept => {
                 if (!customRiskDetailTableOverrides[dept]) {
@@ -2977,8 +2982,7 @@
             container.innerHTML = "";
 
             if (currentPdfExportMode === 'mode4') {
-                const sourceItems = getRiskDetailSourceItems(riskDetailSource);
-                const depts = [...new Set(sourceItems.map(d => d.department))].sort();
+                const depts = getRiskDetailTargetDepts();
                 initCustomRiskDetailData(depts, riskDetailSource);
 
                 if (depts.length === 0) {
@@ -4058,8 +4062,7 @@
             const line1Title = titleInput ? titleInput.value : "สรุปประเด็นความเสี่ยงและรายละเอียดผลการตรวจสอบ";
             const line2Meeting = meetingInput ? `การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ ${meetingInput.value}` : "การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ 1/2568";
 
-            const sourceItems = getRiskDetailSourceItems(riskDetailSource);
-            const depts = [...new Set(sourceItems.map(d => d.department))].sort();
+            const depts = getRiskDetailTargetDepts();
             initCustomRiskDetailData(depts, riskDetailSource);
 
             let rowsHtml = "";
