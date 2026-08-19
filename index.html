@@ -3051,52 +3051,44 @@
                     const items = item.items && item.items.length > 0 ? item.items : [{ recommendation: item.initial_rec || '-', clarification: 'ยังไม่มีข้อมูลชี้แจง', status: item.overall_status }];
                     let clarifyInputs = "";
                     items.forEach((recItem, rIdx) => {
-                        const recItemHtml = pdfClarifyOverrides[item.finding_id]?.[rIdx]?.recommendation ?? formatInitialHtml(recItem.recommendation);
                         const clarifyItemHtml = pdfClarifyOverrides[item.finding_id]?.[rIdx]?.clarification ?? formatInitialHtml(recItem.clarification);
 
                         clarifyInputs += `
-                            <div class="space-y-2.5 p-3.5 bg-white rounded-xl border border-slate-200">
-                                <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <label class="block font-bold text-slate-700 text-xs">ข้อเสนอแนะที่ ${rIdx + 1}:</label>
-                                        <div class="flex items-center gap-1">
-                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+B"><b>B</b></button>
-                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+U"><u>U</u></button>
-                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded text-[11px]" title="Ctrl+I"><i>I</i></button>
-                                        </div>
+                            <div class="space-y-2.5 p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex items-center gap-2">
+                                        <label class="block font-bold text-slate-800 text-xs">ผลการดำเนินงาน / การชี้แจง${items.length > 1 ? ` (รายการที่ ${rIdx + 1})` : ''}:</label>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${recItem.status === 'ดำเนินการแล้ว' ? 'bg-emerald-100 text-emerald-800' : (recItem.status === 'อยู่ระหว่างดำเนินการ' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')}">สถานะ: ${recItem.status || 'ยังไม่ได้ชี้แจง'}</span>
                                     </div>
-                                    <div contenteditable="true" oninput="updatePdfClarifyOverride('${item.finding_id}', ${rIdx}, 'recommendation', this.innerHTML)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 min-h-[90px] max-h-[220px] overflow-y-auto text-xs focus:ring-1 focus:ring-[#A393EB] outline-none leading-relaxed">${recItemHtml}</div>
-                                </div>
-                                <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <label class="block font-bold text-slate-700 text-xs">รายละเอียดผลการดำเนินงาน / การชี้แจง:</label>
-                                        <div class="flex items-center gap-1">
-                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+B"><b>B</b></button>
-                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+U"><u>U</u></button>
-                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded text-[11px]" title="Ctrl+I"><i>I</i></button>
-                                        </div>
+                                    <div class="flex items-center gap-1">
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+B"><b>B</b></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+U"><u>U</u></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded text-[11px]" title="Ctrl+I"><i>I</i></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('removeFormat', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-[11px]" title="ล้างรูปแบบ">🧹</button>
                                     </div>
-                                    <div contenteditable="true" oninput="updatePdfClarifyOverride('${item.finding_id}', ${rIdx}, 'clarification', this.innerHTML)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 min-h-[120px] max-h-[280px] overflow-y-auto text-xs focus:ring-1 focus:ring-[#A393EB] outline-none leading-relaxed">${clarifyItemHtml}</div>
                                 </div>
+                                <div contenteditable="true" oninput="updatePdfClarifyOverride('${item.finding_id}', ${rIdx}, 'clarification', this.innerHTML)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 min-h-[140px] max-h-[350px] overflow-y-auto text-xs focus:ring-1 focus:ring-[#A393EB] outline-none leading-relaxed text-slate-800">${clarifyItemHtml}</div>
                             </div>
                         `;
                     });
                     const findingHtml = pdfTextOverrides[item.finding_id]?.finding ?? formatInitialHtml(item.finding);
                     bodyFields = `
-                        <div class="space-y-3">
+                        <div class="space-y-4">
                             <div>
-                                <div class="flex items-center justify-between mb-1">
-                                    <label class="block font-bold text-slate-700 text-xs">ข้อตรวจพบ (Report คอลัมน์ I):</label>
-                                    <div class="flex items-center gap-1">
-                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+B"><b>B</b></button>
-                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+U"><u>U</u></button>
-                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded text-[11px]" title="Ctrl+I"><i>I</i></button>
+                                <div class="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                                    <label class="block font-bold text-slate-800 text-xs">ข้อตรวจพบ (Report คอลัมน์ I):</label>
+                                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+                                        <span class="text-[10px] text-slate-400 font-medium px-1">จัดรูปแบบ:</span>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-black rounded-lg text-xs transition" title="ตัวหนา (Ctrl+B)"><b>B</b></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-black rounded-lg text-xs transition" title="ขีดเส้นใต้ (Ctrl+U)"><u>U</u></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded-lg text-xs transition" title="ตัวเอียง (Ctrl+I)"><i>I</i></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('removeFormat', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs transition" title="ล้างรูปแบบ">🧹</button>
                                     </div>
                                 </div>
-                                <div contenteditable="true" oninput="updatePdfOverride('${item.finding_id}', 'finding', this.innerHTML)" class="w-full bg-white border border-slate-200 rounded-xl p-3 min-h-[150px] max-h-[320px] overflow-y-auto text-xs focus:ring-2 focus:ring-[#A393EB] outline-none leading-relaxed">${findingHtml}</div>
+                                <div contenteditable="true" oninput="updatePdfOverride('${item.finding_id}', 'finding', this.innerHTML)" class="w-full bg-white border border-slate-200 rounded-xl p-3.5 min-h-[180px] max-h-[420px] overflow-y-auto text-xs focus:ring-2 focus:ring-[#A393EB] outline-none leading-relaxed text-slate-800 shadow-2xs">${findingHtml}</div>
                             </div>
                             <div class="space-y-2">
-                                <label class="block font-bold text-slate-700 text-xs">รายการข้อเสนอแนะ & การชี้แจง:</label>
+                                <label class="block font-bold text-slate-800 text-xs">ผลการดำเนินงานตามข้อเสนอแนะ / การชี้แจง:</label>
                                 ${clarifyInputs}
                             </div>
                         </div>
@@ -3622,23 +3614,25 @@
                             else if (statusVal === 'อยู่ระหว่างดำเนินการ') { stBg = '#fef3c7'; stText = '#b45309'; }
                             else { stBg = '#ffe4e6'; stText = '#be123c'; }
 
+                            const showItemNumber = item.items.length > 1;
+
                             return `
-                                <div style="margin-bottom: 10px; padding: 10px 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14pt; line-height: 1.55;">
-                                    <div style="margin-bottom: 4px;">
-                                        <strong style="color: #0f172a; font-size: 14pt;">ข้อเสนอแนะที่ ${idx + 1}:</strong> ${formatInitialHtml(ovRec)}
+                                <div style="margin-bottom: 12px; padding: 14px 18px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14pt; line-height: 1.65;">
+                                    <div style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            ${showItemNumber ? `<span style="font-weight: 800; color: #1e293b; font-size: 14pt;">รายการที่ ${idx + 1}:</span>` : ''}
+                                            <span style="font-weight: bold; color: #475569; font-size: 13pt;">สถานะ:</span>
+                                            <span style="display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12pt; font-weight: bold; background-color: ${stBg}; color: ${stText};">${statusVal}</span>
+                                        </div>
                                     </div>
-                                    <div style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-weight: bold; color: #475569; font-size: 13pt;">สถานะ:</span>
-                                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12pt; font-weight: bold; background-color: ${stBg}; color: ${stText};">${statusVal}</span>
-                                    </div>
-                                    <div style="color: #334155; line-height: 1.55; font-size: 14pt;">
-                                        <strong style="font-size: 14pt;">การชี้แจง / ผลการดำเนินงาน:</strong> ${formatInitialHtml(ovClarify)}
+                                    <div style="color: #1e293b; line-height: 1.65; font-size: 14pt; text-align: left; word-break: break-word;">
+                                        ${formatInitialHtml(ovClarify)}
                                     </div>
                                 </div>
                             `;
                         }).join('');
                     } else {
-                        recClarifyHtml = `<div style="color: #64748b; font-size: 14pt;">${item.initial_rec ? formatInitialHtml(item.initial_rec) : 'ไม่มีข้อเสนอแนะ'}</div>`;
+                        recClarifyHtml = `<div style="color: #64748b; font-size: 14pt;">ยังไม่มีข้อมูลผลการดำเนินงาน / การชี้แจง</div>`;
                     }
                 }
 
