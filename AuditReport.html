@@ -951,6 +951,9 @@
                 <button id="tab-btn-mode3" onclick="switchPdfExportMode('mode3')" class="px-3.5 py-2 rounded-xl bg-white/80 text-purple-950 font-semibold border border-purple-200/80 hover:bg-[#A393EB]/20 transition">
                     📊 3. รายงานสรุปเชิงบริหาร 2 หน้า (Executive Matrix Summary)
                 </button>
+                <button id="tab-btn-mode4" onclick="switchPdfExportMode('mode4')" class="px-3.5 py-2 rounded-xl bg-white/80 text-purple-950 font-semibold border border-purple-200/80 hover:bg-[#A393EB]/20 transition">
+                    📋 4. ตารางสรุปประเด็นความเสี่ยงและรายละเอียด (Risk Summary Table)
+                </button>
             </div>
 
             <!-- Pre-Export Editor Container -->
@@ -2626,10 +2629,90 @@
             const activeClass = "px-3.5 py-2 rounded-xl bg-[#A393EB] text-white font-bold shadow-md shadow-[#A393EB]/35 border border-[#A393EB] transition";
             const inactiveClass = "px-3.5 py-2 rounded-xl bg-white/80 text-purple-950 font-semibold border border-purple-200/80 hover:bg-[#A393EB]/20 transition";
 
-            document.getElementById("tab-btn-mode1").className = mode === 'mode1' ? activeClass : inactiveClass;
-            document.getElementById("tab-btn-mode2").className = mode === 'mode2' ? activeClass : inactiveClass;
-            document.getElementById("tab-btn-mode3").className = mode === 'mode3' ? activeClass : inactiveClass;
+            const btn1 = document.getElementById("tab-btn-mode1");
+            const btn2 = document.getElementById("tab-btn-mode2");
+            const btn3 = document.getElementById("tab-btn-mode3");
+            const btn4 = document.getElementById("tab-btn-mode4");
+            if (btn1) btn1.className = mode === 'mode1' ? activeClass : inactiveClass;
+            if (btn2) btn2.className = mode === 'mode2' ? activeClass : inactiveClass;
+            if (btn3) btn3.className = mode === 'mode3' ? activeClass : inactiveClass;
+            if (btn4) btn4.className = mode === 'mode4' ? activeClass : inactiveClass;
+
+            const themeWrapper = document.getElementById("pdf-theme-selector-wrapper");
+            if (themeWrapper) {
+                themeWrapper.style.display = (mode === 'mode1' || mode === 'mode2') ? 'flex' : 'none';
+            }
+
+            const titleInput = document.getElementById("pdf-header-title-input");
+            if (titleInput) {
+                if (mode === 'mode4') {
+                    titleInput.value = "สรุปประเด็นความเสี่ยงและรายละเอียดผลการตรวจสอบ";
+                } else if (mode === 'mode3') {
+                    titleInput.value = "สรุปภาพรวมประเด็นความเสี่ยงและการประเมินระบบการควบคุมภายใน";
+                } else if (mode === 'mode1' || mode === 'mode2') {
+                    if (selectedRisks && selectedRisks.length === 1) {
+                        const rk = selectedRisks[0];
+                        let rkName = rk;
+                        let colorName = "สีเขียว";
+                        if (rk.includes("สูง") && !rk.includes("ค่อนข้าง")) { rkName = "ระดับสูง"; colorName = "สีแดง"; }
+                        else if (rk.includes("ค่อนข้างสูง")) { rkName = "ระดับค่อนข้างสูง"; colorName = "สีส้ม"; }
+                        else if (rk.includes("ปานกลาง")) { rkName = "ระดับปานกลาง"; colorName = "สีเหลือง"; }
+                        else if (rk.includes("ต่ำ")) { rkName = "ระดับต่ำ"; colorName = "สีเขียว"; }
+                        titleInput.value = `ประเด็นความเสี่ยง${rkName} (${colorName}) ${filteredData.length} ประเด็น`;
+                    } else {
+                        titleInput.value = "สรุปข้อตรวจพบประเด็นความเสี่ยงและข้อเสนอแนะจากการตรวจสอบภายใน";
+                    }
+                }
+            }
+
             renderPdfPreEditor();
+        }
+
+        let customRiskDetailTableOverrides = {};
+
+        function initCustomRiskDetailData(depts) {
+            depts.forEach(dept => {
+                if (!customRiskDetailTableOverrides[dept]) {
+                    const deptItems = filteredData.filter(d => d.department === dept);
+                    let red = 0, orange = 0, yellow = 0, green = 0;
+                    const detailLines = [];
+
+                    deptItems.forEach((it, i) => {
+                        const rkStr = String(it.risk_level || '');
+                        if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) red++;
+                        else if (rkStr.includes("ค่อนข้างสูง")) orange++;
+                        else if (rkStr.includes("ปานกลาง")) yellow++;
+                        else if (rkStr.includes("ต่ำ")) green++;
+
+                        const topicText = it.sub_topic || it.main_topic || `ประเด็นที่ ${i + 1}`;
+                        detailLines.push(`${i + 1}. ${topicText}`);
+                    });
+
+                    customRiskDetailTableOverrides[dept] = {
+                        red: red,
+                        orange: orange,
+                        yellow: yellow,
+                        green: green,
+                        details: detailLines.join('<br>')
+                    };
+                }
+            });
+        }
+
+        function updateCustomRiskDetailCount(dept, rkKey, val) {
+            if (!customRiskDetailTableOverrides[dept]) initCustomRiskDetailData([dept]);
+            customRiskDetailTableOverrides[dept][rkKey] = parseInt(val) || 0;
+            const d = customRiskDetailTableOverrides[dept];
+            const cleanId = dept.replace(/[^a-zA-Z0-9ก-๙]/g, '_');
+            const totalEl = document.getElementById(`risk-detail-tot-${cleanId}`);
+            if (totalEl) {
+                totalEl.innerText = (d.red || 0) + (d.orange || 0) + (d.yellow || 0) + (d.green || 0);
+            }
+        }
+
+        function updateCustomRiskDetailText(dept, val) {
+            if (!customRiskDetailTableOverrides[dept]) initCustomRiskDetailData([dept]);
+            customRiskDetailTableOverrides[dept].details = val;
         }
 
         let custom2568MatrixData = {};
@@ -2798,6 +2881,82 @@
         function renderPdfPreEditor() {
             const container = document.getElementById("pdf-pre-editor-container");
             container.innerHTML = "";
+
+            if (currentPdfExportMode === 'mode4') {
+                const depts = [...new Set(filteredData.map(d => d.department))].sort();
+                initCustomRiskDetailData(depts);
+
+                if (depts.length === 0) {
+                    container.innerHTML = `<div class="p-8 text-center text-slate-400 font-medium">ไม่พบข้อมูลส่วนงานตามตัวกรองที่เลือกสำหรับส่งออก</div>`;
+                    return;
+                }
+
+                const headerNote = document.createElement("div");
+                headerNote.className = "p-3 bg-purple-100/70 border border-purple-200 rounded-xl text-purple-950 text-xs flex justify-between items-center";
+                headerNote.innerHTML = `
+                    <span>📋 <strong>ตารางสรุปประเด็นความเสี่ยงและรายละเอียด (${depts.length} ส่วนงาน):</strong> ปรับจำนวนประเด็นย่อยตามระดับความเสี่ยง (แดง/ส้ม/เหลือง/เขียว) และพิมพ์จัดรูปแบบข้อความในช่อง <strong>รายละเอียด</strong> (กว้าง 50% ของตาราง) ได้อิสระ</span>
+                    <span class="font-bold bg-[#A393EB] text-white px-2.5 py-0.5 rounded-full text-xs">${depts.length} ส่วนงาน</span>
+                `;
+                container.appendChild(headerNote);
+
+                depts.forEach((dept, idx) => {
+                    const d = customRiskDetailTableOverrides[dept];
+                    const cleanId = dept.replace(/[^a-zA-Z0-9ก-๙]/g, '_');
+                    const tot = (d.red || 0) + (d.orange || 0) + (d.yellow || 0) + (d.green || 0);
+
+                    const card = document.createElement("div");
+                    card.className = "w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 shadow-xs";
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-200">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-full bg-[#A393EB] text-white flex items-center justify-center font-bold text-xs">${idx + 1}</span>
+                                <h4 class="font-black text-slate-900 text-sm">${dept}</h4>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-slate-500 font-medium">รวมประเด็นย่อย:</span>
+                                <span id="risk-detail-tot-${cleanId}" class="px-3 py-0.5 rounded-full bg-purple-100 text-purple-950 font-black text-xs">${tot}</span>
+                            </div>
+                        </div>
+
+                        <!-- 4 Risk Count Inputs -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-white p-3 rounded-xl border border-slate-200">
+                            <div>
+                                <label class="block font-bold text-red-700 text-xs mb-1">🔴 แดง (สูง):</label>
+                                <input type="number" min="0" value="${d.red || 0}" oninput="updateCustomRiskDetailCount('${dept.replace(/'/g, "\\'")}', 'red', this.value)" class="w-full px-2.5 py-1.5 bg-red-50/60 border border-red-200 rounded-lg text-center font-black text-red-900 text-xs outline-none focus:ring-2 focus:ring-red-400">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-orange-700 text-xs mb-1">🟠 ส้ม (ค่อนข้างสูง):</label>
+                                <input type="number" min="0" value="${d.orange || 0}" oninput="updateCustomRiskDetailCount('${dept.replace(/'/g, "\\'")}', 'orange', this.value)" class="w-full px-2.5 py-1.5 bg-orange-50/60 border border-orange-200 rounded-lg text-center font-black text-orange-900 text-xs outline-none focus:ring-2 focus:ring-orange-400">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-amber-700 text-xs mb-1">🟡 เหลือง (ปานกลาง):</label>
+                                <input type="number" min="0" value="${d.yellow || 0}" oninput="updateCustomRiskDetailCount('${dept.replace(/'/g, "\\'")}', 'yellow', this.value)" class="w-full px-2.5 py-1.5 bg-amber-50/60 border border-amber-200 rounded-lg text-center font-black text-amber-900 text-xs outline-none focus:ring-2 focus:ring-amber-400">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-emerald-700 text-xs mb-1">🟢 เขียว (ต่ำ):</label>
+                                <input type="number" min="0" value="${d.green || 0}" oninput="updateCustomRiskDetailCount('${dept.replace(/'/g, "\\'")}', 'green', this.value)" class="w-full px-2.5 py-1.5 bg-emerald-50/60 border border-emerald-200 rounded-lg text-center font-black text-emerald-900 text-xs outline-none focus:ring-2 focus:ring-emerald-400">
+                            </div>
+                        </div>
+
+                        <!-- Details Rich Text Box (กว้างที่สุด 50% ของตาราง) -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                                <label class="block font-bold text-slate-800 text-xs">รายละเอียด (แสดงในคอลัมน์กว้าง 50% ของตาราง):</label>
+                                <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+                                    <span class="text-[10px] text-slate-400 font-medium px-1">จัดรูปแบบ:</span>
+                                    <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-black rounded-lg text-xs transition" title="ตัวหนา (Ctrl+B)"><b>B</b></button>
+                                    <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-black rounded-lg text-xs transition" title="ขีดเส้นใต้ (Ctrl+U)"><u>U</u></button>
+                                    <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded-lg text-xs transition" title="ตัวเอียง (Ctrl+I)"><i>I</i></button>
+                                    <button type="button" onmousedown="event.preventDefault(); document.execCommand('removeFormat', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs transition" title="ล้างรูปแบบ">🧹</button>
+                                </div>
+                            </div>
+                            <div contenteditable="true" oninput="updateCustomRiskDetailText('${dept.replace(/'/g, "\\'")}', this.innerHTML)" class="w-full bg-white border border-slate-200 rounded-xl p-3 min-h-[100px] max-h-[250px] overflow-y-auto text-xs focus:ring-2 focus:ring-[#A393EB] outline-none leading-relaxed text-slate-800 shadow-2xs">${d.details}</div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                return;
+            }
 
             if (currentPdfExportMode === 'mode3') {
                 const matrixDepts = [...new Set(filteredData.map(d => d.department))].sort();
@@ -3780,6 +3939,103 @@
             `;
         }
 
+        function renderRiskDetailTablePdf(printContainer) {
+            const titleInput = document.getElementById("pdf-header-title-input");
+            const meetingInput = document.getElementById("pdf-header-meeting-input");
+            const line1Title = titleInput ? titleInput.value : "สรุปประเด็นความเสี่ยงและรายละเอียดผลการตรวจสอบ";
+            const line2Meeting = meetingInput ? `การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ ${meetingInput.value}` : "การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ 1/2568";
+
+            const depts = [...new Set(filteredData.map(d => d.department))].sort();
+            initCustomRiskDetailData(depts);
+
+            let rowsHtml = "";
+            let grandRed = 0, grandOrange = 0, grandYellow = 0, grandGreen = 0, grandTotal = 0;
+
+            depts.forEach((dept, idx) => {
+                const d = customRiskDetailTableOverrides[dept] || { red: 0, orange: 0, yellow: 0, green: 0, details: '-' };
+                const rowTot = (d.red || 0) + (d.orange || 0) + (d.yellow || 0) + (d.green || 0);
+
+                grandRed += (d.red || 0);
+                grandOrange += (d.orange || 0);
+                grandYellow += (d.yellow || 0);
+                grandGreen += (d.green || 0);
+                grandTotal += rowTot;
+
+                const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+
+                rowsHtml += `
+                    <tr style="background-color: ${rowBg}; border-bottom: 1px solid #cbd5e1; font-size: 13pt; page-break-inside: avoid; break-inside: avoid;">
+                        <td style="padding: 10px 12px; font-weight: bold; color: #0f172a; text-align: left; vertical-align: top; border: 1px solid #94a3b8; width: 18%;">
+                            ${dept}
+                        </td>
+                        <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #991b1b; vertical-align: top; border: 1px solid #94a3b8; width: 6%; background-color: #fef2f2;">
+                            ${d.red || ''}
+                        </td>
+                        <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #9a3412; vertical-align: top; border: 1px solid #94a3b8; width: 6%; background-color: #fff7ed;">
+                            ${d.orange || ''}
+                        </td>
+                        <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #854d0e; vertical-align: top; border: 1px solid #94a3b8; width: 6%; background-color: #fefce8;">
+                            ${d.yellow || ''}
+                        </td>
+                        <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #166534; vertical-align: top; border: 1px solid #94a3b8; width: 6%; background-color: #f0fdf4;">
+                            ${d.green || ''}
+                        </td>
+                        <td style="padding: 10px 6px; text-align: center; font-weight: bold; color: #0f172a; vertical-align: top; border: 1px solid #94a3b8; width: 8%; background-color: #f1f5f9;">
+                            ${rowTot || 0}
+                        </td>
+                        <td style="padding: 10px 14px; text-align: left; vertical-align: top; border: 1px solid #94a3b8; width: 50%; line-height: 1.55; color: #1e293b; font-size: 13pt; word-break: break-word;">
+                            ${formatInitialHtml(d.details || '-')}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            printContainer.innerHTML = `
+                <div style="width: 100%; font-family: 'Prompt', sans-serif; padding: 6px 2px; box-sizing: border-box;">
+                    <!-- Header Titles -->
+                    <div style="text-align: center; margin-bottom: 18px;">
+                        <h1 style="font-size: 20pt; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; line-height: 1.3;">
+                            ${line1Title}
+                        </h1>
+                        <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
+                            ${line2Meeting}
+                        </h2>
+                    </div>
+
+                    <!-- Risk Summary Table (6 count columns + 1 detail column = 7 columns) -->
+                    <div style="width: 100%; overflow: hidden; border-radius: 8px; border: 1.5px solid #475569;">
+                        <table class="pdf-table" style="width: 100%; border-collapse: collapse; font-family: 'Prompt', sans-serif;">
+                            <thead>
+                                <tr style="background-color: #0f172a; color: #ffffff; text-align: center; font-size: 13pt; font-weight: bold;">
+                                    <th style="padding: 10px 8px; border: 1px solid #475569; width: 18%; text-align: center;">ส่วนงาน</th>
+                                    <th style="padding: 10px 6px; border: 1px solid #475569; width: 6%; background-color: #dc2626; color: #ffffff;">แดง</th>
+                                    <th style="padding: 10px 6px; border: 1px solid #475569; width: 6%; background-color: #ea580c; color: #ffffff;">ส้ม</th>
+                                    <th style="padding: 10px 6px; border: 1px solid #475569; width: 6%; background-color: #ca8a04; color: #ffffff;">เหลือง</th>
+                                    <th style="padding: 10px 6px; border: 1px solid #475569; width: 6%; background-color: #16a34a; color: #ffffff;">เขียว</th>
+                                    <th style="padding: 10px 6px; border: 1px solid #475569; width: 8%; background-color: #334155; color: #ffffff;">รวม</th>
+                                    <th style="padding: 10px 8px; border: 1px solid #475569; width: 50%; text-align: center;">รายละเอียด</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr style="background-color: #e2e8f0; font-weight: 800; color: #0f172a; text-align: center; font-size: 13pt; border-top: 2px solid #334155;">
+                                    <td style="padding: 10px 12px; text-align: center; border: 1px solid #94a3b8;">รวม</td>
+                                    <td style="padding: 10px 6px; border: 1px solid #94a3b8; color: #991b1b; background-color: #fee2e2;">${grandRed || ''}</td>
+                                    <td style="padding: 10px 6px; border: 1px solid #94a3b8; color: #9a3412; background-color: #ffedd5;">${grandOrange || ''}</td>
+                                    <td style="padding: 10px 6px; border: 1px solid #94a3b8; color: #854d0e; background-color: #fefce8;">${grandYellow || ''}</td>
+                                    <td style="padding: 10px 6px; border: 1px solid #94a3b8; color: #166534; background-color: #f0fdf4;">${grandGreen || ''}</td>
+                                    <td style="padding: 10px 6px; border: 1px solid #94a3b8; color: #0f172a; background-color: #cbd5e1;">${grandTotal || 0}</td>
+                                    <td style="padding: 10px 8px; border: 1px solid #94a3b8; text-align: center; color: #64748b;">-</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
         function triggerPrintPdf() {
             const printContainer = document.getElementById("printable-pdf-container");
             if (!printContainer) return;
@@ -3787,6 +4043,8 @@
 
             if (currentPdfExportMode === 'mode3') {
                 renderExecutiveMatrixPdf(printContainer);
+            } else if (currentPdfExportMode === 'mode4') {
+                renderRiskDetailTablePdf(printContainer);
             } else {
                 renderPresentationPdf(printContainer);
             }
