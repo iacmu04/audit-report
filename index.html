@@ -3642,9 +3642,6 @@
                 const findingChunks = splitContentIntoSlideChunks(findingHtml, 750);
 
                 findingChunks.forEach((chunk, cIdx) => {
-                    const isSubPart = cIdx > 0;
-                    const badgeSuffix = isSubPart ? ` (ต่อ ${cIdx + 1}/${findingChunks.length})` : (findingChunks.length > 1 ? ` (1/${findingChunks.length})` : '');
-
                     contentSlidesHtml += `
                         <div class="pdf-page-break-after" style="padding: 8px 2px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
                             <div class="pdf-slide-card" style="background-color: #ffffff; border: 2.5px solid ${riskBgColor}; border-radius: 14px; padding: 18px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); page-break-inside: avoid; break-inside: avoid; min-height: 180px; box-decoration-break: clone; -webkit-box-decoration-break: clone;">
@@ -3659,7 +3656,7 @@
                                 <!-- บรรทัดที่ 3: หัวข้อ ข้อตรวจพบ : ระดับความเสี่ยง (ตรงกลาง 18pt) -->
                                 <div style="text-align: center; margin-bottom: 16px;">
                                     <span style="display: inline-block; background-color: ${riskBgColor}; color: ${riskTextColor}; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                        ข้อตรวจพบ : ระดับความเสี่ยง ${item.risk_level || rkKey}${badgeSuffix}
+                                        ข้อตรวจพบ : ระดับความเสี่ยง ${item.risk_level || rkKey}
                                     </span>
                                 </div>
                                 <!-- บรรทัดที่ 4: เนื้อหาข้อตรวจพบ (14pt) -->
@@ -3687,8 +3684,6 @@
 
                     const recChunks = splitContentIntoSlideChunks(fullRecHtml, 750);
                     recChunks.forEach((chunk, rIdx) => {
-                        const isSubPart = rIdx > 0;
-                        const badgeSuffix = isSubPart ? ` (ต่อ ${rIdx + 1}/${recChunks.length})` : (recChunks.length > 1 ? ` (1/${recChunks.length})` : '');
                         const isLast = (index === filteredData.length - 1) && (rIdx === recChunks.length - 1);
                         const pageBreakClass = isLast ? "" : "pdf-page-break-after";
 
@@ -3706,7 +3701,7 @@
                                     <!-- บรรทัดที่ 3: หัวข้อ ข้อเสนอแนะ (ตรงกลาง 18pt) -->
                                     <div style="text-align: center; margin-bottom: 16px;">
                                         <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                            ข้อเสนอแนะ${badgeSuffix}
+                                            ข้อเสนอแนะ
                                         </span>
                                     </div>
                                     <!-- บรรทัดที่ 4: เนื้อหาข้อเสนอแนะ (14pt) -->
@@ -3733,12 +3728,12 @@
                         const showItemNumber = clarifyItems.length > 1;
 
                         clarifyCards.push(`
-                            <div style="margin-bottom: 12px; padding: 14px 18px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14pt; line-height: 1.65;">
+                            <div style="margin-bottom: 14px; font-size: 14pt; line-height: 1.65;">
                                 <div style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        ${showItemNumber ? `<span style="font-weight: 800; color: #1e293b; font-size: 14pt;">รายการที่ ${idx + 1}:</span>` : ''}
+                                        ${showItemNumber ? `<span style="font-weight: 800; color: #0f172a; font-size: 14pt;">รายการที่ ${idx + 1}:</span>` : ''}
                                         <span style="font-weight: bold; color: #475569; font-size: 13pt;">สถานะ:</span>
-                                        <span style="display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12pt; font-weight: bold; background-color: ${stBg}; color: ${stText};">${statusVal}</span>
+                                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12pt; font-weight: bold; background-color: ${stBg}; color: ${stText};">${statusVal}</span>
                                     </div>
                                 </div>
                                 <div style="color: #1e293b; line-height: 1.65; font-size: 14pt; text-align: left; word-break: break-word;">
@@ -3752,8 +3747,6 @@
                     const clarifyChunks = splitContentIntoSlideChunks(fullClarifyHtml, 750);
 
                     clarifyChunks.forEach((chunk, cIdx) => {
-                        const isSubPart = cIdx > 0;
-                        const badgeSuffix = isSubPart ? ` (ต่อ ${cIdx + 1}/${clarifyChunks.length})` : (clarifyChunks.length > 1 ? ` (1/${clarifyChunks.length})` : '');
                         const isLast = (index === filteredData.length - 1) && (cIdx === clarifyChunks.length - 1);
                         const pageBreakClass = isLast ? "" : "pdf-page-break-after";
 
@@ -3771,7 +3764,7 @@
                                     <!-- บรรทัดที่ 3: หัวข้อ ข้อเสนอแนะ (ตรงกลาง 18pt) -->
                                     <div style="text-align: center; margin-bottom: 16px;">
                                         <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                            ผลการดำเนินงานตามข้อเสนอแนะ${badgeSuffix}
+                                            ผลการดำเนินงานตามข้อเสนอแนะ
                                         </span>
                                     </div>
                                     <!-- บรรทัดที่ 4: เนื้อหาผลการดำเนินงาน (14pt) -->
