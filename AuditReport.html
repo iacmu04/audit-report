@@ -1365,165 +1365,203 @@
             }
         }
 
+        const SPREADSHEET_ID = "1ZzryERuXVUz6JM3F8RadJPOlfM7vOoGsxWX-WaWyGX8";
         let DYNAMIC_MEETING_ROUNDS = ["ครั้งที่ 1/2568", "ครั้งที่ 2/2568", "ครั้งที่ 1/2569", "ครั้งที่ 2/2569", "ครั้งที่ 3/2569", "ครั้งที่ 1/2570", "ครั้งที่ 2/2570"];
         let DYNAMIC_CLARIFY_ROUNDS = ["1/2569", "2/2569", "3/2569", "4/2569"];
         let DYNAMIC_DEPT_BY_YEAR = {};
         let DYNAMIC_TEAMS = ["ทีม 1", "ทีม 2"];
 
-        function loadLiveDataFromGSheet() {
+        function parseCSVToObjects(text) {
+            if (!text || typeof text !== 'string') return [];
+            let r = [];
+            let q = false;
+            let row = [''];
+            for (let i = 0; i < text.length; i++) {
+                let cc = text[i], nc = text[i+1];
+                if (cc === '"') {
+                    if (q && nc === '"') { row[row.length - 1] += '"'; i++; }
+                    else { q = !q; }
+                } else if (cc === ',' && !q) {
+                    row.push('');
+                } else if ((cc === '\r' || cc === '\n') && !q) {
+                    if (cc === '\r' && nc === '\n') i++;
+                    r.push(row);
+                    row = [''];
+                } else {
+                    row[row.length - 1] += cc;
+                }
+            }
+            if (row.length > 1 || row[0] !== '') r.push(row);
+            if (r.length < 2) return [];
+
+            const headers = r[0].map(h => h.trim());
+            const items = [];
+            for (let i = 1; i < r.length; i++) {
+                const rowCells = r[i];
+                if (!rowCells.some(cell => cell && cell.trim() !== '')) continue;
+                const obj = {};
+                headers.forEach((h, hIdx) => {
+                    if (h) obj[h] = (rowCells[hIdx] !== undefined ? rowCells[hIdx].trim() : '');
+                });
+                items.push(obj);
+            }
+            return items;
+        }
+
+        async function fetchSheetCSV(sheetName) {
+            const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status} when fetching sheet ${sheetName}`);
+            const text = await res.text();
+            return parseCSVToObjects(text);
+        }
+
+        async function loadLiveDataFromGSheet() {
             const badge = document.getElementById('gsheet-live-badge');
             if (badge) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span>กำลังโหลดข้อมูลจาก Google Sheets...</span>';
+
+            // Try loading cached data first for instant UI response
             try {
-                fetch(`${DEFAULT_GSCRIPT_URL}?action=getData`)
-                    .then(res => {
-                        if (!res.ok) {
-                            if (badge) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span><span>Fetch Error: HTTP ' + res.status + '</span>';
+                const cached = localStorage.getItem('audit_cached_consolidated');
+                const cachedUsers = localStorage.getItem('audit_cached_users');
+                if (cached) {
+                    const parsedCache = JSON.parse(cached);
+                    if (Array.isArray(parsedCache) && parsedCache.length > 0 && (!rawData || rawData.length === 0)) {
+                        rawData = parsedCache;
+                        initDashboard();
+                    }
+                }
+                if (cachedUsers) {
+                    const parsedUsers = JSON.parse(cachedUsers);
+                    if (Array.isArray(parsedUsers) && parsedUsers.length > 0) {
+                        systemUsers = parsedUsers;
+                    }
+                }
+            } catch(e) {
+                console.warn("Local cache read error:", e);
+            }
+
+            try {
+                // Parallel direct fetch of Report, Clarify, and User sheets directly from Google Sheets
+                const [reportRows, clarifyRows, userRows] = await Promise.all([
+                    fetchSheetCSV('Report'),
+                    fetchSheetCSV('Clarify'),
+                    fetchSheetCSV('User').catch(() => [])
+                ]);
+
+                if (Array.isArray(userRows) && userRows.length > 0) {
+                    systemUsers = userRows;
+                    try { localStorage.setItem('audit_cached_users', JSON.stringify(userRows)); } catch(e){}
+                }
+
+                if (!reportRows || reportRows.length === 0) {
+                    throw new Error("ไม่พบข้อมูลในชีท Report");
+                }
+
+                const reportMap = {};
+                const consolidatedData = [];
+
+                // Phase 1: Build Base Finding records from Report sheet
+                reportRows.forEach((r, idx) => {
+                    const fText = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
+                    const dText = String(r['ส่วนงาน'] || r['department'] || '').trim();
+                    if (!fText && !dText) return;
+
+                    let fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
+                    if (!fid) fid = 'AUTO-R-' + (idx + 1);
+
+                    const rawRisk = String(r['ระดับความเสี่ยง'] || r['Risk Level'] || r['risk_level'] || 'ต่ำ').trim();
+                    const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
+                    const recFromReport = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
+
+                    const newRecord = {
+                        finding_id: fid,
+                        year: String(r['ปี'] || r['year'] || '2570').trim(),
+                        department: dText,
+                        meeting_round: String(r['รอบการประชุม คตส.'] || r['meeting_round'] || '').trim(),
+                        main_topic: String(r['กิจกรรม'] || r['ประเด็นหลัก'] || r['Activity / Topic'] || r['main_topic'] || '').trim(),
+                        sub_topic: String(r['ประเด็น'] || r['ประเด็นย่อย'] || r['sub_topic'] || '').trim(),
+                        type: String(r['ประเภท'] || r['type'] || 'ข้อตรวจพบปีปัจจุบัน').trim(),
+                        risk_level: cleanRisk,
+                        finding: fText,
+                        report_url: String(r['รายงานฉบับเต็ม'] || r['report_url'] || '').trim(),
+                        initial_rec: recFromReport,
+                        overall_status: recFromReport ? 'ยังไม่ได้ชี้แจง' : 'ไม่มีข้อเสนอแนะ',
+                        items: []
+                    };
+
+                    reportMap[fid] = newRecord;
+                    consolidatedData.push(newRecord);
+                });
+
+                // Phase 2: Attach Clarify items
+                let matchedClarify = 0;
+                const loadedClarifyRounds = new Set();
+                clarifyRows.forEach(r => {
+                    const fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
+                    const recText = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
+                    const clarText = String(r['รายละเอียดผลการดำเนินงาน'] || r['รายละเอียดการชี้แจง'] || r['Clarification'] || '').trim();
+                    const statText = String(r['สถานะผลการดำเนินงาน'] || r['สถานะการดำเนินงาน'] || r['Action Status'] || 'ยังไม่ได้ชี้แจง').trim();
+                    const clarifyRound = String(r['รอบการชี้แจง คตส.'] || r['รอบการชี้แจง'] || r['clarify_round'] || r['Clarify Round'] || '').trim();
+
+                    if (clarifyRound) loadedClarifyRounds.add(clarifyRound);
+
+                    if (recText || clarText || statText) {
+                        const recItem = {
+                            recommendation: recText || '-',
+                            clarification: clarText || 'ยังไม่มีข้อมูลชี้แจง',
+                            status: statText,
+                            clarify_round: clarifyRound
+                        };
+
+                        if (fid && reportMap[fid]) {
+                            reportMap[fid].items.push(recItem);
+                            matchedClarify++;
                         }
-                        return res.json();
-                    })
-                    .then(res => {
-                        try {
-                            if (res && Array.isArray(res.users)) {
-                                systemUsers = res.users;
-                            }
+                    }
+                });
 
-                            if (res && res.options) {
-                                if (Array.isArray(res.options.rounds) && res.options.rounds.length > 0) {
-                                    DYNAMIC_MEETING_ROUNDS = res.options.rounds;
-                                }
-                                if (res.options.deptByYear && Object.keys(res.options.deptByYear).length > 0) {
-                                    DYNAMIC_DEPT_BY_YEAR = res.options.deptByYear;
-                                }
-                                if (Array.isArray(res.options.teams) && res.options.teams.length > 0) {
-                                    DYNAMIC_TEAMS = res.options.teams;
-                                }
-                                if (res.options.pradenMapping && Object.keys(res.options.pradenMapping).length > 0) {
-                                    Object.keys(res.options.pradenMapping).forEach(key => {
-                                        if (!MASTER_PRADEN_MAP[key]) MASTER_PRADEN_MAP[key] = [];
-                                        res.options.pradenMapping[key].forEach(sub => {
-                                            if (!MASTER_PRADEN_MAP[key].includes(sub)) MASTER_PRADEN_MAP[key].push(sub);
-                                        });
-                                    });
-                                }
-                            }
+                if (loadedClarifyRounds.size > 0) {
+                    DYNAMIC_CLARIFY_ROUNDS = [...loadedClarifyRounds].sort();
+                }
 
-                            if (res && res.status === 'success' && Array.isArray(res.report) && res.report.length > 0) {
-                                const reportMap = {};
-                                const consolidatedData = [];
-
-                                // Phase 1: Build Base Finding records from Report sheet
-                                res.report.forEach((r, idx) => {
-                                    const src = String(r._source || '').toLowerCase();
-                                    if (src === 'clarify') return; // Skip clarify rows in Phase 1
-
-                                    const fText = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
-                                    const dText = String(r['ส่วนงาน'] || r['department'] || '').trim();
-                                    if (!fText && !dText) return;
-
-                                    let fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
-                                    if (!fid) fid = 'AUTO-R-' + (idx + 1);
-
-                                    const rawRisk = String(r['ระดับความเสี่ยง'] || r['Risk Level'] || r['risk_level'] || 'ต่ำ').trim();
-                                    const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
-
-                                    const recFromReport = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
-
-                                    const newRecord = {
-                                        finding_id: fid,
-                                        year: String(r['ปี'] || r['year'] || '2570').trim(),
-                                        department: dText,
-                                        meeting_round: String(r['รอบการประชุม คตส.'] || r['meeting_round'] || '').trim(),
-                                        main_topic: String(r['กิจกรรม'] || r['ประเด็นหลัก'] || r['Activity / Topic'] || r['main_topic'] || '').trim(),
-                                        sub_topic: String(r['ประเด็น'] || r['ประเด็นย่อย'] || r['sub_topic'] || '').trim(),
-                                        type: String(r['ประเภท'] || r['type'] || 'ข้อตรวจพบปีปัจจุบัน').trim(),
-                                        risk_level: cleanRisk,
-                                        finding: fText,
-                                        report_url: String(r['รายงานฉบับเต็ม'] || r['report_url'] || '').trim(),
-                                        initial_rec: recFromReport,
-                                        overall_status: recFromReport ? 'ยังไม่ได้ชี้แจง' : 'ไม่มีข้อเสนอแนะ',
-                                        items: []
-                                    };
-
-                                    reportMap[fid] = newRecord;
-                                    consolidatedData.push(newRecord);
-                                });
-
-                                // Phase 2: Attach Clarify items
-                                let matchedClarify = 0;
-                                const loadedClarifyRounds = new Set();
-                                res.report.forEach(r => {
-                                    const src = String(r._source || '').toLowerCase();
-                                    if (src !== 'clarify') return;
-
-                                    const fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
-                                    const recText = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
-                                    const clarText = String(r['รายละเอียดผลการดำเนินงาน'] || r['รายละเอียดการชี้แจง'] || r['Clarification'] || '').trim();
-                                    const statText = String(r['สถานะผลการดำเนินงาน'] || r['สถานะการดำเนินงาน'] || r['Action Status'] || 'ยังไม่ได้ชี้แจง').trim();
-                                    const clarifyRound = String(r['รอบการชี้แจง คตส.'] || r['รอบการชี้แจง'] || r['clarify_round'] || r['Clarify Round'] || '').trim();
-
-                                    if (clarifyRound) loadedClarifyRounds.add(clarifyRound);
-
-                                    if (recText || clarText || statText) {
-                                        const recItem = {
-                                            recommendation: recText || '-',
-                                            clarification: clarText || 'ยังไม่มีข้อมูลชี้แจง',
-                                            status: statText,
-                                            clarify_round: clarifyRound
-                                        };
-
-                                        if (fid && reportMap[fid]) {
-                                            reportMap[fid].items.push(recItem);
-                                            matchedClarify++;
-                                        }
-                                    }
-                                });
-
-                                if (loadedClarifyRounds.size > 0) {
-                                    DYNAMIC_CLARIFY_ROUNDS = [...loadedClarifyRounds].sort();
-                                }
-
-                                // Phase 3: Recalculate overall status based on Clarify items and Report Col J recommendation
-                                consolidatedData.forEach(p => {
-                                    if (p.items.length > 0) {
-                                        if (p.items.every(i => i.status === 'ดำเนินการแล้ว')) {
-                                            p.overall_status = 'ดำเนินการแล้ว';
-                                        } else if (p.items.some(i => i.status === 'อยู่ระหว่างดำเนินการ')) {
-                                            p.overall_status = 'อยู่ระหว่างดำเนินการ';
-                                        } else {
-                                            p.overall_status = 'ยังไม่ได้ชี้แจง';
-                                        }
-                                    } else {
-                                        if (p.initial_rec) {
-                                            p.overall_status = 'ยังไม่ได้ชี้แจง';
-                                            p.items.push({
-                                                recommendation: p.initial_rec,
-                                                clarification: 'ยังไม่มีข้อมูลชี้แจง',
-                                                status: 'ยังไม่ได้ชี้แจง'
-                                            });
-                                        } else {
-                                            p.overall_status = 'ไม่มีข้อเสนอแนะ';
-                                        }
-                                    }
-                                });
-
-                                rawData = consolidatedData;
-                                if (badge) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>โหลดข้อมูลแล้ว ' + consolidatedData.length + ' ประเด็น, ' + matchedClarify + ' ข้อเสนอแนะ</span>';
-                                initDashboard();
-                            } else {
-                                if (badge) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span><span>ไม่พบข้อมูล (status=' + (res ? res.status : 'null') + ', report=' + (res && res.report ? res.report.length : '0') + ')</span>';
-                            }
-                        } catch(processErr) {
-                            if (badge) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span><span>Processing Error: ' + processErr.message + '</span>';
-                            console.error("Data processing error:", processErr);
+                // Phase 3: Recalculate overall status based on Clarify items and Report Col J recommendation
+                consolidatedData.forEach(p => {
+                    if (p.items.length > 0) {
+                        if (p.items.every(i => i.status === 'ดำเนินการแล้ว')) {
+                            p.overall_status = 'ดำเนินการแล้ว';
+                        } else if (p.items.some(i => i.status === 'อยู่ระหว่างดำเนินการ')) {
+                            p.overall_status = 'อยู่ระหว่างดำเนินการ';
+                        } else {
+                            p.overall_status = 'ยังไม่ได้ชี้แจง';
                         }
-                    })
-                    .catch(err => {
-                        if (badge) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span><span>Fetch Error: ' + err.message + '</span>';
-                        console.error("Error loading live data:", err);
-                    });
+                    } else {
+                        if (p.initial_rec) {
+                            p.overall_status = 'ยังไม่ได้ชี้แจง';
+                            p.items.push({
+                                recommendation: p.initial_rec,
+                                clarification: 'ยังไม่มีข้อมูลชี้แจง',
+                                status: 'ยังไม่ได้ชี้แจง'
+                            });
+                        } else {
+                            p.overall_status = 'ไม่มีข้อเสนอแนะ';
+                        }
+                    }
+                });
+
+                rawData = consolidatedData;
+                try { localStorage.setItem('audit_cached_consolidated', JSON.stringify(consolidatedData)); } catch(e){}
+
+                if (badge) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>เชื่อมต่อ Google Sheets แล้ว (' + consolidatedData.length + ' ประเด็น)</span>';
+                initDashboard();
+
             } catch(err) {
-                if (badge) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span><span>Exception: ' + err.message + '</span>';
-                console.error("Fetch exception:", err);
+                console.error("Live fetch error:", err);
+                if (rawData && rawData.length > 0) {
+                    if (badge) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>ใช้งานข้อมูลแคชล่าสุด (' + rawData.length + ' ประเด็น)</span>';
+                } else {
+                    if (badge) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span><span>เกิดข้อผิดพลาด: ' + err.message + '</span>';
+                }
             }
         }
 
