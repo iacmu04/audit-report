@@ -2669,24 +2669,71 @@
         }
 
         let customRiskDetailTableOverrides = {};
+        let riskDetailSource = "report"; // "report" or "clarify"
 
-        function initCustomRiskDetailData(depts) {
+        function setRiskDetailSource(source) {
+            riskDetailSource = source;
+            customRiskDetailTableOverrides = {};
+            const depts = [...new Set(filteredData.map(d => d.department))].sort();
+            initCustomRiskDetailData(depts, source);
+            renderPdfPreEditor();
+        }
+
+        function initCustomRiskDetailData(depts, source = riskDetailSource) {
             depts.forEach(dept => {
                 if (!customRiskDetailTableOverrides[dept]) {
                     const deptItems = filteredData.filter(d => d.department === dept);
                     let red = 0, orange = 0, yellow = 0, green = 0;
                     const detailLines = [];
 
-                    deptItems.forEach((it, i) => {
-                        const rkStr = String(it.risk_level || '');
-                        if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) red++;
-                        else if (rkStr.includes("ค่อนข้างสูง")) orange++;
-                        else if (rkStr.includes("ปานกลาง")) yellow++;
-                        else if (rkStr.includes("ต่ำ")) green++;
+                    if (source === 'clarify') {
+                        // ดึงจากชีท Clarify (ข้อเสนอแนะรายข้อ)
+                        let itemIndex = 1;
+                        deptItems.forEach(it => {
+                            const rkStr = String(it.risk_level || '');
+                            let rkType = 'green';
+                            if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) rkType = 'red';
+                            else if (rkStr.includes("ค่อนข้างสูง")) rkType = 'orange';
+                            else if (rkStr.includes("ปานกลาง")) rkType = 'yellow';
 
-                        const topicText = it.sub_topic || it.main_topic || `ประเด็นที่ ${i + 1}`;
-                        detailLines.push(`${i + 1}. ${topicText}`);
-                    });
+                            if (it.items && it.items.length > 0) {
+                                it.items.forEach(rec => {
+                                    if (rkType === 'red') red++;
+                                    else if (rkType === 'orange') orange++;
+                                    else if (rkType === 'yellow') yellow++;
+                                    else green++;
+
+                                    const txt = (rec.recommendation && rec.recommendation !== '-') 
+                                        ? rec.recommendation 
+                                        : (it.sub_topic || it.main_topic || `ประเด็นที่ ${itemIndex}`);
+                                    detailLines.push(`${itemIndex}. ${txt}`);
+                                    itemIndex++;
+                                });
+                            } else {
+                                if (rkType === 'red') red++;
+                                else if (rkType === 'orange') orange++;
+                                else if (rkType === 'yellow') yellow++;
+                                else green++;
+
+                                const txt = it.initial_rec || it.sub_topic || it.main_topic || `ประเด็นที่ ${itemIndex}`;
+                                detailLines.push(`${itemIndex}. ${txt}`);
+                                itemIndex++;
+                            }
+                        });
+                    } else {
+                        // ดึงจากชีท Report (ข้อตรวจพบ / ประเด็นย่อย)
+                        deptItems.forEach((it, i) => {
+                            const rkStr = String(it.risk_level || '');
+                            if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) red++;
+                            else if (rkStr.includes("ค่อนข้างสูง")) orange++;
+                            else if (rkStr.includes("ปานกลาง")) yellow++;
+                            else if (rkStr.includes("ต่ำ")) green++;
+                            else green++;
+
+                            const topicText = it.sub_topic || it.main_topic || `ประเด็นที่ ${i + 1}`;
+                            detailLines.push(`${i + 1}. ${topicText}`);
+                        });
+                    }
 
                     customRiskDetailTableOverrides[dept] = {
                         red: red,
@@ -2700,7 +2747,7 @@
         }
 
         function updateCustomRiskDetailCount(dept, rkKey, val) {
-            if (!customRiskDetailTableOverrides[dept]) initCustomRiskDetailData([dept]);
+            if (!customRiskDetailTableOverrides[dept]) initCustomRiskDetailData([dept], riskDetailSource);
             customRiskDetailTableOverrides[dept][rkKey] = parseInt(val) || 0;
             const d = customRiskDetailTableOverrides[dept];
             const cleanId = dept.replace(/[^a-zA-Z0-9ก-๙]/g, '_');
@@ -2711,7 +2758,7 @@
         }
 
         function updateCustomRiskDetailText(dept, val) {
-            if (!customRiskDetailTableOverrides[dept]) initCustomRiskDetailData([dept]);
+            if (!customRiskDetailTableOverrides[dept]) initCustomRiskDetailData([dept], riskDetailSource);
             customRiskDetailTableOverrides[dept].details = val;
         }
 
@@ -2892,10 +2939,28 @@
                 }
 
                 const headerNote = document.createElement("div");
-                headerNote.className = "p-3 bg-purple-100/70 border border-purple-200 rounded-xl text-purple-950 text-xs flex justify-between items-center";
+                headerNote.className = "p-3.5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl text-purple-950 text-xs space-y-2.5 shadow-2xs";
                 headerNote.innerHTML = `
-                    <span>📋 <strong>ตารางสรุปประเด็นความเสี่ยงและรายละเอียด (${depts.length} ส่วนงาน):</strong> ปรับจำนวนประเด็นย่อยตามระดับความเสี่ยง (แดง/ส้ม/เหลือง/เขียว) และพิมพ์จัดรูปแบบข้อความในช่อง <strong>รายละเอียด</strong> (กว้าง 50% ของตาราง) ได้อิสระ</span>
-                    <span class="font-bold bg-[#A393EB] text-white px-2.5 py-0.5 rounded-full text-xs">${depts.length} ส่วนงาน</span>
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <span class="font-black text-slate-800 text-sm">📋 ตารางสรุปประเด็นความเสี่ยงและรายละเอียด (${depts.length} ส่วนงาน)</span>
+                        <span class="font-bold bg-[#A393EB] text-white px-2.5 py-0.5 rounded-full text-xs">${depts.length} ส่วนงาน</span>
+                    </div>
+                    <div class="flex items-center gap-3 flex-wrap bg-white/90 p-2.5 rounded-xl border border-purple-200/80">
+                        <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-database text-purple-600"></i> แหล่งข้อมูลสำหรับดึงประเด็นย่อย:
+                        </span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <label class="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-bold transition ${riskDetailSource === 'report' ? 'bg-[#A393EB] text-white border-[#A393EB] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                                <input type="radio" name="riskDetailSource" value="report" ${riskDetailSource === 'report' ? 'checked' : ''} onchange="setRiskDetailSource('report')" class="hidden">
+                                <span>📄 ดึงจากชีท Report (ข้อตรวจพบ / ประเด็นย่อย)</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-lg border text-xs font-bold transition ${riskDetailSource === 'clarify' ? 'bg-[#A393EB] text-white border-[#A393EB] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                                <input type="radio" name="riskDetailSource" value="clarify" ${riskDetailSource === 'clarify' ? 'checked' : ''} onchange="setRiskDetailSource('clarify')" class="hidden">
+                                <span>💡 ดึงจากชีท Clarify (ข้อเสนอแนะรายข้อ)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-purple-900/80 font-medium">💡 คุณสามารถเลือกสลับแหล่งข้อมูล ปรับตัวเลขจำนวนระดับความเสี่ยง (แดง/ส้ม/เหลือง/เขียว) และพิมพ์จัดรูปแบบข้อความในช่อง <strong>รายละเอียด</strong> (กว้าง 50% ของตาราง) ได้อิสระ</p>
                 `;
                 container.appendChild(headerNote);
 
