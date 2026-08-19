@@ -136,39 +136,48 @@
                 font-family: 'Prompt', sans-serif !important;
             }
 
-            #printable-pdf-container table {
+            #printable-pdf-container table.pdf-table {
                 display: table !important;
                 width: 100% !important;
                 border-collapse: collapse !important;
+                border-spacing: 0 !important;
+                margin-top: 4px !important;
             }
-            #printable-pdf-container thead {
+            #printable-pdf-container table.pdf-table thead {
                 display: table-header-group !important;
             }
-            #printable-pdf-container tbody {
+            #printable-pdf-container table.pdf-table tbody {
                 display: table-row-group !important;
             }
-            #printable-pdf-container tr {
+            #printable-pdf-container table.pdf-table tr {
                 display: table-row !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
+                page-break-inside: auto !important;
+                break-inside: auto !important;
             }
             #printable-pdf-container table.pdf-table th, 
             #printable-pdf-container table.pdf-table td {
                 display: table-cell !important;
-                border: 1px solid #94a3b8 !important;
-                padding: 8px 10px !important;
-                font-size: 14pt !important;
-                line-height: 1.4 !important;
+                border: 1px solid #475569 !important;
+                padding: 6px 8px !important;
+                font-size: 13pt !important;
+                line-height: 1.35 !important;
                 vertical-align: top !important;
+                box-sizing: border-box !important;
+            }
+            #printable-pdf-container table.pdf-table th {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+                font-size: 13pt !important;
+                font-weight: bold !important;
+                text-align: center !important;
+            }
+            #printable-pdf-container table.pdf-table td * {
+                font-size: 13pt !important;
+                line-height: 1.35 !important;
             }
 
             .no-print, #pdf-export-modal, #login-modal {
                 display: none !important;
-            }
-            
-            .pdf-page-break-avoid {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
             }
 
             .pdf-page-break-after {
@@ -378,24 +387,31 @@
                 </div>
 
                 <!-- Dropdown Slicers Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2.5 pt-1">
                     <div>
                         <label class="block font-semibold text-slate-600 mb-0.5">3. ส่วนงาน</label>
-                        <select id="top-slicer-dept" onchange="syncFromTopSlicer('dept', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-medium">
+                        <select id="top-slicer-dept" onchange="syncFromTopSlicer('dept', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-xs">
                             <option value="ALL">ทุกส่วนงาน</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-600 mb-0.5">4. รอบการประชุม คตส.</label>
-                        <select id="top-slicer-round" onchange="syncFromTopSlicer('round', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-medium">
-                            <option value="ALL">ทุกรอบการประชุม</option>
+                        <label class="block font-semibold text-slate-600 mb-0.5">4. รายงาน คตส.</label>
+                        <select id="top-slicer-round" onchange="syncFromTopSlicer('round', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-xs">
+                            <option value="ALL">ทุกรอบรายงาน</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-600 mb-0.5">5. ประเภทการตรวจ</label>
-                        <select id="top-slicer-type" onchange="syncFromTopSlicer('type', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-medium">
+                        <label class="block font-semibold text-slate-600 mb-0.5">5. ชี้แจง คตส.</label>
+                        <select id="top-slicer-clarify-round" onchange="syncFromTopSlicer('clarifyRound', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-xs">
+                            <option value="ALL">ทุกรอบชี้แจง</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-600 mb-0.5">6. ประเภทการตรวจ</label>
+                        <select id="top-slicer-type" onchange="syncFromTopSlicer('type', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-xs">
                             <option value="ALL">ทุกประเภท</option>
                             <option value="ข้อตรวจพบปีปัจจุบัน">ข้อตรวจพบปีปัจจุบัน</option>
                             <option value="ติดตามงานเดิม">ติดตามงานเดิม</option>
@@ -403,8 +419,8 @@
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-600 mb-0.5">6. สถานะผลการดำเนินงาน</label>
-                        <select id="top-slicer-status" onchange="syncFromTopSlicer('status', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-semibold">
+                        <label class="block font-semibold text-slate-600 mb-0.5">7. สถานะผลการดำเนินงาน</label>
+                        <select id="top-slicer-status" onchange="syncFromTopSlicer('status', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-semibold text-xs">
                             <option value="ALL">ทุกสถานะการดำเนินงาน</option>
                             <option value="ดำเนินการแล้ว">🟢 ดำเนินการแล้ว</option>
                             <option value="อยู่ระหว่างดำเนินการ">🟡 อยู่ระหว่างดำเนินการ</option>
@@ -414,15 +430,15 @@
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-600 mb-0.5">7. ประเด็นหลัก</label>
-                        <select id="top-slicer-main" onchange="syncFromTopSlicer('main', this.value)" class="w-full bg-amber-50/70 border border-amber-200 text-amber-900 font-bold rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition">
+                        <label class="block font-semibold text-slate-600 mb-0.5">8. ประเด็นหลัก</label>
+                        <select id="top-slicer-main" onchange="syncFromTopSlicer('main', this.value)" class="w-full bg-amber-50/70 border border-amber-200 text-amber-900 font-bold rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition text-xs">
                             <option value="ALL">ทุกประเด็นหลัก</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-slate-600 mb-0.5">8. ประเด็นย่อย</label>
-                        <select id="top-slicer-sub" onchange="syncFromTopSlicer('sub', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-medium">
+                        <label class="block font-semibold text-slate-600 mb-0.5">9. ประเด็นย่อย</label>
+                        <select id="top-slicer-sub" onchange="syncFromTopSlicer('sub', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-xs">
                             <option value="ALL">ทุกประเด็นย่อย</option>
                         </select>
                     </div>
@@ -616,24 +632,31 @@
             </div>
 
             <!-- Dropdown Slicers Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-6 gap-2.5 pt-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2.5 pt-1">
                 <div>
                     <label class="block font-semibold text-slate-600 mb-0.5">ส่วนงาน</label>
-                    <select id="bottom-slicer-dept" onchange="syncFromBottomSlicer('dept', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-medium">
+                    <select id="bottom-slicer-dept" onchange="syncFromBottomSlicer('dept', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-medium text-xs">
                         <option value="ALL">ทุกส่วนงาน</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block font-semibold text-slate-600 mb-0.5">รอบ คตส.</label>
-                    <select id="bottom-slicer-round" onchange="syncFromBottomSlicer('round', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-medium">
-                        <option value="ALL">ทุกรอบการประชุม</option>
+                    <label class="block font-semibold text-slate-600 mb-0.5">รายงาน คตส.</label>
+                    <select id="bottom-slicer-round" onchange="syncFromBottomSlicer('round', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-medium text-xs">
+                        <option value="ALL">ทุกรอบรายงาน</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-0.5">ชี้แจง คตส.</label>
+                    <select id="bottom-slicer-clarify-round" onchange="syncFromBottomSlicer('clarifyRound', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-medium text-xs">
+                        <option value="ALL">ทุกรอบชี้แจง</option>
                     </select>
                 </div>
 
                 <div>
                     <label class="block font-semibold text-slate-600 mb-0.5">ประเภทการตรวจ</label>
-                    <select id="bottom-slicer-type" onchange="syncFromBottomSlicer('type', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-medium">
+                    <select id="bottom-slicer-type" onchange="syncFromBottomSlicer('type', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-medium text-xs">
                         <option value="ALL">ทุกประเภท</option>
                         <option value="ข้อตรวจพบปีปัจจุบัน">ข้อตรวจพบปีปัจจุบัน</option>
                         <option value="ติดตามงานเดิม">ติดตามงานเดิม</option>
@@ -642,7 +665,7 @@
 
                 <div>
                     <label class="block font-semibold text-slate-600 mb-0.5">สถานะผลดำเนินงาน</label>
-                    <select id="bottom-slicer-status" onchange="syncFromBottomSlicer('status', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-semibold">
+                    <select id="bottom-slicer-status" onchange="syncFromBottomSlicer('status', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-semibold text-xs">
                         <option value="ALL">ทุกสถานะการดำเนินงาน</option>
                         <option value="ดำเนินการแล้ว">🟢 ดำเนินการแล้ว</option>
                         <option value="อยู่ระหว่างดำเนินการ">🟡 อยู่ระหว่างดำเนินการ</option>
@@ -653,14 +676,14 @@
 
                 <div>
                     <label class="block font-semibold text-slate-600 mb-0.5">ประเด็นหลัก</label>
-                    <select id="bottom-slicer-main" onchange="syncFromBottomSlicer('main', this.value)" class="w-full bg-amber-50 border border-amber-200 font-bold text-amber-900 rounded-lg p-2 outline-none">
+                    <select id="bottom-slicer-main" onchange="syncFromBottomSlicer('main', this.value)" class="w-full bg-amber-50 border border-amber-200 font-bold text-amber-900 rounded-lg p-2 outline-none text-xs">
                         <option value="ALL">ทุกประเด็นหลัก</option>
                     </select>
                 </div>
 
                 <div>
                     <label class="block font-semibold text-slate-600 mb-0.5">ประเด็นย่อย</label>
-                    <select id="bottom-slicer-sub" onchange="syncFromBottomSlicer('sub', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-medium">
+                    <select id="bottom-slicer-sub" onchange="syncFromBottomSlicer('sub', this.value)" class="w-full bg-white border border-slate-200 rounded-lg p-2 outline-none font-medium text-xs">
                         <option value="ALL">ทุกประเด็นย่อย</option>
                     </select>
                 </div>
@@ -1096,6 +1119,7 @@
         let selectedRisks = ["ต่ำ", "ปานกลาง", "ค่อนข้างสูง", "สูง"];
         let selectedDept = "ALL";
         let selectedRound = "ALL";
+        let selectedClarifyRound = "ALL";
         let selectedType = "ALL";
         let selectedStatus = "ALL";
         let selectedMain = "ALL";
@@ -1266,6 +1290,7 @@
         }
 
         let DYNAMIC_MEETING_ROUNDS = ["ครั้งที่ 1/2568", "ครั้งที่ 2/2568", "ครั้งที่ 1/2569", "ครั้งที่ 2/2569", "ครั้งที่ 3/2569", "ครั้งที่ 1/2570", "ครั้งที่ 2/2570"];
+        let DYNAMIC_CLARIFY_ROUNDS = ["1/2569", "2/2569", "3/2569", "4/2569"];
         let DYNAMIC_DEPT_BY_YEAR = {};
         let DYNAMIC_TEAMS = ["ทีม 1", "ทีม 2"];
 
@@ -1349,6 +1374,7 @@
 
                                 // Phase 2: Attach Clarify items
                                 let matchedClarify = 0;
+                                const loadedClarifyRounds = new Set();
                                 res.report.forEach(r => {
                                     const src = String(r._source || '').toLowerCase();
                                     if (src !== 'clarify') return;
@@ -1357,12 +1383,16 @@
                                     const recText = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
                                     const clarText = String(r['รายละเอียดผลการดำเนินงาน'] || r['รายละเอียดการชี้แจง'] || r['Clarification'] || '').trim();
                                     const statText = String(r['สถานะผลการดำเนินงาน'] || r['สถานะการดำเนินงาน'] || r['Action Status'] || 'ยังไม่ได้ชี้แจง').trim();
+                                    const clarifyRound = String(r['รอบการชี้แจง คตส.'] || r['รอบการชี้แจง'] || r['clarify_round'] || r['Clarify Round'] || '').trim();
+
+                                    if (clarifyRound) loadedClarifyRounds.add(clarifyRound);
 
                                     if (recText || clarText || statText) {
                                         const recItem = {
                                             recommendation: recText || '-',
                                             clarification: clarText || 'ยังไม่มีข้อมูลชี้แจง',
-                                            status: statText
+                                            status: statText,
+                                            clarify_round: clarifyRound
                                         };
 
                                         if (fid && reportMap[fid]) {
@@ -1371,6 +1401,10 @@
                                         }
                                     }
                                 });
+
+                                if (loadedClarifyRounds.size > 0) {
+                                    DYNAMIC_CLARIFY_ROUNDS = [...loadedClarifyRounds].sort();
+                                }
 
                                 // Phase 3: Recalculate overall status based on Clarify items and Report Col J recommendation
                                 consolidatedData.forEach(p => {
@@ -1552,6 +1586,7 @@
             selectedRisks = ["ต่ำ", "ปานกลาง", "ค่อนข้างสูง", "สูง"];
             selectedDept = "ALL";
             selectedRound = "ALL";
+            selectedClarifyRound = "ALL";
             selectedType = "ALL";
             selectedStatus = "ALL";
             selectedMain = "ALL";
@@ -1639,9 +1674,23 @@
             fillSelectOptions("form-dept", depts, "ส่วนงาน");
 
             const rounds = (DYNAMIC_MEETING_ROUNDS && DYNAMIC_MEETING_ROUNDS.length > 0) ? DYNAMIC_MEETING_ROUNDS : ["ครั้งที่ 1/2568", "ครั้งที่ 2/2568", "ครั้งที่ 1/2569", "ครั้งที่ 2/2569", "ครั้งที่ 3/2569", "ครั้งที่ 1/2570", "ครั้งที่ 2/2570"];
-            fillSelectOptions("top-slicer-round", rounds, "รอบการประชุม");
-            fillSelectOptions("bottom-slicer-round", rounds, "รอบการประชุม");
+            fillSelectOptions("top-slicer-round", rounds, "รอบรายงาน");
+            fillSelectOptions("bottom-slicer-round", rounds, "รอบรายงาน");
             fillSelectOptions("form-meeting-round", rounds, "รอบการประชุม");
+
+            // Extract clarify rounds
+            let clarifyRounds = [];
+            rawData.forEach(d => {
+                (d.items || []).forEach(i => {
+                    if (i.clarify_round) clarifyRounds.push(i.clarify_round);
+                });
+            });
+            clarifyRounds = [...new Set(clarifyRounds)].sort();
+            if (clarifyRounds.length === 0 && DYNAMIC_CLARIFY_ROUNDS && DYNAMIC_CLARIFY_ROUNDS.length > 0) {
+                clarifyRounds = DYNAMIC_CLARIFY_ROUNDS;
+            }
+            fillSelectOptions("top-slicer-clarify-round", clarifyRounds, "รอบชี้แจง");
+            fillSelectOptions("bottom-slicer-clarify-round", clarifyRounds, "รอบชี้แจง");
 
             const years = ["2568", "2569", "2570", "2571"];
             fillSelectOptions("form-year", years, "ปีงบประมาณ");
@@ -1693,6 +1742,7 @@
         function syncFromTopSlicer(key, val) {
             if (key === 'dept') { selectedDept = val; document.getElementById("bottom-slicer-dept").value = val; }
             else if (key === 'round') { selectedRound = val; document.getElementById("bottom-slicer-round").value = val; }
+            else if (key === 'clarifyRound') { selectedClarifyRound = val; document.getElementById("bottom-slicer-clarify-round").value = val; }
             else if (key === 'type') { selectedType = val; document.getElementById("bottom-slicer-type").value = val; }
             else if (key === 'status') { selectedStatus = val; document.getElementById("bottom-slicer-status").value = val; }
             else if (key === 'main') { 
@@ -1706,6 +1756,7 @@
         function syncFromBottomSlicer(key, val) {
             if (key === 'dept') { selectedDept = val; document.getElementById("top-slicer-dept").value = val; }
             else if (key === 'round') { selectedRound = val; document.getElementById("top-slicer-round").value = val; }
+            else if (key === 'clarifyRound') { selectedClarifyRound = val; document.getElementById("top-slicer-clarify-round").value = val; }
             else if (key === 'type') { selectedType = val; document.getElementById("top-slicer-type").value = val; }
             else if (key === 'status') { selectedStatus = val; document.getElementById("top-slicer-status").value = val; }
             else if (key === 'main') { 
@@ -1719,16 +1770,24 @@
         function resetFilters() {
             selectedYears = [...new Set(rawData.map(d => d.year))].sort();
             selectedRisks = ["ต่ำ", "ปานกลาง", "ค่อนข้างสูง", "สูง"];
-            selectedDept = "ALL"; selectedRound = "ALL"; selectedType = "ALL"; selectedStatus = "ALL"; selectedMain = "ALL"; selectedSub = "ALL";
+            selectedDept = "ALL"; selectedRound = "ALL"; selectedClarifyRound = "ALL"; selectedType = "ALL"; selectedStatus = "ALL"; selectedMain = "ALL"; selectedSub = "ALL";
             
             renderPillSlicers();
-            document.getElementById("top-slicer-dept").value = "ALL"; document.getElementById("bottom-slicer-dept").value = "ALL";
-            document.getElementById("top-slicer-round").value = "ALL"; document.getElementById("bottom-slicer-round").value = "ALL";
-            document.getElementById("top-slicer-type").value = "ALL"; document.getElementById("bottom-slicer-type").value = "ALL";
-            document.getElementById("top-slicer-status").value = "ALL"; document.getElementById("bottom-slicer-status").value = "ALL";
-            document.getElementById("top-slicer-main").value = "ALL"; document.getElementById("bottom-slicer-main").value = "ALL";
+            if (document.getElementById("top-slicer-dept")) document.getElementById("top-slicer-dept").value = "ALL"; 
+            if (document.getElementById("bottom-slicer-dept")) document.getElementById("bottom-slicer-dept").value = "ALL";
+            if (document.getElementById("top-slicer-round")) document.getElementById("top-slicer-round").value = "ALL"; 
+            if (document.getElementById("bottom-slicer-round")) document.getElementById("bottom-slicer-round").value = "ALL";
+            if (document.getElementById("top-slicer-clarify-round")) document.getElementById("top-slicer-clarify-round").value = "ALL"; 
+            if (document.getElementById("bottom-slicer-clarify-round")) document.getElementById("bottom-slicer-clarify-round").value = "ALL";
+            if (document.getElementById("top-slicer-type")) document.getElementById("top-slicer-type").value = "ALL"; 
+            if (document.getElementById("bottom-slicer-type")) document.getElementById("bottom-slicer-type").value = "ALL";
+            if (document.getElementById("top-slicer-status")) document.getElementById("top-slicer-status").value = "ALL"; 
+            if (document.getElementById("bottom-slicer-status")) document.getElementById("bottom-slicer-status").value = "ALL";
+            if (document.getElementById("top-slicer-main")) document.getElementById("top-slicer-main").value = "ALL"; 
+            if (document.getElementById("bottom-slicer-main")) document.getElementById("bottom-slicer-main").value = "ALL";
             populateSubDropdowns("ALL");
-            document.getElementById("top-slicer-sub").value = "ALL"; document.getElementById("bottom-slicer-sub").value = "ALL";
+            if (document.getElementById("top-slicer-sub")) document.getElementById("top-slicer-sub").value = "ALL"; 
+            if (document.getElementById("bottom-slicer-sub")) document.getElementById("bottom-slicer-sub").value = "ALL";
             if (document.getElementById("table-search-input")) document.getElementById("table-search-input").value = "";
             
             applyFilters();
@@ -1742,6 +1801,10 @@
                 if (!selectedRisks.includes(item.risk_level)) return false;
                 if (selectedDept !== "ALL" && item.department !== selectedDept) return false;
                 if (selectedRound !== "ALL" && item.meeting_round !== selectedRound) return false;
+                if (selectedClarifyRound !== "ALL") {
+                    const hasClarifyRound = (item.items || []).some(i => i.clarify_round === selectedClarifyRound);
+                    if (!hasClarifyRound) return false;
+                }
                 if (selectedType !== "ALL" && item.type !== selectedType) return false;
                 if (selectedStatus !== "ALL" && item.overall_status !== selectedStatus) return false;
                 if (selectedMain !== "ALL" && normalizeMainTopic(item.main_topic) !== normalizeMainTopic(selectedMain)) return false;
@@ -2297,11 +2360,11 @@
 
                 const riskColor = RISK_COLORS[item.risk_level] || '#64748b';
                 const col1Html = `
-                    <div style="font-weight: bold; font-size: 14pt; color: #0f172a; margin-bottom: 6px;">${item.department}</div>
-                    <div style="color: #334155; font-size: 14pt; margin-bottom: 4px;">${item.main_topic}</div>
-                    <div style="color: #475569; font-size: 14pt; margin-bottom: 8px;">${item.sub_topic}</div>
+                    <div style="font-weight: bold; font-size: 13pt; color: #0f172a; margin-bottom: 4px; line-height: 1.3;">${item.department}</div>
+                    <div style="color: #334155; font-size: 13pt; margin-bottom: 2px; line-height: 1.3;">${item.main_topic}</div>
+                    <div style="color: #475569; font-size: 13pt; margin-bottom: 6px; line-height: 1.3;">${item.sub_topic}</div>
                     <div>
-                        <span style="display: inline-block; padding: 3px 10px; border-radius: 6px; font-weight: bold; font-size: 12pt; color: #ffffff; background-color: ${riskColor};">
+                        <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11pt; color: #ffffff; background-color: ${riskColor};">
                             ระดับความเสี่ยง: ${item.risk_level}
                         </span>
                     </div>
@@ -2309,18 +2372,18 @@
 
                 if (currentPdfExportMode === 'mode1') {
                     tableRowsHtml += `
-                        <tr class="pdf-page-break-avoid">
-                            <td style="vertical-align: top; padding: 8px; width: 30%;">${col1Html}</td>
-                            <td style="vertical-align: top; padding: 8px; width: 35%;">${findingTxt}</td>
-                            <td style="vertical-align: top; padding: 8px; width: 35%;">${recTxt}</td>
+                        <tr>
+                            <td style="vertical-align: top; padding: 6px 8px; width: 28%; font-size: 13pt; border: 1px solid #475569;">${col1Html}</td>
+                            <td style="vertical-align: top; padding: 6px 8px; width: 36%; font-size: 13pt; border: 1px solid #475569;">${findingTxt}</td>
+                            <td style="vertical-align: top; padding: 6px 8px; width: 36%; font-size: 13pt; border: 1px solid #475569;">${recTxt}</td>
                         </tr>
                     `;
                 } else {
                     tableRowsHtml += `
-                        <tr class="pdf-page-break-avoid">
-                            <td style="vertical-align: top; padding: 8px; width: 30%;">${col1Html}</td>
-                            <td style="vertical-align: top; padding: 8px; width: 35%;">${findingTxt}</td>
-                            <td style="vertical-align: top; padding: 8px; width: 35%;">${clarifyTxt}</td>
+                        <tr>
+                            <td style="vertical-align: top; padding: 6px 8px; width: 28%; font-size: 13pt; border: 1px solid #475569;">${col1Html}</td>
+                            <td style="vertical-align: top; padding: 6px 8px; width: 36%; font-size: 13pt; border: 1px solid #475569;">${findingTxt}</td>
+                            <td style="vertical-align: top; padding: 6px 8px; width: 36%; font-size: 13pt; border: 1px solid #475569;">${clarifyTxt}</td>
                         </tr>
                     `;
                 }
@@ -2330,21 +2393,21 @@
             const tableHeaderHtml = `
                 <thead>
                     <tr style="background-color: #f1f5f9; font-weight: bold; text-align: center;">
-                        <th style="width: 30%;">ส่วนงาน/กิจกรรมการตรวจสอบ</th>
-                        <th style="width: 35%;">ข้อตรวจพบ</th>
-                        <th style="width: 35%;">${rightColTitle}</th>
+                        <th style="width: 28%; font-size: 13pt; border: 1px solid #475569; padding: 6px 8px;">ส่วนงาน/กิจกรรมการตรวจสอบ</th>
+                        <th style="width: 36%; font-size: 13pt; border: 1px solid #475569; padding: 6px 8px;">ข้อตรวจพบ</th>
+                        <th style="width: 36%; font-size: 13pt; border: 1px solid #475569; padding: 6px 8px;">${rightColTitle}</th>
                     </tr>
                 </thead>
             `;
 
             printContainer.innerHTML = `
-                <div style="font-family: 'Prompt', sans-serif;">
-                    <div style="text-align: center; margin-bottom: 16px;">
-                        <h2 style="font-size: 15pt; font-weight: bold; margin: 0; color: #0f172a;">${line1Title}</h2>
-                        <h3 style="font-size: 11pt; font-weight: bold; color: #334155; margin-top: 6px; margin-bottom: 0;">${line2Meeting}</h3>
+                <div style="font-family: 'Prompt', sans-serif; width: 100%;">
+                    <div style="text-align: center; margin-bottom: 8px; page-break-after: avoid; break-after: avoid;">
+                        <h2 style="font-size: 15pt; font-weight: bold; margin: 0; color: #0f172a; line-height: 1.3;">${line1Title}</h2>
+                        <h3 style="font-size: 12pt; font-weight: bold; color: #334155; margin-top: 4px; margin-bottom: 0;">${line2Meeting}</h3>
                     </div>
 
-                    <table class="pdf-table">
+                    <table class="pdf-table" style="width: 100%; border-collapse: collapse;">
                         ${tableHeaderHtml}
                         <tbody>
                             ${tableRowsHtml}
@@ -2521,8 +2584,24 @@
                 `;
             }
 
+            // Dynamic year label based on selected filter years
+            const activeYrs = (selectedYears && selectedYears.length > 0)
+                ? [...selectedYears].sort((a, b) => Number(a) - Number(b))
+                : [...new Set(filteredData.map(d => d.year))].sort((a, b) => Number(a) - Number(b));
+
+            let yearLabel = "";
+            if (activeYrs.length === 1) {
+                yearLabel = activeYrs[0];
+            } else if (activeYrs.length === 2) {
+                yearLabel = `${activeYrs[0]} - ${activeYrs[1]}`;
+            } else if (activeYrs.length > 2) {
+                yearLabel = `${activeYrs[0]} - ${activeYrs[activeYrs.length - 1]}`;
+            } else {
+                yearLabel = "2569 - 2570";
+            }
+
             const page1Html = buildMatrixTableHtml('ติดตามงานเดิม', 'การติดตามงานเดิม (จากการตรวจสอบครั้งก่อน)');
-            const page2Html = buildMatrixTableHtml('ข้อตรวจพบปีปัจจุบัน', 'ข้อตรวจพบ ประจำปีงบประมาณ 2569 - 2570');
+            const page2Html = buildMatrixTableHtml('ข้อตรวจพบปีปัจจุบัน', `ข้อตรวจพบ ประจำปีงบประมาณ ${yearLabel}`);
 
             printContainer.innerHTML = `
                 <div class="pdf-page-break-after">
