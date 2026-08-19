@@ -222,6 +222,14 @@
             .bg-matrix-orange { background-color: #F9A272 !important; color: #ffffff !important; }
             .bg-matrix-yellow { background-color: #FACF71 !important; color: #0f172a !important; }
             .bg-matrix-green { background-color: #87B76F !important; color: #ffffff !important; }
+            .bg-matrix-total,
+            .bg-matrix-total-header,
+            #printable-pdf-container table.matrix-table td.bg-matrix-total,
+            #printable-pdf-container table.matrix-table th.bg-matrix-total-header {
+                background-color: #cbd5e1 !important; /* Soft Dark Gray/Slate */
+                color: #0f172a !important;
+                font-weight: bold !important;
+            }
             #printable-pdf-container table.matrix-table td.dept-name-cell {
                 text-align: left !important;
                 padding-left: 4px !important;
@@ -2485,6 +2493,13 @@
         }
 
         let custom2568MatrixData = {};
+        let customBaselineYear = "2568";
+
+        function updateBaselineYear(val) {
+            customBaselineYear = String(val || '').trim() || "2568";
+            const footEl = document.getElementById("pre2568-foot-year");
+            if (footEl) footEl.innerText = customBaselineYear;
+        }
 
         function initCustom2568MatrixData(depts) {
             depts.forEach(dept => {
@@ -2585,7 +2600,16 @@
                 const matrixDepts = [...new Set(filteredData.map(d => d.department))].sort();
                 initCustom2568MatrixData(matrixDepts);
 
-                // Build Editable Rows for 2568
+                // Calculate active years for labels
+                const activeYrs = (selectedYears && selectedYears.length > 0)
+                    ? [...selectedYears].sort((a, b) => Number(a) - Number(b))
+                    : [...new Set(filteredData.map(d => d.year))].sort((a, b) => Number(a) - Number(b));
+                const latestYr = activeYrs.length > 0 ? Number(activeYrs[activeYrs.length - 1]) : 2569;
+                if (!customBaselineYear) {
+                    customBaselineYear = String(latestYr - 1);
+                }
+
+                // Build Editable Rows for Baseline Year
                 let edit2568Rows = "";
                 matrixDepts.forEach((dept, idx) => {
                     const c = custom2568MatrixData[dept];
@@ -2598,36 +2622,36 @@
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านผลการดำเนินงาน'].orange || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านผลการดำเนินงาน', 'orange', this.value)" class="w-6 text-center p-0.5 bg-orange-50 border border-orange-200 rounded font-bold text-orange-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านผลการดำเนินงาน'].yellow || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านผลการดำเนินงาน', 'yellow', this.value)" class="w-6 text-center p-0.5 bg-amber-50 border border-amber-200 rounded font-bold text-amber-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านผลการดำเนินงาน'].green || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านผลการดำเนินงาน', 'green', this.value)" class="w-6 text-center p-0.5 bg-emerald-50 border border-emerald-200 rounded font-bold text-emerald-800"></td>
-                            <td class="p-1 text-center font-bold bg-slate-100" id="pre2568-tot-${idx}-ด้านผลการดำเนินงาน">0</td>
+                            <td class="p-1 text-center font-bold bg-slate-200 text-slate-900" id="pre2568-tot-${idx}-ด้านผลการดำเนินงาน">0</td>
 
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการเงิน'].red || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการเงิน', 'red', this.value)" class="w-6 text-center p-0.5 bg-rose-50 border border-rose-200 rounded font-bold text-rose-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการเงิน'].orange || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการเงิน', 'orange', this.value)" class="w-6 text-center p-0.5 bg-orange-50 border border-orange-200 rounded font-bold text-orange-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการเงิน'].yellow || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการเงิน', 'yellow', this.value)" class="w-6 text-center p-0.5 bg-amber-50 border border-amber-200 rounded font-bold text-amber-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการเงิน'].green || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการเงิน', 'green', this.value)" class="w-6 text-center p-0.5 bg-emerald-50 border border-emerald-200 rounded font-bold text-emerald-800"></td>
-                            <td class="p-1 text-center font-bold bg-slate-100" id="pre2568-tot-${idx}-ด้านการเงิน">0</td>
+                            <td class="p-1 text-center font-bold bg-slate-200 text-slate-900" id="pre2568-tot-${idx}-ด้านการเงิน">0</td>
 
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการดำเนินงาน'].red || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการดำเนินงาน', 'red', this.value)" class="w-6 text-center p-0.5 bg-rose-50 border border-rose-200 rounded font-bold text-rose-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการดำเนินงาน'].orange || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการดำเนินงาน', 'orange', this.value)" class="w-6 text-center p-0.5 bg-orange-50 border border-orange-200 rounded font-bold text-orange-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการดำเนินงาน'].yellow || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการดำเนินงาน', 'yellow', this.value)" class="w-6 text-center p-0.5 bg-amber-50 border border-amber-200 rounded font-bold text-amber-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการดำเนินงาน'].green || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการดำเนินงาน', 'green', this.value)" class="w-6 text-center p-0.5 bg-emerald-50 border border-emerald-200 rounded font-bold text-emerald-800"></td>
-                            <td class="p-1 text-center font-bold bg-slate-100" id="pre2568-tot-${idx}-ด้านการดำเนินงาน">0</td>
+                            <td class="p-1 text-center font-bold bg-slate-200 text-slate-900" id="pre2568-tot-${idx}-ด้านการดำเนินงาน">0</td>
 
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการปฏิบัติตามกฎระเบียบ'].red || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการปฏิบัติตามกฎระเบียบ', 'red', this.value)" class="w-6 text-center p-0.5 bg-rose-50 border border-rose-200 rounded font-bold text-rose-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการปฏิบัติตามกฎระเบียบ'].orange || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการปฏิบัติตามกฎระเบียบ', 'orange', this.value)" class="w-6 text-center p-0.5 bg-orange-50 border border-orange-200 rounded font-bold text-orange-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการปฏิบัติตามกฎระเบียบ'].yellow || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการปฏิบัติตามกฎระเบียบ', 'yellow', this.value)" class="w-6 text-center p-0.5 bg-amber-50 border border-amber-200 rounded font-bold text-amber-800"></td>
                             <td class="p-0.5 text-center"><input type="number" min="0" value="${c['ด้านการปฏิบัติตามกฎระเบียบ'].green || ''}" oninput="updateCustom2568Val('${dept.replace(/'/g, "\\'")}', 'ด้านการปฏิบัติตามกฎระเบียบ', 'green', this.value)" class="w-6 text-center p-0.5 bg-emerald-50 border border-emerald-200 rounded font-bold text-emerald-800"></td>
-                            <td class="p-1 text-center font-bold bg-slate-100" id="pre2568-tot-${idx}-ด้านการปฏิบัติตามกฎระเบียบ">0</td>
+                            <td class="p-1 text-center font-bold bg-slate-200 text-slate-900" id="pre2568-tot-${idx}-ด้านการปฏิบัติตามกฎระเบียบ">0</td>
 
                             <td class="p-1 text-center font-bold text-rose-700 bg-rose-50/50" id="pre2568-allred-${idx}">0</td>
                             <td class="p-1 text-center font-bold text-orange-700 bg-orange-50/50" id="pre2568-allorange-${idx}">0</td>
                             <td class="p-1 text-center font-bold text-amber-700 bg-amber-50/50" id="pre2568-allyellow-${idx}">0</td>
                             <td class="p-1 text-center font-bold text-emerald-700 bg-emerald-50/50" id="pre2568-allgreen-${idx}">0</td>
-                            <td class="p-1 text-center font-extrabold text-purple-950 bg-purple-100/70" id="pre2568-alltot-${idx}">0</td>
+                            <td class="p-1 text-center font-extrabold text-purple-950 bg-slate-300" id="pre2568-alltot-${idx}">0</td>
                         </tr>
                     `;
                 });
 
-                // Build Pre-calculated 2569 Preview Rows (From live system)
+                // Build Pre-calculated Preview Rows for Section 2 (From live system)
                 let preview2569Rows = "";
                 let grand2569 = {
                     "ด้านผลการดำเนินงาน": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 },
@@ -2678,31 +2702,31 @@
                             <td class="p-1 text-center font-semibold text-orange-700">${dc['ด้านผลการดำเนินงาน'].orange || '-'}</td>
                             <td class="p-1 text-center font-semibold text-amber-700">${dc['ด้านผลการดำเนินงาน'].yellow || '-'}</td>
                             <td class="p-1 text-center font-semibold text-emerald-700">${dc['ด้านผลการดำเนินงาน'].green || '-'}</td>
-                            <td class="p-1 text-center font-bold bg-slate-100">${dc['ด้านผลการดำเนินงาน'].total}</td>
+                            <td class="p-1 text-center font-bold bg-slate-200 text-slate-900">${dc['ด้านผลการดำเนินงาน'].total}</td>
 
                             <td class="p-1 text-center font-semibold text-rose-700">${dc['ด้านการเงิน'].red || '-'}</td>
                             <td class="p-1 text-center font-semibold text-orange-700">${dc['ด้านการเงิน'].orange || '-'}</td>
                             <td class="p-1 text-center font-semibold text-amber-700">${dc['ด้านการเงิน'].yellow || '-'}</td>
                             <td class="p-1 text-center font-semibold text-emerald-700">${dc['ด้านการเงิน'].green || '-'}</td>
-                            <td class="p-1 text-center font-bold bg-slate-100">${dc['ด้านการเงิน'].total}</td>
+                            <td class="p-1 text-center font-bold bg-slate-200 text-slate-900">${dc['ด้านการเงิน'].total}</td>
 
                             <td class="p-1 text-center font-semibold text-rose-700">${dc['ด้านการดำเนินงาน'].red || '-'}</td>
                             <td class="p-1 text-center font-semibold text-orange-700">${dc['ด้านการดำเนินงาน'].orange || '-'}</td>
                             <td class="p-1 text-center font-semibold text-amber-700">${dc['ด้านการดำเนินงาน'].yellow || '-'}</td>
                             <td class="p-1 text-center font-semibold text-emerald-700">${dc['ด้านการดำเนินงาน'].green || '-'}</td>
-                            <td class="p-1 text-center font-bold bg-slate-100">${dc['ด้านการดำเนินงาน'].total}</td>
+                            <td class="p-1 text-center font-bold bg-slate-200 text-slate-900">${dc['ด้านการดำเนินงาน'].total}</td>
 
                             <td class="p-1 text-center font-semibold text-rose-700">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].red || '-'}</td>
                             <td class="p-1 text-center font-semibold text-orange-700">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].orange || '-'}</td>
                             <td class="p-1 text-center font-semibold text-amber-700">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].yellow || '-'}</td>
                             <td class="p-1 text-center font-semibold text-emerald-700">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].green || '-'}</td>
-                            <td class="p-1 text-center font-bold bg-slate-100">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].total}</td>
+                            <td class="p-1 text-center font-bold bg-slate-200 text-slate-900">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].total}</td>
 
                             <td class="p-1 text-center font-bold text-rose-700 bg-rose-50/50">${dc.overall.red || '-'}</td>
                             <td class="p-1 text-center font-bold text-orange-700 bg-orange-50/50">${dc.overall.orange || '-'}</td>
                             <td class="p-1 text-center font-bold text-amber-700 bg-amber-50/50">${dc.overall.yellow || '-'}</td>
                             <td class="p-1 text-center font-bold text-emerald-700 bg-emerald-50/50">${dc.overall.green || '-'}</td>
-                            <td class="p-1 text-center font-extrabold text-purple-950 bg-purple-100/70">${dc.overall.total}</td>
+                            <td class="p-1 text-center font-extrabold text-purple-950 bg-slate-300">${dc.overall.total}</td>
                         </tr>
                     `;
                 });
@@ -2712,22 +2736,26 @@
                         <div class="p-4 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-200 rounded-xl space-y-2 text-amber-950">
                             <div class="flex items-center justify-between">
                                 <h4 class="font-bold text-sm flex items-center gap-2 text-amber-900">
-                                    <i class="fa-solid fa-pen-to-square text-amber-600"></i> กำหนดข้อมูลความเสี่ยงหน้า 1: การติดตามงานเดิม (2568 & 2569)
+                                    <i class="fa-solid fa-pen-to-square text-amber-600"></i> กำหนดข้อมูลความเสี่ยงหน้า 1: การติดตามงานเดิม
                                 </h4>
                                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200/80 text-amber-900 border border-amber-300">
                                     ${matrixDepts.length} ส่วนงานตามตัวกรอง
                                 </span>
                             </div>
                             <p class="text-[11px] text-amber-800 leading-relaxed">
-                                💡 <strong>คำแนะนำ:</strong> กรอกจำนวนความเสี่ยงในตารางส่วนที่ 1 (ปี 2568) ช่อง 🔴 🟠 🟡 🟢 ระบบจะ<strong>คำนวณผลรวม (รวมแต่ละด้าน และ รวมทั้งหมด) ให้อัตโนมัติ</strong><br>
-                                ส่วนตารางที่ 2 (ปี 2569) ดึงข้อมูลผลติดตามงานเดิมจากระบบให้อัตโนมัติแล้ว เมื่อสั่งพิมพ์ PDF ระบบจะนำข้อมูลทั้ง 2 ส่วนไปรวมในหน้า 1 ให้อย่างสมบูรณ์
+                                💡 <strong>คำแนะนำ:</strong> สามารถ<strong>แก้ไขเลขปี</strong>ในช่องสีส้มด้านล่างได้ตามต้องการ (เช่น 2568 หรือ 2569) และกรอกจำนวนความเสี่ยงช่อง 🔴 🟠 🟡 🟢 ระบบจะ<strong>คำนวณผลรวม (รวมแต่ละด้าน และ รวมทั้งหมด) ให้อัตโนมัติ</strong><br>
+                                ส่วนตารางที่ 2 ดึงข้อมูลผลติดตามงานเดิมจากระบบให้อัตโนมัติแล้ว เมื่อสั่งพิมพ์ PDF ระบบจะนำข้อมูลทั้ง 2 ส่วนไปรวมในหน้า 1 ให้อย่างสมบูรณ์
                             </p>
                         </div>
 
-                        <!-- Editable 2568 Section -->
+                        <!-- Editable Baseline Year Section -->
                         <div class="border border-orange-200 rounded-xl overflow-hidden shadow-xs bg-white">
                             <div class="p-2.5 bg-orange-100/90 border-b border-orange-200 font-bold text-orange-950 flex justify-between items-center text-xs">
-                                <span>🟠 ส่วนที่ 1: การติดตามงานเดิม (จากการตรวจสอบครั้งก่อน 2568) - [กรอกตัวเลขความเสี่ยง]</span>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span>🟠 ส่วนที่ 1: การติดตามงานเดิม (จากการตรวจสอบครั้งก่อน</span>
+                                    <input type="text" id="custom-baseline-year-input" value="${customBaselineYear}" oninput="updateBaselineYear(this.value)" class="w-16 text-center font-bold px-1.5 py-0.5 border-2 border-orange-400 rounded bg-white text-orange-950 shadow-xs focus:ring-2 focus:ring-orange-500 outline-none text-xs" title="คลิกเพื่อแก้ไขปี เช่น 2568 หรือ 2569">
+                                    <span>) - [กรอกตัวเลขความเสี่ยง]</span>
+                                </div>
                                 <span class="text-[11px] font-normal text-orange-800">* คอลัมน์ 'รวม' คำนวณสูตรให้อัตโนมัติ</span>
                             </div>
                             <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
@@ -2743,11 +2771,11 @@
                                             <th colspan="5" class="p-1 bg-purple-50 text-purple-950 font-extrabold">รวมทั้งหมด</th>
                                         </tr>
                                         <tr class="bg-slate-50 text-[10px] font-bold border-b border-slate-200 text-slate-600">
-                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200">รวม</th>
-                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200">รวม</th>
-                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200">รวม</th>
-                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200">รวม</th>
-                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-purple-200 font-bold">รวม</th>
+                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200 text-slate-900 font-bold">รวม</th>
+                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200 text-slate-900 font-bold">รวม</th>
+                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200 text-slate-900 font-bold">รวม</th>
+                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200 text-slate-900 font-bold">รวม</th>
+                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-300 text-slate-900 font-bold">รวม</th>
                                         </tr>
                                     </thead>
                                     <tbody id="pre2568-tbody" class="divide-y divide-slate-100">
@@ -2755,22 +2783,22 @@
                                     </tbody>
                                     <tfoot class="bg-orange-50 font-bold text-orange-950 border-t-2 border-orange-300 text-[11px]">
                                         <tr>
-                                            <td colspan="2" class="p-1 text-right">รวม 2568:</td>
-                                            <td class="p-1 text-rose-700" id="pre2568-grand-ด้านผลการดำเนินงาน-red">0</td><td class="p-1 text-orange-700" id="pre2568-grand-ด้านผลการดำเนินงาน-orange">0</td><td class="p-1 text-amber-700" id="pre2568-grand-ด้านผลการดำเนินงาน-yellow">0</td><td class="p-1 text-emerald-700" id="pre2568-grand-ด้านผลการดำเนินงาน-green">0</td><td class="p-1 bg-slate-200" id="pre2568-grand-ด้านผลการดำเนินงาน-total">0</td>
-                                            <td class="p-1 text-rose-700" id="pre2568-grand-ด้านการเงิน-red">0</td><td class="p-1 text-orange-700" id="pre2568-grand-ด้านการเงิน-orange">0</td><td class="p-1 text-amber-700" id="pre2568-grand-ด้านการเงิน-yellow">0</td><td class="p-1 text-emerald-700" id="pre2568-grand-ด้านการเงิน-green">0</td><td class="p-1 bg-slate-200" id="pre2568-grand-ด้านการเงิน-total">0</td>
-                                            <td class="p-1 text-rose-700" id="pre2568-grand-ด้านการดำเนินงาน-red">0</td><td class="p-1 text-orange-700" id="pre2568-grand-ด้านการดำเนินงาน-orange">0</td><td class="p-1 text-amber-700" id="pre2568-grand-ด้านการดำเนินงาน-yellow">0</td><td class="p-1 text-emerald-700" id="pre2568-grand-ด้านการดำเนินงาน-green">0</td><td class="p-1 bg-slate-200" id="pre2568-grand-ด้านการดำเนินงาน-total">0</td>
-                                            <td class="p-1 text-rose-700" id="pre2568-grand-ด้านการปฏิบัติตามกฎระเบียบ-red">0</td><td class="p-1 text-orange-700" id="pre2568-grand-ด้านการปฏิบัติตามกฎระเบียบ-orange">0</td><td class="p-1 text-amber-700" id="pre2568-grand-ด้านการปฏิบัติตามกฎระเบียบ-yellow">0</td><td class="p-1 text-emerald-700" id="pre2568-grand-ด้านการปฏิบัติตามกฎระเบียบ-green">0</td><td class="p-1 bg-slate-200" id="pre2568-grand-ด้านการปฏิบัติตามกฎระเบียบ-total">0</td>
-                                            <td class="p-1 text-rose-800 bg-rose-100/50" id="pre2568-grand-overall-red">0</td><td class="p-1 text-orange-800 bg-orange-100/50" id="pre2568-grand-overall-orange">0</td><td class="p-1 text-amber-800 bg-amber-100/50" id="pre2568-grand-overall-yellow">0</td><td class="p-1 text-emerald-800 bg-emerald-100/50" id="pre2568-grand-overall-green">0</td><td class="p-1 bg-purple-300 font-extrabold text-purple-950" id="pre2568-grand-overall-total">0</td>
+                                            <td colspan="2" class="p-1 text-right">รวม <span id="pre2568-foot-year">${customBaselineYear}</span>:</td>
+                                            <td class="p-1 text-rose-700" id="pre2568-grand-ด้านผลการดำเนินงาน-red">0</td><td class="p-1 text-orange-700" id="pre2568-grand-ด้านผลการดำเนินงาน-orange">0</td><td class="p-1 text-amber-700" id="pre2568-grand-ด้านผลการดำเนินงาน-yellow">0</td><td class="p-1 text-emerald-700" id="pre2568-grand-ด้านผลการดำเนินงาน-green">0</td><td class="p-1 bg-slate-200 text-slate-900" id="pre2568-grand-ด้านผลการดำเนินงาน-total">0</td>
+                                            <td class="p-1 text-rose-700" id="pre2568-grand-ด้านการเงิน-red">0</td><td class="p-1 text-orange-700" id="pre2568-grand-ด้านการเงิน-orange">0</td><td class="p-1 text-amber-700" id="pre2568-grand-ด้านการเงิน-yellow">0</td><td class="p-1 text-emerald-700" id="pre2568-grand-ด้านการเงิน-green">0</td><td class="p-1 bg-slate-200 text-slate-900" id="pre2568-grand-ด้านการเงิน-total">0</td>
+                                            <td class="p-1 text-rose-700" id="pre2568-grand-ด้านการดำเนินงาน-red">0</td><td class="p-1 text-orange-700" id="pre2568-grand-ด้านการดำเนินงาน-orange">0</td><td class="p-1 text-amber-700" id="pre2568-grand-ด้านการดำเนินงาน-yellow">0</td><td class="p-1 text-emerald-700" id="pre2568-grand-ด้านการดำเนินงาน-green">0</td><td class="p-1 bg-slate-200 text-slate-900" id="pre2568-grand-ด้านการดำเนินงาน-total">0</td>
+                                            <td class="p-1 text-rose-700" id="pre2568-grand-ด้านการปฏิบัติตามกฎระเบียบ-red">0</td><td class="p-1 text-orange-700" id="pre2568-grand-ด้านการปฏิบัติตามกฎระเบียบ-orange">0</td><td class="p-1 text-amber-700" id="pre2568-grand-ด้านการปฏิบัติตามกฎระเบียบ-yellow">0</td><td class="p-1 text-emerald-700" id="pre2568-grand-ด้านการปฏิบัติตามกฎระเบียบ-green">0</td><td class="p-1 bg-slate-200 text-slate-900" id="pre2568-grand-ด้านการปฏิบัติตามกฎระเบียบ-total">0</td>
+                                            <td class="p-1 text-rose-800 bg-rose-100/50" id="pre2568-grand-overall-red">0</td><td class="p-1 text-orange-800 bg-orange-100/50" id="pre2568-grand-overall-orange">0</td><td class="p-1 text-amber-800 bg-amber-100/50" id="pre2568-grand-overall-yellow">0</td><td class="p-1 text-emerald-800 bg-emerald-100/50" id="pre2568-grand-overall-green">0</td><td class="p-1 bg-slate-300 font-extrabold text-slate-950" id="pre2568-grand-overall-total">0</td>
                                         </tr>
                                     </tfoot>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- Read-only 2569 Preview Section -->
+                        <!-- Read-only Follow-up Preview Section -->
                         <div class="border border-emerald-200 rounded-xl overflow-hidden shadow-xs bg-white">
                             <div class="p-2.5 bg-emerald-100/90 border-b border-emerald-200 font-bold text-emerald-950 flex justify-between items-center text-xs">
-                                <span>🟢 ส่วนที่ 2: การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน 2569) - [ข้อมูลจากระบบอัตโนมัติ]</span>
+                                <span>🟢 ส่วนที่ 2: การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน ${latestYr}) - [ข้อมูลจากระบบอัตโนมัติ]</span>
                                 <span class="text-[11px] font-normal text-emerald-800">ดึงจากข้อตรวจพบประเภท 'ติดตามงานเดิม'</span>
                             </div>
                             <div class="overflow-x-auto max-h-[220px] overflow-y-auto">
@@ -2786,11 +2814,11 @@
                                             <th colspan="5" class="p-1 bg-purple-50 text-purple-950 font-extrabold">รวมทั้งหมด</th>
                                         </tr>
                                         <tr class="bg-slate-50 text-[10px] font-bold border-b border-slate-200 text-slate-600">
-                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200">รวม</th>
-                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200">รวม</th>
-                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200">รวม</th>
-                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200">รวม</th>
-                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-purple-200 font-bold">รวม</th>
+                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200 text-slate-900 font-bold">รวม</th>
+                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200 text-slate-900 font-bold">รวม</th>
+                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200 text-slate-900 font-bold">รวม</th>
+                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-200 text-slate-900 font-bold">รวม</th>
+                                            <th class="p-0.5 bg-rose-100/60 text-rose-800">🔴</th><th class="p-0.5 bg-orange-100/60 text-orange-800">🟠</th><th class="p-0.5 bg-amber-100/60 text-amber-800">🟡</th><th class="p-0.5 bg-emerald-100/60 text-emerald-800">🟢</th><th class="p-0.5 bg-slate-300 text-slate-900 font-bold">รวม</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100">
@@ -2798,12 +2826,12 @@
                                     </tbody>
                                     <tfoot class="bg-emerald-50 font-bold text-emerald-950 border-t-2 border-emerald-300 text-[11px]">
                                         <tr>
-                                            <td colspan="2" class="p-1 text-right">รวม 2569:</td>
-                                            <td class="p-1 text-rose-700">${grand2569["ด้านผลการดำเนินงาน"].red}</td><td class="p-1 text-orange-700">${grand2569["ด้านผลการดำเนินงาน"].orange}</td><td class="p-1 text-amber-700">${grand2569["ด้านผลการดำเนินงาน"].yellow}</td><td class="p-1 text-emerald-700">${grand2569["ด้านผลการดำเนินงาน"].green}</td><td class="p-1 bg-slate-200">${grand2569["ด้านผลการดำเนินงาน"].total}</td>
-                                            <td class="p-1 text-rose-700">${grand2569["ด้านการเงิน"].red}</td><td class="p-1 text-orange-700">${grand2569["ด้านการเงิน"].orange}</td><td class="p-1 text-amber-700">${grand2569["ด้านการเงิน"].yellow}</td><td class="p-1 text-emerald-700">${grand2569["ด้านการเงิน"].green}</td><td class="p-1 bg-slate-200">${grand2569["ด้านการเงิน"].total}</td>
-                                            <td class="p-1 text-rose-700">${grand2569["ด้านการดำเนินงาน"].red}</td><td class="p-1 text-orange-700">${grand2569["ด้านการดำเนินงาน"].orange}</td><td class="p-1 text-amber-700">${grand2569["ด้านการดำเนินงาน"].yellow}</td><td class="p-1 text-emerald-700">${grand2569["ด้านการดำเนินงาน"].green}</td><td class="p-1 bg-slate-200">${grand2569["ด้านการดำเนินงาน"].total}</td>
-                                            <td class="p-1 text-rose-700">${grand2569["ด้านการปฏิบัติตามกฎระเบียบ"].red}</td><td class="p-1 text-orange-700">${grand2569["ด้านการปฏิบัติตามกฎระเบียบ"].orange}</td><td class="p-1 text-amber-700">${grand2569["ด้านการปฏิบัติตามกฎระเบียบ"].yellow}</td><td class="p-1 text-emerald-700">${grand2569["ด้านการปฏิบัติตามกฎระเบียบ"].green}</td><td class="p-1 bg-slate-200">${grand2569["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                                            <td class="p-1 text-rose-800 bg-rose-100/50">${grand2569.overall.red}</td><td class="p-1 text-orange-800 bg-orange-100/50">${grand2569.overall.orange}</td><td class="p-1 text-amber-800 bg-amber-100/50">${grand2569.overall.yellow}</td><td class="p-1 text-emerald-800 bg-emerald-100/50">${grand2569.overall.green}</td><td class="p-1 bg-purple-300 font-extrabold text-purple-950">${grand2569.overall.total}</td>
+                                            <td colspan="2" class="p-1 text-right">รวม ${latestYr}:</td>
+                                            <td class="p-1 text-rose-700">${grand2569["ด้านผลการดำเนินงาน"].red}</td><td class="p-1 text-orange-700">${grand2569["ด้านผลการดำเนินงาน"].orange}</td><td class="p-1 text-amber-700">${grand2569["ด้านผลการดำเนินงาน"].yellow}</td><td class="p-1 text-emerald-700">${grand2569["ด้านผลการดำเนินงาน"].green}</td><td class="p-1 bg-slate-200 text-slate-900">${grand2569["ด้านผลการดำเนินงาน"].total}</td>
+                                            <td class="p-1 text-rose-700">${grand2569["ด้านการเงิน"].red}</td><td class="p-1 text-orange-700">${grand2569["ด้านการเงิน"].orange}</td><td class="p-1 text-amber-700">${grand2569["ด้านการเงิน"].yellow}</td><td class="p-1 text-emerald-700">${grand2569["ด้านการเงิน"].green}</td><td class="p-1 bg-slate-200 text-slate-900">${grand2569["ด้านการเงิน"].total}</td>
+                                            <td class="p-1 text-rose-700">${grand2569["ด้านการดำเนินงาน"].red}</td><td class="p-1 text-orange-700">${grand2569["ด้านการดำเนินงาน"].orange}</td><td class="p-1 text-amber-700">${grand2569["ด้านการดำเนินงาน"].yellow}</td><td class="p-1 text-emerald-700">${grand2569["ด้านการดำเนินงาน"].green}</td><td class="p-1 bg-slate-200 text-slate-900">${grand2569["ด้านการดำเนินงาน"].total}</td>
+                                            <td class="p-1 text-rose-700">${grand2569["ด้านการปฏิบัติตามกฎระเบียบ"].red}</td><td class="p-1 text-orange-700">${grand2569["ด้านการปฏิบัติตามกฎระเบียบ"].orange}</td><td class="p-1 text-amber-700">${grand2569["ด้านการปฏิบัติตามกฎระเบียบ"].yellow}</td><td class="p-1 text-emerald-700">${grand2569["ด้านการปฏิบัติตามกฎระเบียบ"].green}</td><td class="p-1 bg-slate-200 text-slate-900">${grand2569["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                            <td class="p-1 text-rose-800 bg-rose-100/50">${grand2569.overall.red}</td><td class="p-1 text-orange-800 bg-orange-100/50">${grand2569.overall.orange}</td><td class="p-1 text-amber-800 bg-amber-100/50">${grand2569.overall.yellow}</td><td class="p-1 text-emerald-800 bg-emerald-100/50">${grand2569.overall.green}</td><td class="p-1 bg-slate-300 font-extrabold text-slate-950">${grand2569.overall.total}</td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -2830,148 +2858,62 @@
                     bodyFields = `
                         <div>
                             <label class="block font-semibold text-slate-700 mb-1">ข้อตรวจพบ (Report):</label>
-                            <div id="pdf-finding-${index}" contenteditable="true" class="rich-editor-content text-xs">${item.finding}</div>
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-slate-700 mb-1">ข้อเสนอแนะ (Report):</label>
-                            <div id="pdf-rec-${index}" contenteditable="true" class="rich-editor-content text-xs">${(item.items || []).map(i => i.recommendation).join('<br>')}</div>
+                            <textarea onchange="updatePdfOverride('${item.finding_id}', 'finding', this.value)" rows="3" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#A393EB] outline-none">${pdfTextOverrides[item.finding_id]?.finding ?? item.finding}</textarea>
                         </div>
                     `;
-                } else {
-                    bodyFields = `
-                        <div>
-                            <label class="block font-semibold text-slate-700 mb-1">ข้อตรวจพบ (Report):</label>
-                            <div id="pdf-finding-${index}" contenteditable="true" class="rich-editor-content text-xs">${item.finding}</div>
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-blue-700 mb-1">ผลการดำเนินงานตามข้อเสนอแนะ (Clarify):</label>
-                            <div id="pdf-clarify-${index}" contenteditable="true" class="rich-editor-content text-xs">${(item.items || []).map(i => `[${i.status}] ${i.clarification}`).join('<br>')}</div>
-                        </div>
-                    `;
+                } else if (currentPdfExportMode === 'mode2') {
+                    const items = item.items && item.items.length > 0 ? item.items : [{ recommendation: item.initial_rec || '-', clarification: 'ยังไม่มีข้อมูลชี้แจง', status: item.overall_status }];
+                    let clarifyInputs = "";
+                    items.forEach((recItem, rIdx) => {
+                        clarifyInputs += `
+                            <div class="space-y-1.5 p-2 bg-white rounded-lg border border-slate-200">
+                                <div>
+                                    <label class="block font-semibold text-slate-600 text-[11px]">ข้อเสนอแนะที่ ${rIdx + 1}:</label>
+                                    <input type="text" onchange="updatePdfClarifyOverride('${item.finding_id}', ${rIdx}, 'recommendation', this.value)" value="${pdfClarifyOverrides[item.finding_id]?.[rIdx]?.recommendation ?? recItem.recommendation}" class="w-full bg-slate-50 border border-slate-200 rounded p-1.5 text-xs outline-none focus:ring-1 focus:ring-[#A393EB]">
+                                </div>
+                                <div>
+                                    <label class="block font-semibold text-slate-600 text-[11px]">รายละเอียดผลการดำเนินงาน / การชี้แจง:</label>
+                                    <textarea onchange="updatePdfClarifyOverride('${item.finding_id}', ${rIdx}, 'clarification', this.value)" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded p-1.5 text-xs outline-none focus:ring-1 focus:ring-[#A393EB]">${pdfClarifyOverrides[item.finding_id]?.[rIdx]?.clarification ?? recItem.clarification}</textarea>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    bodyFields = clarifyInputs;
                 }
 
-                const riskBadgeStyle = getRiskBadgeClass(item.risk_level);
-
                 card.innerHTML = `
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-200 text-xs font-bold">
-                        <span class="text-slate-900">รายการที่ ${index + 1}: ${item.department} (${item.year})</span>
-                        <span class="px-2.5 py-0.5 rounded font-bold text-[11px] ${riskBadgeStyle}">ระดับความเสี่ยง: ${item.risk_level}</span>
+                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 bg-[#A393EB]/10 text-purple-950 font-bold rounded text-[11px]">ลำดับ ${index + 1}</span>
+                            <span class="font-bold text-slate-800">${item.finding_id}</span>
+                            <span class="text-slate-500 font-medium">${item.department}</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400 font-medium">ปีงบประมาณ ${item.year}</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-600 mb-2">
-                        <div>กิจกรรมการตรวจสอบ: <strong>${item.main_topic}</strong></div>
-                        <div>ประเด็นย่อย: <strong>${item.sub_topic}</strong></div>
+                    <div class="space-y-2">
+                        ${bodyFields}
                     </div>
-                    ${bodyFields}
                 `;
                 container.appendChild(card);
             });
         }
 
-        function triggerPrintPdf() {
-            const printContainer = document.getElementById("printable-pdf-container");
-            printContainer.innerHTML = "";
-
-            if (currentPdfExportMode === 'mode3') renderExecutiveMatrixPdf(printContainer);
-            else renderStandardReportPdf(printContainer);
-
-            const modal = document.getElementById("pdf-export-modal");
-            const origDisplay = modal ? modal.style.display : "";
-            if (modal) modal.style.display = "none";
-
-            const origTitle = document.title;
-            document.title = ""; // Clears header text "Executive Audit Risk Dashboard & Report System" in printed PDF
-
-            window.print();
-
-            setTimeout(() => {
-                if (modal) modal.style.display = origDisplay || "flex";
-                document.title = origTitle;
-            }, 600);
-        }
-
-        function renderStandardReportPdf(printContainer) {
-            const line1TitleInput = document.getElementById("pdf-header-title-input");
-            const line2MeetingInput = document.getElementById("pdf-header-meeting-input");
-
-            const defaultTitle = currentPdfExportMode === 'mode1' 
-                ? "สรุปข้อตรวจพบประเด็นความเสี่ยงและข้อเสนอแนะจากการตรวจสอบภายใน" 
-                : "สรุปผลการดำเนินงานตามข้อเสนอแนะจากการตรวจสอบภายใน";
-
-            const line1Title = (line1TitleInput && line1TitleInput.value.trim()) ? line1TitleInput.value.trim() : defaultTitle;
-            const roundVal = (line2MeetingInput && line2MeetingInput.value.trim()) ? line2MeetingInput.value.trim() : "1/2568";
-            const line2Meeting = roundVal.includes("การประชุม") ? roundVal : `การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ ${roundVal}`;
-
-            let tableRowsHtml = "";
-            filteredData.forEach((item, index) => {
-                const findingTxt = document.getElementById(`pdf-finding-${index}`) ? document.getElementById(`pdf-finding-${index}`).innerHTML : item.finding;
-                const recTxt = document.getElementById(`pdf-rec-${index}`) ? document.getElementById(`pdf-rec-${index}`).innerHTML : (item.items || []).map(i=>i.recommendation).join('<br>');
-                const clarifyTxt = document.getElementById(`pdf-clarify-${index}`) ? document.getElementById(`pdf-clarify-${index}`).innerHTML : (item.items || []).map(i=>`[${i.status}] ${i.clarification}`).join('<br>');
-
-                const riskColor = RISK_COLORS[item.risk_level] || '#64748b';
-                const col1Html = `
-                    <div style="font-weight: bold; font-size: 13pt; color: #0f172a; margin-bottom: 4px; line-height: 1.3;">${item.department}</div>
-                    <div style="color: #334155; font-size: 13pt; margin-bottom: 2px; line-height: 1.3;">${item.main_topic}</div>
-                    <div style="color: #475569; font-size: 13pt; margin-bottom: 6px; line-height: 1.3;">${item.sub_topic}</div>
-                    <div>
-                        <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11pt; color: #ffffff; background-color: ${riskColor};">
-                            ระดับความเสี่ยง: ${item.risk_level}
-                        </span>
-                    </div>
-                `;
-
-                if (currentPdfExportMode === 'mode1') {
-                    tableRowsHtml += `
-                        <tr>
-                            <td style="vertical-align: top; padding: 6px 8px; width: 28%; font-size: 13pt; border: 1px solid #475569;">${col1Html}</td>
-                            <td style="vertical-align: top; padding: 6px 8px; width: 36%; font-size: 13pt; border: 1px solid #475569;">${findingTxt}</td>
-                            <td style="vertical-align: top; padding: 6px 8px; width: 36%; font-size: 13pt; border: 1px solid #475569;">${recTxt}</td>
-                        </tr>
-                    `;
-                } else {
-                    tableRowsHtml += `
-                        <tr>
-                            <td style="vertical-align: top; padding: 6px 8px; width: 28%; font-size: 13pt; border: 1px solid #475569;">${col1Html}</td>
-                            <td style="vertical-align: top; padding: 6px 8px; width: 36%; font-size: 13pt; border: 1px solid #475569;">${findingTxt}</td>
-                            <td style="vertical-align: top; padding: 6px 8px; width: 36%; font-size: 13pt; border: 1px solid #475569;">${clarifyTxt}</td>
-                        </tr>
-                    `;
-                }
-            });
-
-            const rightColTitle = currentPdfExportMode === 'mode1' ? 'ข้อเสนอแนะ' : 'ผลการดำเนินงานตามข้อเสนอแนะ';
-            const tableHeaderHtml = `
-                <thead>
-                    <tr style="background-color: #f1f5f9; font-weight: bold; text-align: center;">
-                        <th style="width: 28%; font-size: 13pt; border: 1px solid #475569; padding: 6px 8px;">ส่วนงาน/กิจกรรมการตรวจสอบ</th>
-                        <th style="width: 36%; font-size: 13pt; border: 1px solid #475569; padding: 6px 8px;">ข้อตรวจพบ</th>
-                        <th style="width: 36%; font-size: 13pt; border: 1px solid #475569; padding: 6px 8px;">${rightColTitle}</th>
-                    </tr>
-                </thead>
-            `;
-
-            printContainer.innerHTML = `
-                <div style="font-family: 'Prompt', sans-serif; width: 100%;">
-                    <div style="text-align: center; margin-bottom: 8px; page-break-after: avoid; break-after: avoid;">
-                        <h2 style="font-size: 15pt; font-weight: bold; margin: 0; color: #0f172a; line-height: 1.3;">${line1Title}</h2>
-                        <h3 style="font-size: 12pt; font-weight: bold; color: #334155; margin-top: 4px; margin-bottom: 0;">${line2Meeting}</h3>
-                    </div>
-
-                    <table class="pdf-table" style="width: 100%; border-collapse: collapse;">
-                        ${tableHeaderHtml}
-                        <tbody>
-                            ${tableRowsHtml}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
-
+        // =========================================================================
+        // PDF REPORT GENERATOR: 3 DISTINCT SPECIALIZED TEMPLATES
+        // =========================================================================
         function renderExecutiveMatrixPdf(printContainer) {
-            const roundNoInput = document.getElementById("pdf-header-meeting-input");
-            const roundNo = (roundNoInput && roundNoInput.value.trim()) ? roundNoInput.value.trim() : "1/2568";
+            const roundNo = selectedRound !== 'ALL' ? selectedRound : (filteredData[0]?.meeting_round || "4/2569");
             const matrixDepts = [...new Set(filteredData.map(d => d.department))].sort();
 
-            // Common 3-Tier Table Header Template
+            // Calculate active years for labels
+            const activeYrs = (selectedYears && selectedYears.length > 0)
+                ? [...selectedYears].sort((a, b) => Number(a) - Number(b))
+                : [...new Set(filteredData.map(d => d.year))].sort((a, b) => Number(a) - Number(b));
+            const latestYr = activeYrs.length > 0 ? Number(activeYrs[activeYrs.length - 1]) : 2569;
+            const baselineYear = customBaselineYear || String(latestYr - 1);
+            const currentFollowUpYr = latestYr;
+
+            // Common 3-Tier Table Header Template with unified Gray รวม column headers
             const matrixHeaderHtml = `
                 <colgroup>
                     <col style="width: 4%;">
@@ -2988,7 +2930,7 @@
                         <th rowspan="3" style="width: 18%;">ส่วนงาน</th>
                         <th colspan="5" style="background-color: #e0f2fe; color: #0369a1; padding: 3px 2px; font-size: 7.5pt; border: 1px solid #475569;">1. ด้านผลการดำเนินงานและการบริหาร<br>(Performance & Management Audit)</th>
                         <th colspan="15" style="background-color: #f1f5f9; color: #0f172a; padding: 3px 2px; font-size: 7.5pt; border: 1px solid #475569;">2. การประเมินระบบควบคุมภายในหน่วยงาน (Internal Control)</th>
-                        <th rowspan="2" colspan="5" style="background-color: #e2e8f0; color: #0f172a; padding: 3px 2px; font-size: 7.5pt; border: 1px solid #475569;">รวมทั้งหมด</th>
+                        <th rowspan="2" colspan="5" style="background-color: #cbd5e1; color: #0f172a; padding: 3px 2px; font-size: 7.5pt; border: 1px solid #475569;">รวมทั้งหมด</th>
                     </tr>
                     <tr style="background-color: #f1f5f9; color: #0f172a; font-weight: bold;">
                         <th colspan="5" style="background-color: #e0f2fe; color: #0369a1; padding: 2px 1px; font-size: 7pt; border: 1px solid #475569;">ด้านผลการดำเนินงาน</th>
@@ -2997,21 +2939,21 @@
                         <th colspan="5" style="background-color: #f1f5f9; color: #0f172a; padding: 2px 1px; font-size: 7pt; border: 1px solid #475569;">ด้านปฏิบัติตามกฎ ระเบียบ</th>
                     </tr>
                     <tr>
-                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th>รวม</th>
-                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th>รวม</th>
-                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th>รวม</th>
-                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th>รวม</th>
-                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th>รวม</th>
+                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th class="bg-matrix-total-header">รวม</th>
+                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th class="bg-matrix-total-header">รวม</th>
+                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th class="bg-matrix-total-header">รวม</th>
+                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th class="bg-matrix-total-header">รวม</th>
+                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th class="bg-matrix-total-header">รวม</th>
                     </tr>
                 </thead>
             `;
 
             // ==========================================
-            // PAGE 1: การติดตามงานเดิม (2568 & 2569)
+            // PAGE 1: การติดตามงานเดิม (Baseline Year & Current Year)
             // ==========================================
             initCustom2568MatrixData(matrixDepts);
 
-            // 1. Part 1 Rows: 2568 (from custom2568MatrixData)
+            // 1. Part 1 Rows: Baseline Year (from custom2568MatrixData)
             let p1_2568_rowsHtml = "";
             let p1_2568_grand = {
                 "ด้านผลการดำเนินงาน": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 },
@@ -3050,12 +2992,12 @@
                         <td>${c['ด้านการเงิน'].red || ''}</td><td>${c['ด้านการเงิน'].orange || ''}</td><td>${c['ด้านการเงิน'].yellow || ''}</td><td>${c['ด้านการเงิน'].green || ''}</td><td class="bg-matrix-total">${tTotals['ด้านการเงิน']}</td>
                         <td>${c['ด้านการดำเนินงาน'].red || ''}</td><td>${c['ด้านการดำเนินงาน'].orange || ''}</td><td>${c['ด้านการดำเนินงาน'].yellow || ''}</td><td>${c['ด้านการดำเนินงาน'].green || ''}</td><td class="bg-matrix-total">${tTotals['ด้านการดำเนินงาน']}</td>
                         <td>${c['ด้านการปฏิบัติตามกฎระเบียบ'].red || ''}</td><td>${c['ด้านการปฏิบัติตามกฎระเบียบ'].orange || ''}</td><td>${c['ด้านการปฏิบัติตามกฎระเบียบ'].yellow || ''}</td><td>${c['ด้านการปฏิบัติตามกฎระเบียบ'].green || ''}</td><td class="bg-matrix-total">${tTotals['ด้านการปฏิบัติตามกฎระเบียบ']}</td>
-                        <td>${oRed || ''}</td><td>${oOrange || ''}</td><td>${oYellow || ''}</td><td>${oGreen || ''}</td><td class="bg-matrix-total" style="background-color: #cbd5e1 !important;">${oTot}</td>
+                        <td>${oRed || ''}</td><td>${oOrange || ''}</td><td>${oYellow || ''}</td><td>${oGreen || ''}</td><td class="bg-matrix-total">${oTot}</td>
                     </tr>
                 `;
             });
 
-            // 2. Part 2 Rows: 2569 (from system filteredData with type === 'ติดตามงานเดิม')
+            // 2. Part 2 Rows: Current Year (from system filteredData with type === 'ติดตามงานเดิม')
             let p1_2569_rowsHtml = "";
             let p1_2569_grand = {
                 "ด้านผลการดำเนินงาน": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 },
@@ -3105,7 +3047,7 @@
                         <td>${dc['ด้านการเงิน'].red || ''}</td><td>${dc['ด้านการเงิน'].orange || ''}</td><td>${dc['ด้านการเงิน'].yellow || ''}</td><td>${dc['ด้านการเงิน'].green || ''}</td><td class="bg-matrix-total">${dc['ด้านการเงิน'].total}</td>
                         <td>${dc['ด้านการดำเนินงาน'].red || ''}</td><td>${dc['ด้านการดำเนินงาน'].orange || ''}</td><td>${dc['ด้านการดำเนินงาน'].yellow || ''}</td><td>${dc['ด้านการดำเนินงาน'].green || ''}</td><td class="bg-matrix-total">${dc['ด้านการดำเนินงาน'].total}</td>
                         <td>${dc['ด้านการปฏิบัติตามกฎระเบียบ'].red || ''}</td><td>${dc['ด้านการปฏิบัติตามกฎระเบียบ'].orange || ''}</td><td>${dc['ด้านการปฏิบัติตามกฎระเบียบ'].yellow || ''}</td><td>${dc['ด้านการปฏิบัติตามกฎระเบียบ'].green || ''}</td><td class="bg-matrix-total">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].total}</td>
-                        <td>${dc.overall.red || ''}</td><td>${dc.overall.orange || ''}</td><td>${dc.overall.yellow || ''}</td><td>${dc.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #cbd5e1 !important;">${dc.overall.total}</td>
+                        <td>${dc.overall.red || ''}</td><td>${dc.overall.orange || ''}</td><td>${dc.overall.yellow || ''}</td><td>${dc.overall.green || ''}</td><td class="bg-matrix-total">${dc.overall.total}</td>
                     </tr>
                 `;
             });
@@ -3121,14 +3063,14 @@
                     <table class="matrix-table" style="width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; font-size: 8pt !important;">
                         ${matrixHeaderHtml}
                         <tbody>
-                            <!-- Section 1 Banner: 2568 -->
+                            <!-- Section 1 Banner: Baseline Year -->
                             <tr style="background-color: #fed7aa; color: #7c2d12; font-weight: bold; text-align: left;">
-                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569;">การติดตามงานเดิม (จากการตรวจสอบครั้งก่อน 2568)</td>
+                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569;">การติดตามงานเดิม (จากการตรวจสอบครั้งก่อน ${baselineYear})</td>
                             </tr>
                             ${p1_2568_rowsHtml}
-                            <!-- Section 1 Footer: 2568 -->
+                            <!-- Section 1 Footer: Baseline Year -->
                             <tr style="font-weight: bold; background-color: #fed7aa; color: #7c2d12;">
-                                <td colspan="2" class="matrix-footer-label">รวม</td>
+                                <td colspan="2" class="matrix-footer-label">รวม ${baselineYear}</td>
                                 <td>${p1_2568_grand["ด้านผลการดำเนินงาน"].red}</td><td>${p1_2568_grand["ด้านผลการดำเนินงาน"].orange}</td><td>${p1_2568_grand["ด้านผลการดำเนินงาน"].yellow}</td><td>${p1_2568_grand["ด้านผลการดำเนินงาน"].green}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านผลการดำเนินงาน"].total}</td>
                                 <td>${p1_2568_grand["ด้านการเงิน"].red}</td><td>${p1_2568_grand["ด้านการเงิน"].orange}</td><td>${p1_2568_grand["ด้านการเงิน"].yellow}</td><td>${p1_2568_grand["ด้านการเงิน"].green}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการเงิน"].total}</td>
                                 <td>${p1_2568_grand["ด้านการดำเนินงาน"].red}</td><td>${p1_2568_grand["ด้านการดำเนินงาน"].orange}</td><td>${p1_2568_grand["ด้านการดำเนินงาน"].yellow}</td><td>${p1_2568_grand["ด้านการดำเนินงาน"].green}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการดำเนินงาน"].total}</td>
@@ -3136,14 +3078,14 @@
                                 <td>${p1_2568_grand.overall.red}</td><td>${p1_2568_grand.overall.orange}</td><td>${p1_2568_grand.overall.yellow}</td><td>${p1_2568_grand.overall.green}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p1_2568_grand.overall.total}</td>
                             </tr>
 
-                            <!-- Section 2 Banner: 2569 -->
+                            <!-- Section 2 Banner: Current Year -->
                             <tr style="background-color: #bbf7d0; color: #14532d; font-weight: bold; text-align: left;">
-                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569;">การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน 2569)</td>
+                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569;">การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน ${currentFollowUpYr})</td>
                             </tr>
                             ${p1_2569_rowsHtml}
-                            <!-- Section 2 Footer: 2569 -->
+                            <!-- Section 2 Footer: Current Year -->
                             <tr style="font-weight: bold; background-color: #bbf7d0; color: #14532d;">
-                                <td colspan="2" class="matrix-footer-label">รวม</td>
+                                <td colspan="2" class="matrix-footer-label">รวม ${currentFollowUpYr}</td>
                                 <td>${p1_2569_grand["ด้านผลการดำเนินงาน"].red}</td><td>${p1_2569_grand["ด้านผลการดำเนินงาน"].orange}</td><td>${p1_2569_grand["ด้านผลการดำเนินงาน"].yellow}</td><td>${p1_2569_grand["ด้านผลการดำเนินงาน"].green}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านผลการดำเนินงาน"].total}</td>
                                 <td>${p1_2569_grand["ด้านการเงิน"].red}</td><td>${p1_2569_grand["ด้านการเงิน"].orange}</td><td>${p1_2569_grand["ด้านการเงิน"].yellow}</td><td>${p1_2569_grand["ด้านการเงิน"].green}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการเงิน"].total}</td>
                                 <td>${p1_2569_grand["ด้านการดำเนินงาน"].red}</td><td>${p1_2569_grand["ด้านการดำเนินงาน"].orange}</td><td>${p1_2569_grand["ด้านการดำเนินงาน"].yellow}</td><td>${p1_2569_grand["ด้านการดำเนินงาน"].green}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการดำเนินงาน"].total}</td>
@@ -3209,16 +3151,12 @@
                         <td>${deptCounts["ด้านการเงิน"].red || ''}</td><td>${deptCounts["ด้านการเงิน"].orange || ''}</td><td>${deptCounts["ด้านการเงิน"].yellow || ''}</td><td>${deptCounts["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${deptCounts["ด้านการเงิน"].total}</td>
                         <td>${deptCounts["ด้านการดำเนินงาน"].red || ''}</td><td>${deptCounts["ด้านการดำเนินงาน"].orange || ''}</td><td>${deptCounts["ด้านการดำเนินงาน"].yellow || ''}</td><td>${deptCounts["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${deptCounts["ด้านการดำเนินงาน"].total}</td>
                         <td>${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td>${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td>${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td>${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                        <td>${deptCounts.overall.red || ''}</td><td>${deptCounts.overall.orange || ''}</td><td>${deptCounts.overall.yellow || ''}</td><td>${deptCounts.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #cbd5e1 !important;">${deptCounts.overall.total}</td>
+                        <td>${deptCounts.overall.red || ''}</td><td>${deptCounts.overall.orange || ''}</td><td>${deptCounts.overall.yellow || ''}</td><td>${deptCounts.overall.green || ''}</td><td class="bg-matrix-total">${deptCounts.overall.total}</td>
                     </tr>
                 `;
             });
 
             // Dynamic year label based on selected filter years
-            const activeYrs = (selectedYears && selectedYears.length > 0)
-                ? [...selectedYears].sort((a, b) => Number(a) - Number(b))
-                : [...new Set(filteredData.map(d => d.year))].sort((a, b) => Number(a) - Number(b));
-
             let yearLabel = "";
             if (activeYrs.length === 1) {
                 yearLabel = activeYrs[0];
