@@ -1787,7 +1787,7 @@
             fillSelectOptions("bottom-slicer-dept", depts, "ส่วนงาน");
             fillSelectOptions("form-dept", depts, "ส่วนงาน");
 
-            const rounds = (DYNAMIC_MEETING_ROUNDS && DYNAMIC_MEETING_ROUNDS.length > 0) ? DYNAMIC_MEETING_ROUNDS : ["ครั้งที่ 1/2568", "ครั้งที่ 2/2568", "ครั้งที่ 1/2569", "ครั้งที่ 2/2569", "ครั้งที่ 3/2569", "ครั้งที่ 1/2570", "ครั้งที่ 2/2570"];
+            const rounds = [...new Set(rawData.map(d => String(d.meeting_round || '').trim()).filter(Boolean))].sort();
             fillSelectOptions("top-slicer-round", rounds, "รอบรายงาน");
             fillSelectOptions("bottom-slicer-round", rounds, "รอบรายงาน");
             fillSelectOptions("form-meeting-round", rounds, "รอบการประชุม");
@@ -1796,13 +1796,12 @@
             let clarifyRounds = [];
             rawData.forEach(d => {
                 (d.items || []).forEach(i => {
-                    if (i.clarify_round) clarifyRounds.push(i.clarify_round);
+                    if (i.clarify_round && String(i.clarify_round).trim()) {
+                        clarifyRounds.push(String(i.clarify_round).trim());
+                    }
                 });
             });
             clarifyRounds = [...new Set(clarifyRounds)].sort();
-            if (clarifyRounds.length === 0 && DYNAMIC_CLARIFY_ROUNDS && DYNAMIC_CLARIFY_ROUNDS.length > 0) {
-                clarifyRounds = DYNAMIC_CLARIFY_ROUNDS;
-            }
             fillSelectOptions("top-slicer-clarify-round", clarifyRounds, "รอบชี้แจง");
             fillSelectOptions("bottom-slicer-clarify-round", clarifyRounds, "รอบชี้แจง");
 
