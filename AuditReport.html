@@ -972,6 +972,40 @@
                             <span class="font-bold text-slate-700 whitespace-nowrap text-sm">การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่</span>
                             <input type="text" id="pdf-header-meeting-input" value="1/2568" placeholder="เช่น 1/2568" class="w-full px-3 py-2 bg-white border border-purple-200 rounded-xl font-bold text-purple-950 outline-none focus:ring-2 focus:ring-[#A393EB]">
                         </div>
+                </div>
+
+                <!-- Color Theme Selector for Part 1 Activity Summary Table -->
+                <div id="pdf-theme-selector-wrapper" class="bg-purple-50/40 p-3.5 rounded-2xl border border-purple-200/60 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-slate-800 text-xs md:text-sm">🎨 ธีมสีตารางสรุปกิจกรรม (ส่วนที่ 1):</span>
+                        <span class="text-[11px] text-slate-500">(เลือกโทนสี 5 สีตามความเสี่ยง)</span>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap" id="pdf-table-color-options">
+                        <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 transition shadow-2xs">
+                            <input type="radio" name="pdfTableTheme" value="green" onchange="setPdfTableTheme('green')" class="accent-emerald-600">
+                            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block"></span>
+                            <span class="font-bold text-emerald-950 text-xs">เขียว</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-xl border border-yellow-300 bg-white hover:bg-yellow-50 transition shadow-2xs">
+                            <input type="radio" name="pdfTableTheme" value="yellow" onchange="setPdfTableTheme('yellow')" class="accent-yellow-500">
+                            <span class="w-3.5 h-3.5 rounded-full bg-yellow-400 inline-block"></span>
+                            <span class="font-bold text-yellow-950 text-xs">เหลือง</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-xl border border-orange-300 bg-white hover:bg-orange-50 transition shadow-2xs">
+                            <input type="radio" name="pdfTableTheme" value="orange" onchange="setPdfTableTheme('orange')" class="accent-orange-500">
+                            <span class="w-3.5 h-3.5 rounded-full bg-orange-500 inline-block"></span>
+                            <span class="font-bold text-orange-950 text-xs">ส้ม</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-xl border border-red-300 bg-white hover:bg-red-50 transition shadow-2xs">
+                            <input type="radio" name="pdfTableTheme" value="red" onchange="setPdfTableTheme('red')" class="accent-red-600">
+                            <span class="w-3.5 h-3.5 rounded-full bg-red-600 inline-block"></span>
+                            <span class="font-bold text-red-950 text-xs">แดง</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 transition shadow-2xs">
+                            <input type="radio" name="pdfTableTheme" value="gray" onchange="setPdfTableTheme('gray')" class="accent-slate-600">
+                            <span class="w-3.5 h-3.5 rounded-full bg-slate-500 inline-block"></span>
+                            <span class="font-bold text-slate-900 text-xs">เทา</span>
+                        </label>
                     </div>
                 </div>
 
@@ -2488,6 +2522,65 @@
             syncFromTopSlicer('dept', deptName);
         }
 
+        let selectedPdfTableTheme = "gray";
+
+        function setPdfTableTheme(theme) {
+            selectedPdfTableTheme = theme;
+        }
+
+        const PDF_TABLE_THEMES = {
+            green: {
+                headerBg: '#16a34a',
+                headerText: '#ffffff',
+                subHeaderBg: '#dcfce7',
+                subHeaderText: '#166534',
+                border: '#86efac',
+                footerBg: '#f0fdf4',
+                footerText: '#166534',
+                footerBorderTop: '#16a34a'
+            },
+            yellow: {
+                headerBg: '#ca8a04',
+                headerText: '#ffffff',
+                subHeaderBg: '#fef9c3',
+                subHeaderText: '#854d0e',
+                border: '#fde047',
+                footerBg: '#fefce8',
+                footerText: '#854d0e',
+                footerBorderTop: '#ca8a04'
+            },
+            orange: {
+                headerBg: '#ea580c',
+                headerText: '#ffffff',
+                subHeaderBg: '#ffedd5',
+                subHeaderText: '#9a3412',
+                border: '#fdba74',
+                footerBg: '#fff7ed',
+                footerText: '#9a3412',
+                footerBorderTop: '#ea580c'
+            },
+            red: {
+                headerBg: '#dc2626',
+                headerText: '#ffffff',
+                subHeaderBg: '#fee2e2',
+                subHeaderText: '#991b1b',
+                border: '#fca5a5',
+                footerBg: '#fef2f2',
+                footerText: '#991b1b',
+                footerBorderTop: '#dc2626'
+            },
+            gray: {
+                headerBg: '#475569',
+                headerText: '#ffffff',
+                subHeaderBg: '#f1f5f9',
+                subHeaderText: '#0f172a',
+                border: '#cbd5e1',
+                footerBg: '#f8fafc',
+                footerText: '#0f172a',
+                footerBorderTop: '#475569'
+            }
+        };
+
         // PDF EXPORT MODAL
         function openPdfExportModal() {
             document.getElementById("pdf-export-record-count").innerText = `${filteredData.length} รายการตามตัวกรอง`;
@@ -2495,20 +2588,27 @@
             const titleInput = document.getElementById("pdf-header-title-input");
             const meetingInput = document.getElementById("pdf-header-meeting-input");
             
-            if (titleInput && (!titleInput.value || titleInput.value.trim() === '' || titleInput.value.startsWith('สรุปข้อตรวจพบ') || titleInput.value.startsWith('ประเด็นความเสี่ยง'))) {
-                if (selectedRisks && selectedRisks.length === 1) {
-                    const rk = selectedRisks[0];
-                    let rkName = rk;
-                    let colorName = "สีเขียว";
-                    if (rk.includes("สูง") && !rk.includes("ค่อนข้าง")) { rkName = "ระดับสูง"; colorName = "สีแดง"; }
-                    else if (rk.includes("ค่อนข้างสูง")) { rkName = "ระดับค่อนข้างสูง"; colorName = "สีส้ม"; }
-                    else if (rk.includes("ปานกลาง")) { rkName = "ระดับปานกลาง"; colorName = "สีเหลือง"; }
-                    else if (rk.includes("ต่ำ")) { rkName = "ระดับต่ำ"; colorName = "สีเขียว"; }
+            if (selectedRisks && selectedRisks.length === 1) {
+                const rk = selectedRisks[0];
+                let rkName = rk;
+                let colorName = "สีเขียว";
+                if (rk.includes("สูง") && !rk.includes("ค่อนข้าง")) { rkName = "ระดับสูง"; colorName = "สีแดง"; selectedPdfTableTheme = 'red'; }
+                else if (rk.includes("ค่อนข้างสูง")) { rkName = "ระดับค่อนข้างสูง"; colorName = "สีส้ม"; selectedPdfTableTheme = 'orange'; }
+                else if (rk.includes("ปานกลาง")) { rkName = "ระดับปานกลาง"; colorName = "สีเหลือง"; selectedPdfTableTheme = 'yellow'; }
+                else if (rk.includes("ต่ำ")) { rkName = "ระดับต่ำ"; colorName = "สีเขียว"; selectedPdfTableTheme = 'green'; }
+                
+                if (titleInput && (!titleInput.value || titleInput.value.trim() === '' || titleInput.value.startsWith('สรุปข้อตรวจพบ') || titleInput.value.startsWith('ประเด็นความเสี่ยง'))) {
                     titleInput.value = `ประเด็นความเสี่ยง${rkName} (${colorName}) ${filteredData.length} ประเด็น`;
-                } else {
+                }
+            } else {
+                selectedPdfTableTheme = 'gray';
+                if (titleInput && (!titleInput.value || titleInput.value.trim() === '' || titleInput.value.startsWith('สรุปข้อตรวจพบ') || titleInput.value.startsWith('ประเด็นความเสี่ยง'))) {
                     titleInput.value = "สรุปข้อตรวจพบประเด็นความเสี่ยงและข้อเสนอแนะจากการตรวจสอบภายใน";
                 }
             }
+
+            const themeRadio = document.querySelector(`input[name="pdfTableTheme"][value="${selectedPdfTableTheme}"]`);
+            if (themeRadio) themeRadio.checked = true;
 
             if (meetingInput) {
                 const defaultRound = selectedRound !== 'ALL' ? selectedRound : (filteredData[0]?.meeting_round || "4/2569");
@@ -3353,45 +3453,47 @@
                 `;
             });
 
+            const theme = PDF_TABLE_THEMES[selectedPdfTableTheme] || PDF_TABLE_THEMES['gray'];
+
             const part1CoverHtml = `
                 <div class="pdf-page-break-after" style="padding: 12px 6px; font-family: 'Prompt', sans-serif; box-sizing: border-box;">
                     <!-- Header Titles (Part 1) -->
                     <div style="text-align: center; margin-bottom: 22px;">
-                        <h1 style="font-size: 21pt; font-weight: 800; color: #0f172a; margin: 0 0 8px 0; line-height: 1.3;">
+                        <h1 style="font-size: 22pt; font-weight: 800; color: #0f172a; margin: 0 0 8px 0; line-height: 1.3;">
                             ${line1Title}
                         </h1>
-                        <h2 style="font-size: 13.5pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
+                        <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
                             ${line2Meeting}
                         </h2>
                     </div>
 
-                    <!-- Activity Matrix Table -->
-                    <div style="width: 100%; overflow: hidden; border-radius: 8px; border: 1px solid #94a3b8; margin-top: 10px;">
+                    <!-- Activity Matrix Table with 5-color theme support -->
+                    <div style="width: 100%; overflow: hidden; border-radius: 8px; border: 1px solid ${theme.border}; margin-top: 10px;">
                         <table style="width: 100%; border-collapse: collapse; font-family: 'Prompt', sans-serif;">
                             <thead>
-                                <tr style="background-color: #64748b; color: #ffffff; text-align: center;">
-                                    <th colspan="6" style="padding: 10px; font-size: 13pt; font-weight: 800; border: 1px solid #475569; letter-spacing: 0.5px;">กิจกรรม</th>
+                                <tr style="background-color: ${theme.headerBg}; color: ${theme.headerText}; text-align: center;">
+                                    <th colspan="6" style="padding: 10px; font-size: 14pt; font-weight: 800; border: 1px solid ${theme.border}; letter-spacing: 0.5px;">กิจกรรม</th>
                                 </tr>
-                                <tr style="background-color: #f1f5f9; color: #0f172a; text-align: center; font-weight: bold; font-size: 10.5pt;">
-                                    <th style="padding: 8px 12px; border: 1px solid #cbd5e1; width: 30%; text-align: left;">ส่วนงาน</th>
-                                    <th style="padding: 8px 6px; border: 1px solid #cbd5e1; width: 14%;">ด้านผลการดำเนินงาน</th>
-                                    <th style="padding: 8px 6px; border: 1px solid #cbd5e1; width: 14%;">ติดตามงานเดิม</th>
-                                    <th style="padding: 8px 6px; border: 1px solid #cbd5e1; width: 14%;">ด้านการเงิน</th>
-                                    <th style="padding: 8px 6px; border: 1px solid #cbd5e1; width: 14%;">ด้านการดำเนินงาน</th>
-                                    <th style="padding: 8px 6px; border: 1px solid #cbd5e1; width: 14%;">ด้านการปฏิบัติตามกฎ<br>ระเบียบ ข้อบังคับ</th>
+                                <tr style="background-color: ${theme.subHeaderBg}; color: ${theme.subHeaderText}; text-align: center; font-weight: bold; font-size: 11pt;">
+                                    <th style="padding: 10px 14px; border: 1px solid ${theme.border}; width: 30%; text-align: left;">ส่วนงาน</th>
+                                    <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านผลการดำเนินงาน</th>
+                                    <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ติดตามงานเดิม</th>
+                                    <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านการเงิน</th>
+                                    <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านการดำเนินงาน</th>
+                                    <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านการปฏิบัติตามกฎ<br>ระเบียบ ข้อบังคับ</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${summaryRowsHtml}
                             </tbody>
                             <tfoot>
-                                <tr style="background-color: #f8fafc; font-weight: 800; color: #0f172a; text-align: center; font-size: 11pt; border-top: 2px solid #64748b;">
-                                    <td style="padding: 10px 12px; text-align: left; border: 1px solid #cbd5e1;">รวม</td>
-                                    <td style="padding: 10px 6px; border: 1px solid #cbd5e1;">${colTotals['ด้านผลการดำเนินงาน'] || ''}</td>
-                                    <td style="padding: 10px 6px; border: 1px solid #cbd5e1;">${colTotals['ติดตามงานเดิม'] || ''}</td>
-                                    <td style="padding: 10px 6px; border: 1px solid #cbd5e1;">${colTotals['ด้านการเงิน'] || ''}</td>
-                                    <td style="padding: 10px 6px; border: 1px solid #cbd5e1;">${colTotals['ด้านการดำเนินงาน'] || ''}</td>
-                                    <td style="padding: 10px 6px; border: 1px solid #cbd5e1;">${colTotals['ด้านการปฏิบัติตามกฎระเบียบ'] || ''}</td>
+                                <tr style="background-color: ${theme.footerBg}; font-weight: 800; color: ${theme.footerText}; text-align: center; font-size: 12pt; border-top: 2px solid ${theme.footerBorderTop};">
+                                    <td style="padding: 10px 14px; text-align: left; border: 1px solid ${theme.border};">รวม</td>
+                                    <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านผลการดำเนินงาน'] || ''}</td>
+                                    <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ติดตามงานเดิม'] || ''}</td>
+                                    <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านการเงิน'] || ''}</td>
+                                    <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านการดำเนินงาน'] || ''}</td>
+                                    <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านการปฏิบัติตามกฎระเบียบ'] || ''}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -3426,8 +3528,8 @@
                         recClarifyHtml = rawRec.replace(/\n/g, '<br>');
                     } else if (item.items && item.items.length > 0) {
                         recClarifyHtml = item.items.map((it, idx) => {
-                            return item.items.length > 1 ? `<div><strong>${idx + 1}.</strong> ${it.recommendation}</div>` : `<div>${it.recommendation}</div>`;
-                        }).join('<div style="height: 6px;"></div>');
+                            return item.items.length > 1 ? `<div style="font-size: 16pt;"><strong style="font-size: 16pt;">${idx + 1}.</strong> ${it.recommendation}</div>` : `<div style="font-size: 16pt;">${it.recommendation}</div>`;
+                        }).join('<div style="height: 8px;"></div>');
                     } else {
                         recClarifyHtml = "ไม่มีข้อเสนอแนะ";
                     }
@@ -3443,61 +3545,69 @@
                             else { stBg = '#ffe4e6'; stText = '#be123c'; }
 
                             return `
-                                <div style="margin-bottom: 8px; padding: 8px 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
-                                    <div style="margin-bottom: 4px;">
-                                        <strong style="color: #0f172a;">ข้อเสนอแนะที่ ${idx + 1}:</strong> ${ovRec}
+                                <div style="margin-bottom: 10px; padding: 10px 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 16pt; line-height: 1.6;">
+                                    <div style="margin-bottom: 6px;">
+                                        <strong style="color: #0f172a; font-size: 16pt;">ข้อเสนอแนะที่ ${idx + 1}:</strong> ${ovRec}
                                     </div>
-                                    <div style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-size: 10pt; font-weight: bold; color: #475569;">สถานะ:</span>
-                                        <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9.5pt; font-weight: bold; background-color: ${stBg}; color: ${stText};">${statusVal}</span>
+                                    <div style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-weight: bold; color: #475569; font-size: 15pt;">สถานะ:</span>
+                                        <span style="display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 14pt; font-weight: bold; background-color: ${stBg}; color: ${stText};">${statusVal}</span>
                                     </div>
-                                    <div style="color: #334155; line-height: 1.45; font-size: 11pt;">
-                                        <strong>การชี้แจง / ผลการดำเนินงาน:</strong> ${ovClarify.replace(/\n/g, '<br>')}
+                                    <div style="color: #334155; line-height: 1.6; font-size: 16pt;">
+                                        <strong style="font-size: 16pt;">การชี้แจง / ผลการดำเนินงาน:</strong> ${ovClarify.replace(/\n/g, '<br>')}
                                     </div>
                                 </div>
                             `;
                         }).join('');
                     } else {
-                        recClarifyHtml = `<div style="color: #64748b;">${item.initial_rec ? item.initial_rec.replace(/\n/g, '<br>') : 'ไม่มีข้อเสนอแนะ'}</div>`;
+                        recClarifyHtml = `<div style="color: #64748b; font-size: 16pt;">${item.initial_rec ? item.initial_rec.replace(/\n/g, '<br>') : 'ไม่มีข้อเสนอแนะ'}</div>`;
                     }
                 }
 
                 const pageBreakClass = (isIndividualSlide && index < filteredData.length - 1) ? "pdf-page-break-after" : "";
 
                 contentSlidesHtml += `
-                    <div class="${pageBreakClass}" style="padding: 8px 0; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
+                    <div class="${pageBreakClass}" style="padding: 10px 0; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
                         <!-- PART 2: ข้อตรวจพบ -->
-                        <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; border-left: 6px solid ${riskBgColor}; page-break-inside: avoid; break-inside: avoid;">
-                            <div style="font-size: 15pt; font-weight: 800; color: #0f172a; margin-bottom: 3px; line-height: 1.3;">
+                        <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px 22px; margin-bottom: 16px; border-left: 8px solid ${riskBgColor}; page-break-inside: avoid; break-inside: avoid;">
+                            <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
+                            <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
                                 ${item.department}
                             </div>
-                            <div style="font-size: 12pt; font-weight: 600; color: #475569; margin-bottom: 10px; line-height: 1.3;">
+                            <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
+                            <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 12px; line-height: 1.3; text-align: center;">
                                 ${item.main_topic} : ${item.sub_topic}
                             </div>
-                            <div style="margin-bottom: 10px;">
-                                <span style="display: inline-block; background-color: ${riskBgColor}; color: ${riskTextColor}; padding: 4px 12px; border-radius: 6px; font-weight: 800; font-size: 11pt;">
+                            <!-- บรรทัดที่ 3: หัวข้อ ข้อตรวจพบ : ระดับความเสี่ยง (ตรงกลาง 18pt) -->
+                            <div style="text-align: center; margin-bottom: 14px;">
+                                <span style="display: inline-block; background-color: ${riskBgColor}; color: ${riskTextColor}; padding: 6px 18px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
                                     ข้อตรวจพบ : ระดับความเสี่ยง ${item.risk_level || rkKey}
                                 </span>
                             </div>
-                            <div style="font-size: 11pt; line-height: 1.55; color: #1e293b; text-align: justify;">
+                            <!-- บรรทัดที่ 4: เนื้อหาข้อตรวจพบ (16pt) -->
+                            <div style="font-size: 16pt; line-height: 1.65; color: #1e293b; text-align: justify;">
                                 ${findingHtml}
                             </div>
                         </div>
 
                         <!-- PART 3: ข้อเสนอแนะ (หรือ ผลการดำเนินงานตามข้อเสนอแนะ) -->
-                        <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px 18px; border-left: 6px solid #3b82f6; page-break-inside: avoid; break-inside: avoid;">
-                            <div style="font-size: 15pt; font-weight: 800; color: #0f172a; margin-bottom: 3px; line-height: 1.3;">
+                        <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px 22px; border-left: 8px solid #3b82f6; page-break-inside: avoid; break-inside: avoid;">
+                            <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
+                            <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
                                 ${item.department}
                             </div>
-                            <div style="font-size: 12pt; font-weight: 600; color: #475569; margin-bottom: 10px; line-height: 1.3;">
+                            <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
+                            <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 12px; line-height: 1.3; text-align: center;">
                                 ${item.main_topic} : ${item.sub_topic}
                             </div>
-                            <div style="margin-bottom: 10px;">
-                                <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 4px 12px; border-radius: 6px; font-weight: 800; font-size: 11pt;">
+                            <!-- บรรทัดที่ 3: หัวข้อ ข้อเสนอแนะ (ตรงกลาง 18pt) -->
+                            <div style="text-align: center; margin-bottom: 14px;">
+                                <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 18px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
                                     ${currentPdfExportMode === 'mode1' ? 'ข้อเสนอแนะ' : 'ผลการดำเนินงานตามข้อเสนอแนะ'}
                                 </span>
                             </div>
-                            <div style="font-size: 11pt; line-height: 1.55; color: #1e293b; text-align: justify;">
+                            <!-- บรรทัดที่ 4: เนื้อหาข้อเสนอแนะ (16pt) -->
+                            <div style="font-size: 16pt; line-height: 1.65; color: #1e293b; text-align: justify;">
                                 ${recClarifyHtml}
                             </div>
                         </div>
