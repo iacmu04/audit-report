@@ -2697,18 +2697,39 @@
         let customRiskDetailTableOverrides = {};
         let riskDetailSource = "report"; // "report" or "clarify"
 
+        function getRiskDetailSourceItems(source = riskDetailSource) {
+            if (source === 'report') {
+                // ดึงข้อตรวจพบ/ประเด็นย่อยทั้งหมดจากชีท Report (rawData) ตามตัวกรองพื้นฐาน โดยไม่ตัดข้อที่ยังไม่มีชี้แจงออก
+                return rawData.filter(item => {
+                    if (selectedYears && selectedYears.length > 0 && !selectedYears.includes(item.year)) return false;
+                    if (selectedRisks && selectedRisks.length > 0 && !selectedRisks.includes(item.risk_level)) return false;
+                    if (selectedDept !== "ALL" && item.department !== selectedDept) return false;
+                    if (selectedRound !== "ALL" && item.meeting_round !== selectedRound) return false;
+                    if (selectedType !== "ALL" && item.type !== selectedType) return false;
+                    if (selectedMain !== "ALL" && normalizeMainTopic(item.main_topic) !== normalizeMainTopic(selectedMain)) return false;
+                    if (selectedSub !== "ALL" && item.sub_topic !== selectedSub) return false;
+                    return true;
+                });
+            } else {
+                // ดึงจากรายการตามตัวกรองปัจจุบัน (ที่มีข้อมูลชี้แจง/Clarify)
+                return filteredData;
+            }
+        }
+
         function setRiskDetailSource(source) {
             riskDetailSource = source;
             customRiskDetailTableOverrides = {};
-            const depts = [...new Set(filteredData.map(d => d.department))].sort();
+            const sourceItems = getRiskDetailSourceItems(source);
+            const depts = [...new Set(sourceItems.map(d => d.department))].sort();
             initCustomRiskDetailData(depts, source);
             renderPdfPreEditor();
         }
 
         function initCustomRiskDetailData(depts, source = riskDetailSource) {
+            const allSourceItems = getRiskDetailSourceItems(source);
             depts.forEach(dept => {
                 if (!customRiskDetailTableOverrides[dept]) {
-                    const deptItems = filteredData.filter(d => d.department === dept);
+                    const deptItems = allSourceItems.filter(d => d.department === dept);
                     let red = 0, orange = 0, yellow = 0, green = 0;
                     const detailLines = [];
 
@@ -2747,7 +2768,7 @@
                             }
                         });
                     } else {
-                        // ดึงจากชีท Report (ข้อตรวจพบ / ประเด็นย่อย)
+                        // ดึงจากชีท Report (ข้อตรวจพบ / ประเด็นย่อยทั้งหมดครบทุกประเด็น)
                         deptItems.forEach((it, i) => {
                             const rkStr = String(it.risk_level || '');
                             if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) red++;
@@ -2956,8 +2977,9 @@
             container.innerHTML = "";
 
             if (currentPdfExportMode === 'mode4') {
-                const depts = [...new Set(filteredData.map(d => d.department))].sort();
-                initCustomRiskDetailData(depts);
+                const sourceItems = getRiskDetailSourceItems(riskDetailSource);
+                const depts = [...new Set(sourceItems.map(d => d.department))].sort();
+                initCustomRiskDetailData(depts, riskDetailSource);
 
                 if (depts.length === 0) {
                     container.innerHTML = `<div class="p-8 text-center text-slate-400 font-medium">ไม่พบข้อมูลส่วนงานตามตัวกรองที่เลือกสำหรับส่งออก</div>`;
@@ -4036,8 +4058,9 @@
             const line1Title = titleInput ? titleInput.value : "สรุปประเด็นความเสี่ยงและรายละเอียดผลการตรวจสอบ";
             const line2Meeting = meetingInput ? `การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ ${meetingInput.value}` : "การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ 1/2568";
 
-            const depts = [...new Set(filteredData.map(d => d.department))].sort();
-            initCustomRiskDetailData(depts);
+            const sourceItems = getRiskDetailSourceItems(riskDetailSource);
+            const depts = [...new Set(sourceItems.map(d => d.department))].sort();
+            initCustomRiskDetailData(depts, riskDetailSource);
 
             let rowsHtml = "";
             let grandRed = 0, grandOrange = 0, grandYellow = 0, grandGreen = 0, grandTotal = 0;
