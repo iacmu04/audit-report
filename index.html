@@ -2740,7 +2740,7 @@
             return raw.replace(/\n/g, "<br>");
         }
 
-        function splitTextInto16LineSlides(rawText) {
+        function splitTextInto19LineSlides(rawText, maxLines = 19) {
             if (!rawText || rawText.trim() === '-' || rawText.trim() === '') return ["-"];
 
             // Convert formatting breaks into clean line breaks for calculation
@@ -2768,18 +2768,18 @@
                 }
             }
 
-            // If total visual lines fit within 16 lines, return as single slide
-            if (totalVisualLines <= 16) {
+            // If total visual lines fit within maxLines (19), return as single slide
+            if (totalVisualLines <= maxLines) {
                 return [formatInitialHtml(rawText)];
             }
 
-            // Otherwise chunk lines strictly by 16 lines limit
+            // Otherwise chunk lines strictly by maxLines limit (19)
             const slides = [];
             let currentSlide = [];
             let currentLines = 0;
 
             for (let item of lineItems) {
-                if (currentLines + item.count > 16 && currentSlide.length > 0) {
+                if (currentLines + item.count > maxLines && currentSlide.length > 0) {
                     slides.push(currentSlide.join('<br>'));
                     currentSlide = [item.html];
                     currentLines = item.count;
@@ -3645,7 +3645,7 @@
 
                 // --- 1. PART 2 (ข้อตรวจพบ) SLIDES ---
                 const rawFinding = pdfTextOverrides[item.finding_id]?.finding ?? item.finding ?? "-";
-                const findingSlides = splitTextInto16LineSlides(rawFinding);
+                const findingSlides = splitTextInto19LineSlides(rawFinding, 19);
 
                 findingSlides.forEach((fChunk) => {
                     contentSlidesHtml += `
@@ -3688,7 +3688,7 @@
                         textToSplit = "ไม่มีข้อเสนอแนะ";
                     }
 
-                    const recSlides = splitTextInto16LineSlides(textToSplit);
+                    const recSlides = splitTextInto19LineSlides(textToSplit, 19);
                     recSlides.forEach((rChunk, sIdx) => {
                         const isLastSlide = (index === filteredData.length - 1) && (sIdx === recSlides.length - 1);
                         const pageBreakClass = isLastSlide ? "" : "pdf-page-break-after";
@@ -3731,7 +3731,7 @@
                         else { stBg = '#ffe4e6'; stText = '#be123c'; }
 
                         const showItemNumber = clarifyItems.length > 1;
-                        const clarifySlides = splitTextInto16LineSlides(ovClarify);
+                        const clarifySlides = splitTextInto19LineSlides(ovClarify, 19);
 
                         clarifySlides.forEach((cChunk, sIdx) => {
                             const isLastSlide = (index === filteredData.length - 1) && (rIdx === clarifyItems.length - 1) && (sIdx === clarifySlides.length - 1);
