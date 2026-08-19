@@ -2469,9 +2469,8 @@
         }
 
         function recalc2568PreEditorTable() {
-            let followUpDepts = [...new Set(filteredData.filter(d => d.type === 'ติดตามงานเดิม').map(d => d.department))].sort();
-            if (followUpDepts.length === 0) followUpDepts = [...new Set(filteredData.map(d => d.department))].sort();
-            initCustom2568MatrixData(followUpDepts);
+            const matrixDepts = [...new Set(filteredData.map(d => d.department))].sort();
+            initCustom2568MatrixData(matrixDepts);
 
             let grand = {
                 "ด้านผลการดำเนินงาน": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 },
@@ -2481,7 +2480,7 @@
                 "overall": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 }
             };
 
-            followUpDepts.forEach((dept, idx) => {
+            matrixDepts.forEach((dept, idx) => {
                 const c = custom2568MatrixData[dept];
                 let overallRed = 0, overallOrange = 0, overallYellow = 0, overallGreen = 0;
 
@@ -2546,13 +2545,12 @@
             container.innerHTML = "";
 
             if (currentPdfExportMode === 'mode3') {
-                let followUpDepts = [...new Set(filteredData.filter(d => d.type === 'ติดตามงานเดิม').map(d => d.department))].sort();
-                if (followUpDepts.length === 0) followUpDepts = [...new Set(filteredData.map(d => d.department))].sort();
-                initCustom2568MatrixData(followUpDepts);
+                const matrixDepts = [...new Set(filteredData.map(d => d.department))].sort();
+                initCustom2568MatrixData(matrixDepts);
 
                 // Build Editable Rows for 2568
                 let edit2568Rows = "";
-                followUpDepts.forEach((dept, idx) => {
+                matrixDepts.forEach((dept, idx) => {
                     const c = custom2568MatrixData[dept];
                     edit2568Rows += `
                         <tr class="hover:bg-amber-50/50 transition border-b border-slate-200 text-[11px]">
@@ -2602,7 +2600,7 @@
                     "overall": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 }
                 };
 
-                followUpDepts.forEach((dept, idx) => {
+                matrixDepts.forEach((dept, idx) => {
                     const deptItems = filteredData.filter(d => d.department === dept && d.type === 'ติดตามงานเดิม');
                     let dc = {
                         "ด้านผลการดำเนินงาน": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 },
@@ -2680,7 +2678,7 @@
                                     <i class="fa-solid fa-pen-to-square text-amber-600"></i> กำหนดข้อมูลความเสี่ยงหน้า 1: การติดตามงานเดิม (2568 & 2569)
                                 </h4>
                                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200/80 text-amber-900 border border-amber-300">
-                                    ${followUpDepts.length} ส่วนงานตามตัวกรอง
+                                    ${matrixDepts.length} ส่วนงานตามตัวกรอง
                                 </span>
                             </div>
                             <p class="text-[11px] text-amber-800 leading-relaxed">
@@ -2934,6 +2932,7 @@
         function renderExecutiveMatrixPdf(printContainer) {
             const roundNoInput = document.getElementById("pdf-header-meeting-input");
             const roundNo = (roundNoInput && roundNoInput.value.trim()) ? roundNoInput.value.trim() : "1/2568";
+            const matrixDepts = [...new Set(filteredData.map(d => d.department))].sort();
 
             // Common 3-Tier Table Header Template
             const matrixHeaderHtml = `
@@ -2973,9 +2972,7 @@
             // ==========================================
             // PAGE 1: การติดตามงานเดิม (2568 & 2569)
             // ==========================================
-            let followUpDepts = [...new Set(filteredData.filter(d => d.type === 'ติดตามงานเดิม').map(d => d.department))].sort();
-            if (followUpDepts.length === 0) followUpDepts = [...new Set(filteredData.map(d => d.department))].sort();
-            initCustom2568MatrixData(followUpDepts);
+            initCustom2568MatrixData(matrixDepts);
 
             // 1. Part 1 Rows: 2568 (from custom2568MatrixData)
             let p1_2568_rowsHtml = "";
@@ -2987,7 +2984,7 @@
                 "overall": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 }
             };
 
-            followUpDepts.forEach((dept, idx) => {
+            matrixDepts.forEach((dept, idx) => {
                 const c = custom2568MatrixData[dept] || {
                     "ด้านผลการดำเนินงาน": { red:0, orange:0, yellow:0, green:0 },
                     "ด้านการเงิน": { red:0, orange:0, yellow:0, green:0 },
@@ -3031,7 +3028,7 @@
                 "overall": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 }
             };
 
-            followUpDepts.forEach((dept, idx) => {
+            matrixDepts.forEach((dept, idx) => {
                 const deptItems = filteredData.filter(d => d.department === dept && d.type === 'ติดตามงานเดิม');
                 let dc = {
                     "ด้านผลการดำเนินงาน": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 },
@@ -3079,7 +3076,7 @@
             const page1CombinedTableHtml = `
                 <div style="font-family: 'Prompt', sans-serif;">
                     <div style="background-color: #0f172a; color: white; padding: 8px 12px; margin-bottom: 10px; font-weight: bold; font-size: 14pt; border-radius: 6px;">
-                        🟣 สรุปประเด็นผลการตรวจสอบ ประชุมคณะกรรมการตรวจสอบ ครั้งที่ ${roundNo} จำนวน ${followUpDepts.length} ส่วนงาน
+                        🟣 สรุปประเด็นผลการตรวจสอบ ประชุมคณะกรรมการตรวจสอบ ครั้งที่ ${roundNo} จำนวน ${matrixDepts.length} ส่วนงาน
                     </div>
 
                     <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 8px; color: #0f172a;">การติดตามงานเดิม (Follow-up Audit)</h3>
@@ -3124,8 +3121,6 @@
             // ==========================================
             // PAGE 2: ข้อตรวจพบประจำปีงบประมาณ
             // ==========================================
-            const currentYearDepts = [...new Set(filteredData.filter(d => d.type === 'ข้อตรวจพบปีปัจจุบัน').map(d => d.department))].sort();
-            const page2Depts = (currentYearDepts.length > 0) ? currentYearDepts : [...new Set(filteredData.map(d => d.department))].sort();
             const typeItems = filteredData.filter(d => d.type === 'ข้อตรวจพบปีปัจจุบัน');
 
             let p2_rowsHtml = "";
@@ -3137,7 +3132,7 @@
                 "overall": { red:0, orange:0, yellow:0, green:0, total:0 }
             };
 
-            page2Depts.forEach((dept, idx) => {
+            matrixDepts.forEach((dept, idx) => {
                 const deptItems = typeItems.filter(d => d.department === dept);
                 let deptCounts = {
                     "ด้านผลการดำเนินงาน": { red:0, orange:0, yellow:0, green:0, total:0 },
@@ -3201,7 +3196,7 @@
             const page2CombinedTableHtml = `
                 <div style="font-family: 'Prompt', sans-serif;">
                     <div style="background-color: #0f172a; color: white; padding: 8px 12px; margin-bottom: 10px; font-weight: bold; font-size: 14pt; border-radius: 6px;">
-                        🟣 สรุปประเด็นผลการตรวจสอบ ประชุมคณะกรรมการตรวจสอบ ครั้งที่ ${roundNo} จำนวน ${page2Depts.length} ส่วนงาน
+                        🟣 สรุปประเด็นผลการตรวจสอบ ประชุมคณะกรรมการตรวจสอบ ครั้งที่ ${roundNo} จำนวน ${matrixDepts.length} ส่วนงาน
                     </div>
 
                     <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 8px; color: #0f172a;">ข้อตรวจพบ ประจำปีงบประมาณ ${yearLabel}</h3>
