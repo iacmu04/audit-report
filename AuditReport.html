@@ -386,8 +386,8 @@
                     <div id="top-risk-pills" class="flex flex-wrap gap-1.5"></div>
                 </div>
 
-                <!-- Dropdown Slicers Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2.5 pt-1">
+                <!-- Dropdown Slicers Grid: Row 1 (Items 3 - 6) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 pt-1">
                     <div>
                         <label class="block font-semibold text-slate-600 mb-0.5">3. ส่วนงาน</label>
                         <select id="top-slicer-dept" onchange="syncFromTopSlicer('dept', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-medium text-xs">
@@ -417,7 +417,10 @@
                             <option value="ติดตามงานเดิม">ติดตามงานเดิม</option>
                         </select>
                     </div>
+                </div>
 
+                <!-- Dropdown Slicers Grid: Row 2 (Items 7 - 9) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-2.5 pt-1.5">
                     <div>
                         <label class="block font-semibold text-slate-600 mb-0.5">7. สถานะผลการดำเนินงาน</label>
                         <select id="top-slicer-status" onchange="syncFromTopSlicer('status', this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-2 focus:ring-2 focus:ring-amber-500 outline-none transition font-semibold text-xs">
@@ -552,7 +555,10 @@
                     <i class="fa-solid fa-building-columns text-[#A393EB] text-sm"></i>
                     10 อันดับส่วนงานที่มีจำนวนข้อตรวจพบสูงสุด (Top 10 Departments)
                 </h3>
-                <span class="text-[10px] font-bold text-purple-900 bg-purple-100/70 px-2.5 py-0.5 rounded-full border border-purple-200/80">3D Liquid Glass</span>
+                <button onclick="openDepartmentOverviewModal()" title="คลิกเพื่อดูภาพรวมและสัดส่วนความเสี่ยงทุกส่วนงาน" class="text-xs font-bold text-purple-950 bg-purple-100 hover:bg-[#A393EB] hover:text-white px-3 py-1.5 rounded-xl border border-purple-200/90 transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-list-check text-purple-700"></i>
+                    <span>รายละเอียดส่วนงาน</span>
+                </button>
             </div>
             <div class="relative py-2 h-[400px] w-full">
                 <canvas id="top10DeptsChart"></canvas>
@@ -1032,6 +1038,76 @@
 
             <div class="p-3 bg-slate-100 border-t border-slate-200 flex justify-end">
                 <button onclick="closeModal('topic-management-modal')" class="px-4 py-1.5 font-bold bg-slate-300 text-slate-700 rounded-xl hover:bg-slate-400 transition">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEPARTMENT OVERVIEW MODAL -->
+    <div id="department-overview-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-modal w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-fade-in bg-white border border-purple-100">
+            <!-- Header -->
+            <div class="p-4 bg-gradient-to-r from-[#A393EB]/25 via-purple-50 to-white border-b border-purple-200 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-[#A393EB] text-white flex items-center justify-center font-bold text-base shadow-sm">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-bold text-base text-slate-900">ภาพรวมประเด็นข้อตรวจพบจำแนกตามส่วนงาน (Department Risk Overview)</h3>
+                            <span id="dept-overview-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#A393EB]/20 text-purple-950 border border-purple-300">-- ส่วนงาน</span>
+                        </div>
+                        <p class="text-xs text-purple-900/80 font-medium">แสดงจำนวนประเด็นทั้งหมดและสัดส่วนระดับความเสี่ยง (ต่ำ, ปานกลาง, ค่อนข้างสูง, สูง) ของทุกส่วนงานตามตัวกรอง</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('department-overview-modal')" class="text-slate-400 hover:text-purple-900 p-2 rounded-xl transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Filter & Search Bar inside Modal -->
+            <div class="p-3 bg-purple-50/40 border-b border-purple-100 flex flex-wrap items-center justify-between gap-3">
+                <div class="relative flex-1 min-w-[240px]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="dept-overview-search" onkeyup="renderDepartmentOverviewTable()" placeholder="พิมพ์ชื่อส่วนงานเพื่อค้นหาด่วน..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-purple-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-[#A393EB] font-medium text-slate-800">
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <span class="text-slate-500">เรียงตาม:</span>
+                    <button onclick="setDeptOverviewSort('total')" id="btn-sort-total" class="px-2.5 py-1 bg-[#A393EB] text-white rounded-lg transition shadow-xs cursor-pointer">จำนวนประเด็นมากสุด</button>
+                    <button onclick="setDeptOverviewSort('name')" id="btn-sort-name" class="px-2.5 py-1 bg-white border border-purple-200 text-slate-700 rounded-lg hover:bg-purple-50 transition cursor-pointer">ชื่อส่วนงาน ก-ฮ</button>
+                </div>
+            </div>
+
+            <!-- Table Body Container -->
+            <div class="p-4 overflow-y-auto flex-1 custom-scrollbar">
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-left text-xs border-collapse table-fixed min-w-[650px]">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                                <th class="p-2.5 w-[7%] text-center">ลำดับ</th>
+                                <th class="p-2.5 w-[38%]">ส่วนงาน</th>
+                                <th class="p-2.5 w-[15%] text-center font-bold text-purple-950 bg-purple-100/50">ประเด็นทั้งหมด</th>
+                                <th class="p-2.5 w-[10%] text-center text-emerald-800 bg-emerald-50">ต่ำ</th>
+                                <th class="p-2.5 w-[10%] text-center text-amber-800 bg-amber-50">ปานกลาง</th>
+                                <th class="p-2.5 w-[10%] text-center text-orange-800 bg-orange-50">ค่อนข้างสูง</th>
+                                <th class="p-2.5 w-[10%] text-center text-rose-800 bg-rose-50">สูง</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dept-overview-table-body" class="divide-y divide-slate-200 font-medium">
+                            <!-- Injected by renderDepartmentOverviewTable() -->
+                        </tbody>
+                        <tfoot id="dept-overview-table-foot" class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300">
+                            <!-- Injected summary row -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
+                <span class="text-slate-500 italic">* คลิกที่ชื่อส่วนงานเพื่อกรองข้อมูลในหน้าจอแดชบอร์ดหลัก</span>
+                <button onclick="closeModal('department-overview-modal')" class="px-5 py-2 font-bold bg-[#A393EB] hover:bg-[#8e7ee3] text-white rounded-xl shadow-md transition cursor-pointer">
                     ปิดหน้าต่าง
                 </button>
             </div>
@@ -2226,6 +2302,131 @@
                 el.style.display = "flex";
                 el.classList.remove("hidden");
             }
+        }
+
+        // DEPARTMENT OVERVIEW MODAL (ภาพรวมประเด็นจำแนกตามส่วนงาน)
+        let currentDeptOverviewSort = 'total';
+
+        function openDepartmentOverviewModal() {
+            if (document.getElementById("dept-overview-search")) document.getElementById("dept-overview-search").value = "";
+            renderDepartmentOverviewTable();
+            openModal("department-overview-modal");
+        }
+
+        function setDeptOverviewSort(sortMode) {
+            currentDeptOverviewSort = sortMode;
+            const btnTotal = document.getElementById("btn-sort-total");
+            const btnName = document.getElementById("btn-sort-name");
+            if (sortMode === 'total') {
+                if (btnTotal) btnTotal.className = "px-2.5 py-1 bg-[#A393EB] text-white rounded-lg transition shadow-xs cursor-pointer";
+                if (btnName) btnName.className = "px-2.5 py-1 bg-white border border-purple-200 text-slate-700 rounded-lg hover:bg-purple-50 transition cursor-pointer";
+            } else {
+                if (btnName) btnName.className = "px-2.5 py-1 bg-[#A393EB] text-white rounded-lg transition shadow-xs cursor-pointer";
+                if (btnTotal) btnTotal.className = "px-2.5 py-1 bg-white border border-purple-200 text-slate-700 rounded-lg hover:bg-purple-50 transition cursor-pointer";
+            }
+            renderDepartmentOverviewTable();
+        }
+
+        function renderDepartmentOverviewTable() {
+            const tbody = document.getElementById("dept-overview-table-body");
+            const tfoot = document.getElementById("dept-overview-table-foot");
+            const badge = document.getElementById("dept-overview-count-badge");
+            const searchTxt = (document.getElementById("dept-overview-search") ? document.getElementById("dept-overview-search").value : "").toLowerCase().trim();
+
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            // Group filteredData by department
+            const deptMap = {};
+            filteredData.forEach(d => {
+                const dept = d.department || "ไม่ระบุส่วนงาน";
+                if (!deptMap[dept]) {
+                    deptMap[dept] = {
+                        name: dept,
+                        total: 0,
+                        low: 0,
+                        medium: 0,
+                        modHigh: 0,
+                        high: 0
+                    };
+                }
+                deptMap[dept].total++;
+                const rk = d.risk_level || "";
+                if (rk.includes("ค่อนข้างสูง")) deptMap[dept].modHigh++;
+                else if (rk.includes("สูง")) deptMap[dept].high++;
+                else if (rk.includes("ปานกลาง")) deptMap[dept].medium++;
+                else if (rk.includes("ต่ำ")) deptMap[dept].low++;
+                else deptMap[dept].low++;
+            });
+
+            let deptList = Object.values(deptMap);
+
+            if (searchTxt) {
+                deptList = deptList.filter(d => d.name.toLowerCase().includes(searchTxt));
+            }
+
+            // Sort
+            if (currentDeptOverviewSort === 'total') {
+                deptList.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'th'));
+            } else {
+                deptList.sort((a, b) => a.name.localeCompare(b.name, 'th'));
+            }
+
+            if (badge) badge.innerText = `${deptList.length} ส่วนงาน`;
+
+            if (deptList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-medium">ไม่พบข้อมูลส่วนงานตามตัวกรองหรือคำค้นหา</td></tr>`;
+                if (tfoot) tfoot.innerHTML = "";
+                return;
+            }
+
+            let sumTotal = 0, sumLow = 0, sumMed = 0, sumModHigh = 0, sumHigh = 0;
+
+            deptList.forEach((d, idx) => {
+                sumTotal += d.total;
+                sumLow += d.low;
+                sumMed += d.medium;
+                sumModHigh += d.modHigh;
+                sumHigh += d.high;
+
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-purple-50/70 transition border-b border-purple-100/70";
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center text-slate-500 font-semibold">${idx + 1}</td>
+                    <td class="p-2.5 font-bold text-slate-900">
+                        <button onclick="filterByDeptFromModal('${d.name.replace(/'/g, "\\'")}')" class="text-left hover:text-[#776AD6] hover:underline cursor-pointer flex items-center gap-1.5" title="คลิกเพื่อกรองเฉพาะส่วนงานนี้">
+                            <i class="fa-solid fa-building text-slate-400 text-[10px]"></i>
+                            <span>${d.name}</span>
+                        </button>
+                    </td>
+                    <td class="p-2.5 text-center font-bold text-purple-950 bg-purple-50/40">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 font-bold text-xs">${d.total}</span>
+                    </td>
+                    <td class="p-2.5 text-center font-bold text-emerald-800 ${d.low > 0 ? 'bg-emerald-50/40' : 'text-slate-300'}">${d.low || '-'}</td>
+                    <td class="p-2.5 text-center font-bold text-amber-800 ${d.medium > 0 ? 'bg-amber-50/40' : 'text-slate-300'}">${d.medium || '-'}</td>
+                    <td class="p-2.5 text-center font-bold text-orange-800 ${d.modHigh > 0 ? 'bg-orange-50/40' : 'text-slate-300'}">${d.modHigh || '-'}</td>
+                    <td class="p-2.5 text-center font-bold text-rose-800 ${d.high > 0 ? 'bg-rose-50/40' : 'text-slate-300'}">${d.high || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (tfoot) {
+                tfoot.innerHTML = `
+                    <tr class="bg-slate-100 text-slate-900">
+                        <td colspan="2" class="p-2.5 text-right font-bold text-slate-800">รวมทั้งหมด (${deptList.length} ส่วนงาน):</td>
+                        <td class="p-2.5 text-center font-extrabold text-purple-950 bg-purple-200/60">${sumTotal}</td>
+                        <td class="p-2.5 text-center font-bold text-emerald-900 bg-emerald-100/60">${sumLow}</td>
+                        <td class="p-2.5 text-center font-bold text-amber-900 bg-amber-100/60">${sumMed}</td>
+                        <td class="p-2.5 text-center font-bold text-orange-900 bg-orange-100/60">${sumModHigh}</td>
+                        <td class="p-2.5 text-center font-bold text-rose-900 bg-rose-100/60">${sumHigh}</td>
+                    </tr>
+                `;
+            }
+        }
+
+        function filterByDeptFromModal(deptName) {
+            closeModal('department-overview-modal');
+            syncFromTopSlicer('dept', deptName);
         }
 
         // PDF EXPORT MODAL
