@@ -2732,6 +2732,14 @@
             });
         }
 
+        function formatInitialHtml(raw) {
+            if (!raw) return "";
+            if (raw.includes("<br>") || raw.includes("<p>") || raw.includes("<div>") || raw.includes("<b>") || raw.includes("<u>")) {
+                return raw;
+            }
+            return raw.replace(/\n/g, "<br>");
+        }
+
         function renderPdfPreEditor() {
             const container = document.getElementById("pdf-pre-editor-container");
             container.innerHTML = "";
@@ -3001,20 +3009,41 @@
 
             itemsToRender.forEach((item, index) => {
                 const card = document.createElement("div");
-                card.className = "p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3";
+                card.className = "w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 shadow-xs";
                 
                 let bodyFields = "";
                 if (currentPdfExportMode === 'mode1') {
                     const rawRec = pdfTextOverrides[item.finding_id]?.recommendation ?? (item.initial_rec || (item.items && item.items.length > 0 ? item.items.map(i=>i.recommendation).join('\n') : ''));
+                    const findingHtml = pdfTextOverrides[item.finding_id]?.finding ?? formatInitialHtml(item.finding);
+                    const recHtml = pdfTextOverrides[item.finding_id]?.recommendation ?? formatInitialHtml(rawRec);
+
                     bodyFields = `
-                        <div class="space-y-2.5">
+                        <div class="space-y-4">
                             <div>
-                                <label class="block font-semibold text-slate-700 mb-1 text-[11px]">ข้อตรวจพบ (Report คอลัมน์ I):</label>
-                                <textarea onchange="updatePdfOverride('${item.finding_id}', 'finding', this.value)" rows="3" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#A393EB] outline-none">${pdfTextOverrides[item.finding_id]?.finding ?? item.finding}</textarea>
+                                <div class="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                                    <label class="block font-bold text-slate-800 text-xs">ข้อตรวจพบ (Report คอลัมน์ I):</label>
+                                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+                                        <span class="text-[10px] text-slate-400 font-medium px-1">จัดรูปแบบ:</span>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-black rounded-lg text-xs transition" title="ตัวหนา (Ctrl+B)"><b>B</b></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-black rounded-lg text-xs transition" title="ขีดเส้นใต้ (Ctrl+U)"><u>U</u></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded-lg text-xs transition" title="ตัวเอียง (Ctrl+I)"><i>I</i></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('removeFormat', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs transition" title="ล้างรูปแบบ">🧹</button>
+                                    </div>
+                                </div>
+                                <div contenteditable="true" oninput="updatePdfOverride('${item.finding_id}', 'finding', this.innerHTML)" class="w-full bg-white border border-slate-200 rounded-xl p-3.5 min-h-[190px] max-h-[450px] overflow-y-auto text-xs focus:ring-2 focus:ring-[#A393EB] outline-none leading-relaxed text-slate-800 shadow-2xs">${findingHtml}</div>
                             </div>
                             <div>
-                                <label class="block font-semibold text-slate-700 mb-1 text-[11px]">ข้อเสนอแนะ (Report คอลัมน์ J):</label>
-                                <textarea onchange="updatePdfOverride('${item.finding_id}', 'recommendation', this.value)" rows="2" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#A393EB] outline-none">${rawRec}</textarea>
+                                <div class="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                                    <label class="block font-bold text-slate-800 text-xs">ข้อเสนอแนะ (Report คอลัมน์ J):</label>
+                                    <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+                                        <span class="text-[10px] text-slate-400 font-medium px-1">จัดรูปแบบ:</span>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-black rounded-lg text-xs transition" title="ตัวหนา (Ctrl+B)"><b>B</b></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-black rounded-lg text-xs transition" title="ขีดเส้นใต้ (Ctrl+U)"><u>U</u></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded-lg text-xs transition" title="ตัวเอียง (Ctrl+I)"><i>I</i></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('removeFormat', false, null);" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs transition" title="ล้างรูปแบบ">🧹</button>
+                                    </div>
+                                </div>
+                                <div contenteditable="true" oninput="updatePdfOverride('${item.finding_id}', 'recommendation', this.innerHTML)" class="w-full bg-white border border-slate-200 rounded-xl p-3.5 min-h-[150px] max-h-[350px] overflow-y-auto text-xs focus:ring-2 focus:ring-[#A393EB] outline-none leading-relaxed text-slate-800 shadow-2xs">${recHtml}</div>
                             </div>
                         </div>
                     `;
@@ -3022,27 +3051,52 @@
                     const items = item.items && item.items.length > 0 ? item.items : [{ recommendation: item.initial_rec || '-', clarification: 'ยังไม่มีข้อมูลชี้แจง', status: item.overall_status }];
                     let clarifyInputs = "";
                     items.forEach((recItem, rIdx) => {
+                        const recItemHtml = pdfClarifyOverrides[item.finding_id]?.[rIdx]?.recommendation ?? formatInitialHtml(recItem.recommendation);
+                        const clarifyItemHtml = pdfClarifyOverrides[item.finding_id]?.[rIdx]?.clarification ?? formatInitialHtml(recItem.clarification);
+
                         clarifyInputs += `
-                            <div class="space-y-1.5 p-2.5 bg-white rounded-lg border border-slate-200">
+                            <div class="space-y-2.5 p-3.5 bg-white rounded-xl border border-slate-200">
                                 <div>
-                                    <label class="block font-semibold text-slate-600 text-[11px]">ข้อเสนอแนะที่ ${rIdx + 1}:</label>
-                                    <input type="text" onchange="updatePdfClarifyOverride('${item.finding_id}', ${rIdx}, 'recommendation', this.value)" value="${pdfClarifyOverrides[item.finding_id]?.[rIdx]?.recommendation ?? recItem.recommendation}" class="w-full bg-slate-50 border border-slate-200 rounded p-1.5 text-xs outline-none focus:ring-1 focus:ring-[#A393EB]">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block font-bold text-slate-700 text-xs">ข้อเสนอแนะที่ ${rIdx + 1}:</label>
+                                        <div class="flex items-center gap-1">
+                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+B"><b>B</b></button>
+                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+U"><u>U</u></button>
+                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded text-[11px]" title="Ctrl+I"><i>I</i></button>
+                                        </div>
+                                    </div>
+                                    <div contenteditable="true" oninput="updatePdfClarifyOverride('${item.finding_id}', ${rIdx}, 'recommendation', this.innerHTML)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 min-h-[90px] max-h-[220px] overflow-y-auto text-xs focus:ring-1 focus:ring-[#A393EB] outline-none leading-relaxed">${recItemHtml}</div>
                                 </div>
                                 <div>
-                                    <label class="block font-semibold text-slate-600 text-[11px]">รายละเอียดผลการดำเนินงาน / การชี้แจง:</label>
-                                    <textarea onchange="updatePdfClarifyOverride('${item.finding_id}', ${rIdx}, 'clarification', this.value)" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded p-1.5 text-xs outline-none focus:ring-1 focus:ring-[#A393EB]">${pdfClarifyOverrides[item.finding_id]?.[rIdx]?.clarification ?? recItem.clarification}</textarea>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block font-bold text-slate-700 text-xs">รายละเอียดผลการดำเนินงาน / การชี้แจง:</label>
+                                        <div class="flex items-center gap-1">
+                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+B"><b>B</b></button>
+                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+U"><u>U</u></button>
+                                            <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded text-[11px]" title="Ctrl+I"><i>I</i></button>
+                                        </div>
+                                    </div>
+                                    <div contenteditable="true" oninput="updatePdfClarifyOverride('${item.finding_id}', ${rIdx}, 'clarification', this.innerHTML)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 min-h-[120px] max-h-[280px] overflow-y-auto text-xs focus:ring-1 focus:ring-[#A393EB] outline-none leading-relaxed">${clarifyItemHtml}</div>
                                 </div>
                             </div>
                         `;
                     });
+                    const findingHtml = pdfTextOverrides[item.finding_id]?.finding ?? formatInitialHtml(item.finding);
                     bodyFields = `
-                        <div class="space-y-2">
+                        <div class="space-y-3">
                             <div>
-                                <label class="block font-semibold text-slate-700 mb-1 text-[11px]">ข้อตรวจพบ (Report คอลัมน์ I):</label>
-                                <textarea onchange="updatePdfOverride('${item.finding_id}', 'finding', this.value)" rows="2" class="w-full bg-white border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-[#A393EB] outline-none">${pdfTextOverrides[item.finding_id]?.finding ?? item.finding}</textarea>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block font-bold text-slate-700 text-xs">ข้อตรวจพบ (Report คอลัมน์ I):</label>
+                                    <div class="flex items-center gap-1">
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+B"><b>B</b></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 font-bold rounded text-[11px]" title="Ctrl+U"><u>U</u></button>
+                                        <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-1.5 py-0.5 bg-slate-100 hover:bg-[#A393EB]/30 text-slate-800 italic rounded text-[11px]" title="Ctrl+I"><i>I</i></button>
+                                    </div>
+                                </div>
+                                <div contenteditable="true" oninput="updatePdfOverride('${item.finding_id}', 'finding', this.innerHTML)" class="w-full bg-white border border-slate-200 rounded-xl p-3 min-h-[150px] max-h-[320px] overflow-y-auto text-xs focus:ring-2 focus:ring-[#A393EB] outline-none leading-relaxed">${findingHtml}</div>
                             </div>
-                            <div class="space-y-1.5">
-                                <label class="block font-semibold text-slate-700 text-[11px]">รายการข้อเสนอแนะ & การชี้แจง:</label>
+                            <div class="space-y-2">
+                                <label class="block font-bold text-slate-700 text-xs">รายการข้อเสนอแนะ & การชี้แจง:</label>
                                 ${clarifyInputs}
                             </div>
                         </div>
@@ -3530,11 +3584,10 @@
             // PART 2 & PART 3: AUDIT FINDINGS & RECOMMENDATIONS SLIDES
             // ----------------------------------------------------
             let contentSlidesHtml = "";
-            const isIndividualSlide = filteredData.length <= 40;
 
             filteredData.forEach((item, index) => {
                 const rawFinding = pdfTextOverrides[item.finding_id]?.finding ?? item.finding ?? "-";
-                const findingHtml = rawFinding.replace(/\n/g, '<br>');
+                const findingHtml = formatInitialHtml(rawFinding);
 
                 let rkKey = "ต่ำ";
                 const rkStr = String(item.risk_level || '');
@@ -3550,11 +3603,11 @@
                 if (currentPdfExportMode === 'mode1') {
                     const rawRec = pdfTextOverrides[item.finding_id]?.recommendation ?? item.initial_rec;
                     if (rawRec && rawRec.trim() && rawRec !== '-') {
-                        recClarifyHtml = rawRec.replace(/\n/g, '<br>');
+                        recClarifyHtml = formatInitialHtml(rawRec);
                     } else if (item.items && item.items.length > 0) {
                         recClarifyHtml = item.items.map((it, idx) => {
-                            return item.items.length > 1 ? `<div style="font-size: 16pt;"><strong style="font-size: 16pt;">${idx + 1}.</strong> ${it.recommendation}</div>` : `<div style="font-size: 16pt;">${it.recommendation}</div>`;
-                        }).join('<div style="height: 8px;"></div>');
+                            return item.items.length > 1 ? `<div style="font-size: 14pt;"><strong style="font-size: 14pt;">${idx + 1}.</strong> ${it.recommendation}</div>` : `<div style="font-size: 14pt;">${it.recommendation}</div>`;
+                        }).join('<div style="height: 6px;"></div>');
                     } else {
                         recClarifyHtml = "ไม่มีข้อเสนอแนะ";
                     }
@@ -3570,31 +3623,29 @@
                             else { stBg = '#ffe4e6'; stText = '#be123c'; }
 
                             return `
-                                <div style="margin-bottom: 10px; padding: 10px 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 16pt; line-height: 1.6;">
-                                    <div style="margin-bottom: 6px;">
-                                        <strong style="color: #0f172a; font-size: 16pt;">ข้อเสนอแนะที่ ${idx + 1}:</strong> ${ovRec}
+                                <div style="margin-bottom: 10px; padding: 10px 14px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14pt; line-height: 1.55;">
+                                    <div style="margin-bottom: 4px;">
+                                        <strong style="color: #0f172a; font-size: 14pt;">ข้อเสนอแนะที่ ${idx + 1}:</strong> ${formatInitialHtml(ovRec)}
                                     </div>
-                                    <div style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-weight: bold; color: #475569; font-size: 15pt;">สถานะ:</span>
-                                        <span style="display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 14pt; font-weight: bold; background-color: ${stBg}; color: ${stText};">${statusVal}</span>
+                                    <div style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-weight: bold; color: #475569; font-size: 13pt;">สถานะ:</span>
+                                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12pt; font-weight: bold; background-color: ${stBg}; color: ${stText};">${statusVal}</span>
                                     </div>
-                                    <div style="color: #334155; line-height: 1.6; font-size: 16pt;">
-                                        <strong style="font-size: 16pt;">การชี้แจง / ผลการดำเนินงาน:</strong> ${ovClarify.replace(/\n/g, '<br>')}
+                                    <div style="color: #334155; line-height: 1.55; font-size: 14pt;">
+                                        <strong style="font-size: 14pt;">การชี้แจง / ผลการดำเนินงาน:</strong> ${formatInitialHtml(ovClarify)}
                                     </div>
                                 </div>
                             `;
                         }).join('');
                     } else {
-                        recClarifyHtml = `<div style="color: #64748b; font-size: 16pt;">${item.initial_rec ? item.initial_rec.replace(/\n/g, '<br>') : 'ไม่มีข้อเสนอแนะ'}</div>`;
+                        recClarifyHtml = `<div style="color: #64748b; font-size: 14pt;">${item.initial_rec ? formatInitialHtml(item.initial_rec) : 'ไม่มีข้อเสนอแนะ'}</div>`;
                     }
                 }
 
-                const pageBreakClass = (isIndividualSlide && index < filteredData.length - 1) ? "pdf-page-break-after" : "";
-
+                // Slide A: PART 2 (ข้อตรวจพบ)
                 contentSlidesHtml += `
-                    <div class="${pageBreakClass}" style="padding: 10px 0; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
-                        <!-- PART 2: ข้อตรวจพบ -->
-                        <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px 22px; margin-bottom: 16px; border-left: 8px solid ${riskBgColor}; page-break-inside: avoid; break-inside: avoid;">
+                    <div class="pdf-page-break-after" style="padding: 10px 4px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
+                        <div style="background-color: #ffffff; border: 2.5px solid ${riskBgColor}; border-radius: 14px; padding: 20px 26px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); page-break-inside: avoid; break-inside: avoid; min-height: 180px;">
                             <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
                             <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
                                 ${item.department}
@@ -3604,19 +3655,26 @@
                                 ${item.main_topic} : ${item.sub_topic}
                             </div>
                             <!-- บรรทัดที่ 3: หัวข้อ ข้อตรวจพบ : ระดับความเสี่ยง (ตรงกลาง 18pt) -->
-                            <div style="text-align: center; margin-bottom: 14px;">
-                                <span style="display: inline-block; background-color: ${riskBgColor}; color: ${riskTextColor}; padding: 6px 18px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                            <div style="text-align: center; margin-bottom: 16px;">
+                                <span style="display: inline-block; background-color: ${riskBgColor}; color: ${riskTextColor}; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
                                     ข้อตรวจพบ : ระดับความเสี่ยง ${item.risk_level || rkKey}
                                 </span>
                             </div>
-                            <!-- บรรทัดที่ 4: เนื้อหาข้อตรวจพบ (16pt) -->
-                            <div style="font-size: 16pt; line-height: 1.65; color: #1e293b; text-align: justify;">
+                            <!-- บรรทัดที่ 4: เนื้อหาข้อตรวจพบ (14pt) -->
+                            <div style="font-size: 14pt; line-height: 1.6; color: #1e293b; text-align: justify;">
                                 ${findingHtml}
                             </div>
                         </div>
+                    </div>
+                `;
 
-                        <!-- PART 3: ข้อเสนอแนะ (หรือ ผลการดำเนินงานตามข้อเสนอแนะ) -->
-                        <div style="background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px 22px; border-left: 8px solid #3b82f6; page-break-inside: avoid; break-inside: avoid;">
+                // Slide B: PART 3 (ข้อเสนอแนะ หรือ ผลการดำเนินงาน)
+                const isLastSlide = (index === filteredData.length - 1);
+                const pageBreakForRec = isLastSlide ? "" : "pdf-page-break-after";
+
+                contentSlidesHtml += `
+                    <div class="${pageBreakForRec}" style="padding: 10px 4px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
+                        <div style="background-color: #ffffff; border: 2.5px solid #3b82f6; border-radius: 14px; padding: 20px 26px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); page-break-inside: avoid; break-inside: avoid; min-height: 180px;">
                             <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
                             <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
                                 ${item.department}
@@ -3626,13 +3684,13 @@
                                 ${item.main_topic} : ${item.sub_topic}
                             </div>
                             <!-- บรรทัดที่ 3: หัวข้อ ข้อเสนอแนะ (ตรงกลาง 18pt) -->
-                            <div style="text-align: center; margin-bottom: 14px;">
-                                <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 18px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                            <div style="text-align: center; margin-bottom: 16px;">
+                                <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
                                     ${currentPdfExportMode === 'mode1' ? 'ข้อเสนอแนะ' : 'ผลการดำเนินงานตามข้อเสนอแนะ'}
                                 </span>
                             </div>
-                            <!-- บรรทัดที่ 4: เนื้อหาข้อเสนอแนะ (16pt) -->
-                            <div style="font-size: 16pt; line-height: 1.65; color: #1e293b; text-align: justify;">
+                            <!-- บรรทัดที่ 4: เนื้อหาข้อเสนอแนะ (14pt) -->
+                            <div style="font-size: 14pt; line-height: 1.6; color: #1e293b; text-align: justify;">
                                 ${recClarifyHtml}
                             </div>
                         </div>
