@@ -185,17 +185,6 @@
                 break-after: page !important;
             }
 
-            .pdf-slide-card {
-                border-radius: 14px !important;
-                background-color: #ffffff !important;
-                padding: 18px 24px !important;
-                box-sizing: border-box !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                box-decoration-break: clone !important;
-                -webkit-box-decoration-break: clone !important;
-            }
-
             #printable-pdf-container table.matrix-table {
                 width: 100% !important;
                 border-collapse: collapse !important;
@@ -3636,88 +3625,55 @@
                 const riskBgColor = RISK_COLORS[rkKey] || "#facc15";
                 const riskTextColor = (rkKey === 'ปานกลาง') ? "#0f172a" : "#ffffff";
 
-                // --- 1. PART 2 (ข้อตรวจพบ) SLIDES ---
+                // --- 1. PART 2 (ข้อตรวจพบ) SLIDE ---
                 const rawFinding = pdfTextOverrides[item.finding_id]?.finding ?? item.finding ?? "-";
                 const findingHtml = formatInitialHtml(rawFinding);
-                const findingChunks = splitContentIntoSlideChunks(findingHtml, 750);
 
-                findingChunks.forEach((chunk, cIdx) => {
-                    contentSlidesHtml += `
-                        <div class="pdf-page-break-after" style="padding: 8px 2px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
-                            <div class="pdf-slide-card" style="background-color: #ffffff; border: 2.5px solid ${riskBgColor}; border-radius: 14px; padding: 18px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); page-break-inside: avoid; break-inside: avoid; min-height: 180px; box-decoration-break: clone; -webkit-box-decoration-break: clone;">
-                                <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
-                                <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
-                                    ${item.department}
-                                </div>
-                                <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
-                                <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 12px; line-height: 1.3; text-align: center;">
-                                    ${item.main_topic} : ${item.sub_topic}
-                                </div>
-                                <!-- บรรทัดที่ 3: หัวข้อ ข้อตรวจพบ : ระดับความเสี่ยง (ตรงกลาง 18pt) -->
-                                <div style="text-align: center; margin-bottom: 16px;">
-                                    <span style="display: inline-block; background-color: ${riskBgColor}; color: ${riskTextColor}; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                        ข้อตรวจพบ : ระดับความเสี่ยง ${item.risk_level || rkKey}
-                                    </span>
-                                </div>
-                                <!-- บรรทัดที่ 4: เนื้อหาข้อตรวจพบ (14pt) -->
-                                <div style="font-size: 14pt; line-height: 1.65; color: #1e293b; text-align: left; word-break: break-word;">
-                                    ${chunk}
-                                </div>
+                contentSlidesHtml += `
+                    <div class="pdf-page-break-after" style="padding: 6px 2px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
+                        <div style="background-color: #ffffff; border: 2.5px solid ${riskBgColor}; border-radius: 14px; padding: 18px 24px; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid; min-height: 180px;">
+                            <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
+                            <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
+                                ${item.department}
+                            </div>
+                            <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
+                            <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 12px; line-height: 1.3; text-align: center;">
+                                ${item.main_topic} : ${item.sub_topic}
+                            </div>
+                            <!-- บรรทัดที่ 3: หัวข้อ ข้อตรวจพบ : ระดับความเสี่ยง (ตรงกลาง 18pt) -->
+                            <div style="text-align: center; margin-bottom: 16px;">
+                                <span style="display: inline-block; background-color: ${riskBgColor}; color: ${riskTextColor}; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                    ข้อตรวจพบ : ระดับความเสี่ยง ${item.risk_level || rkKey}
+                                </span>
+                            </div>
+                            <!-- บรรทัดที่ 4: เนื้อหาข้อตรวจพบ (14pt) -->
+                            <div style="font-size: 14pt; line-height: 1.65; color: #1e293b; text-align: left; word-break: break-word;">
+                                ${findingHtml}
                             </div>
                         </div>
-                    `;
-                });
+                    </div>
+                `;
 
-                // --- 2. PART 3 (ข้อเสนอแนะ ใน Mode 1 หรือ ผลการดำเนินงาน ใน Mode 2) SLIDES ---
+                // --- 2. PART 3 (ข้อเสนอแนะ ใน Mode 1 หรือ ผลการดำเนินงาน ใน Mode 2) SLIDE ---
+                let bodyHtml = "";
+                let badgeTitle = "";
+
                 if (currentPdfExportMode === 'mode1') {
+                    badgeTitle = "ข้อเสนอแนะ";
                     const rawRec = pdfTextOverrides[item.finding_id]?.recommendation ?? item.initial_rec;
-                    let fullRecHtml = "";
                     if (rawRec && rawRec.trim() && rawRec !== '-') {
-                        fullRecHtml = formatInitialHtml(rawRec);
+                        bodyHtml = formatInitialHtml(rawRec);
                     } else if (item.items && item.items.length > 0) {
-                        fullRecHtml = item.items.map((it, idx) => {
+                        bodyHtml = item.items.map((it, idx) => {
                             return item.items.length > 1 ? `<div><strong style="font-size: 14pt;">${idx + 1}.</strong> ${it.recommendation}</div>` : `<div>${it.recommendation}</div>`;
                         }).join('<br>');
                     } else {
-                        fullRecHtml = "ไม่มีข้อเสนอแนะ";
+                        bodyHtml = "ไม่มีข้อเสนอแนะ";
                     }
-
-                    const recChunks = splitContentIntoSlideChunks(fullRecHtml, 750);
-                    recChunks.forEach((chunk, rIdx) => {
-                        const isLast = (index === filteredData.length - 1) && (rIdx === recChunks.length - 1);
-                        const pageBreakClass = isLast ? "" : "pdf-page-break-after";
-
-                        contentSlidesHtml += `
-                            <div class="${pageBreakClass}" style="padding: 8px 2px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
-                                <div class="pdf-slide-card" style="background-color: #ffffff; border: 2.5px solid #3b82f6; border-radius: 14px; padding: 18px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); page-break-inside: avoid; break-inside: avoid; min-height: 180px; box-decoration-break: clone; -webkit-box-decoration-break: clone;">
-                                    <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
-                                    <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
-                                        ${item.department}
-                                    </div>
-                                    <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
-                                    <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 12px; line-height: 1.3; text-align: center;">
-                                        ${item.main_topic} : ${item.sub_topic}
-                                    </div>
-                                    <!-- บรรทัดที่ 3: หัวข้อ ข้อเสนอแนะ (ตรงกลาง 18pt) -->
-                                    <div style="text-align: center; margin-bottom: 16px;">
-                                        <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                            ข้อเสนอแนะ
-                                        </span>
-                                    </div>
-                                    <!-- บรรทัดที่ 4: เนื้อหาข้อเสนอแนะ (14pt) -->
-                                    <div style="font-size: 14pt; line-height: 1.65; color: #1e293b; text-align: left; word-break: break-word;">
-                                        ${chunk}
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    });
                 } else {
-                    // Mode 2: Clarification Follow-up
+                    badgeTitle = "ผลการดำเนินงานตามข้อเสนอแนะ";
                     const clarifyItems = (item.items && item.items.length > 0) ? item.items : [{ clarification: 'ยังไม่มีข้อมูลชี้แจง', status: item.overall_status }];
-                    let clarifyCards = [];
-
-                    clarifyItems.forEach((it, idx) => {
+                    bodyHtml = clarifyItems.map((it, idx) => {
                         const ovClarify = pdfClarifyOverrides[item.finding_id]?.[idx]?.clarification ?? it.clarification;
                         const statusVal = it.status || 'ยังไม่ได้ชี้แจง';
                         let stBg = '#f1f5f9', stText = '#475569';
@@ -3727,7 +3683,7 @@
 
                         const showItemNumber = clarifyItems.length > 1;
 
-                        clarifyCards.push(`
+                        return `
                             <div style="margin-bottom: 14px; font-size: 14pt; line-height: 1.65;">
                                 <div style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -3740,42 +3696,37 @@
                                     ${formatInitialHtml(ovClarify)}
                                 </div>
                             </div>
-                        `);
-                    });
-
-                    const fullClarifyHtml = clarifyCards.join('');
-                    const clarifyChunks = splitContentIntoSlideChunks(fullClarifyHtml, 750);
-
-                    clarifyChunks.forEach((chunk, cIdx) => {
-                        const isLast = (index === filteredData.length - 1) && (cIdx === clarifyChunks.length - 1);
-                        const pageBreakClass = isLast ? "" : "pdf-page-break-after";
-
-                        contentSlidesHtml += `
-                            <div class="${pageBreakClass}" style="padding: 8px 2px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
-                                <div class="pdf-slide-card" style="background-color: #ffffff; border: 2.5px solid #3b82f6; border-radius: 14px; padding: 18px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); page-break-inside: avoid; break-inside: avoid; min-height: 180px; box-decoration-break: clone; -webkit-box-decoration-break: clone;">
-                                    <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
-                                    <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
-                                        ${item.department}
-                                    </div>
-                                    <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
-                                    <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 12px; line-height: 1.3; text-align: center;">
-                                        ${item.main_topic} : ${item.sub_topic}
-                                    </div>
-                                    <!-- บรรทัดที่ 3: หัวข้อ ข้อเสนอแนะ (ตรงกลาง 18pt) -->
-                                    <div style="text-align: center; margin-bottom: 16px;">
-                                        <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                            ผลการดำเนินงานตามข้อเสนอแนะ
-                                        </span>
-                                    </div>
-                                    <!-- บรรทัดที่ 4: เนื้อหาผลการดำเนินงาน (14pt) -->
-                                    <div style="font-size: 14pt; line-height: 1.65; color: #1e293b; text-align: left; word-break: break-word;">
-                                        ${chunk}
-                                    </div>
-                                </div>
-                            </div>
                         `;
-                    });
+                    }).join('');
                 }
+
+                const isLastSlide = (index === filteredData.length - 1);
+                const pageBreakClass = isLastSlide ? "" : "pdf-page-break-after";
+
+                contentSlidesHtml += `
+                    <div class="${pageBreakClass}" style="padding: 6px 2px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
+                        <div style="background-color: #ffffff; border: 2.5px solid #3b82f6; border-radius: 14px; padding: 18px 24px; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid; min-height: 180px;">
+                            <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
+                            <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
+                                ${item.department}
+                            </div>
+                            <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
+                            <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 12px; line-height: 1.3; text-align: center;">
+                                ${item.main_topic} : ${item.sub_topic}
+                            </div>
+                            <!-- บรรทัดที่ 3: หัวข้อ (ตรงกลาง 18pt) -->
+                            <div style="text-align: center; margin-bottom: 16px;">
+                                <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                    ${badgeTitle}
+                                </span>
+                            </div>
+                            <!-- บรรทัดที่ 4: เนื้อหา (14pt) -->
+                            <div style="font-size: 14pt; line-height: 1.65; color: #1e293b; text-align: left; word-break: break-word;">
+                                ${bodyHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
 
             printContainer.innerHTML = `
