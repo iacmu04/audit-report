@@ -865,9 +865,9 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-1">รอบการประชุม คตส. <span class="text-red-500">*</span></label>
-                        <select id="form-meeting-round" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 font-medium">
-                            <!-- Populated dynamically -->
+                        <label class="block font-semibold text-slate-700 mb-1">รอบการประชุม คตส.</label>
+                        <select id="form-meeting-round" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 font-medium">
+                            <!-- Populated dynamically with default empty option -->
                         </select>
                     </div>
                 </div>
@@ -1529,16 +1529,52 @@
             }
 
             try {
-                // Parallel direct fetch of Report, Clarify, and User sheets directly from Google Sheets
-                const [reportRows, clarifyRows, userRows] = await Promise.all([
+                // Parallel direct fetch of Report, Clarify, User, AuditReport, and Master_Config sheets
+                const [reportRows, clarifyRows, userRows, auditReportRows, masterConfigRows] = await Promise.all([
                     fetchSheetCSV('Report'),
                     fetchSheetCSV('Clarify'),
-                    fetchSheetCSV('User').catch(() => [])
+                    fetchSheetCSV('User').catch(() => []),
+                    fetchSheetCSV('AuditReport').catch(() => []),
+                    fetchSheetCSV('Master_Config').catch(() => [])
                 ]);
 
                 if (Array.isArray(userRows) && userRows.length > 0) {
                     systemUsers = userRows;
                     try { localStorage.setItem('audit_cached_users', JSON.stringify(userRows)); } catch(e){}
+                }
+
+                // Phase 0: Process Master_Config for Year-Department mapping & Topic pairings & Rounds
+                if (Array.isArray(masterConfigRows) && masterConfigRows.length > 0) {
+                    DYNAMIC_DEPT_BY_YEAR = {};
+                    const configRounds = [];
+                    const configYears = [];
+
+                    masterConfigRows.forEach(r => {
+                        const dName = String(r['dept_name'] || '').trim();
+                        const dYear = String(r['dept_year'] || '').trim();
+                        if (dName && dYear) {
+                            if (!DYNAMIC_DEPT_BY_YEAR[dYear]) DYNAMIC_DEPT_BY_YEAR[dYear] = [];
+                            if (!DYNAMIC_DEPT_BY_YEAR[dYear].includes(dName)) DYNAMIC_DEPT_BY_YEAR[dYear].push(dName);
+                        }
+
+                        const rOpt = String(r['round_option'] || '').trim();
+                        if (rOpt && !configRounds.includes(rOpt)) configRounds.push(rOpt);
+
+                        const yOpt = String(r['year_option'] || '').trim();
+                        if (yOpt && !configYears.includes(yOpt)) configYears.push(yOpt);
+
+                        const subOpt = String(r['sub_topic_option'] || '').trim();
+                        const mainPaired = String(r['main_topic_paired'] || '').trim();
+                        if (subOpt && mainPaired) {
+                            const normMain = normalizeMainTopic(mainPaired);
+                            if (!MASTER_PRADEN_MAP[normMain]) MASTER_PRADEN_MAP[normMain] = [];
+                            if (!MASTER_PRADEN_MAP[normMain].includes(subOpt)) MASTER_PRADEN_MAP[normMain].push(subOpt);
+                        }
+                    });
+
+                    if (configRounds.length > 0) {
+                        DYNAMIC_MEETING_ROUNDS = configRounds;
+                    }
                 }
 
                 if (!reportRows || reportRows.length === 0) {
@@ -1635,6 +1671,104 @@
                         }
                     }
                 });
+
+                // Phase 4: Merge newly saved records from AuditReport sheet
+                if (Array.isArray(auditReportRows) && auditReportRows.length > 0) {
+                    auditReportRows.forEach((r, idx) => {
+                        const fText = String(r['ข้อตรวจพบ'] || r['Finding'] || r['finding'] || '').trim();
+                        const dText = String(r['ส่วนงาน'] || r['department'] || '').trim();
+                        if (!fText && !dText) return;
+
+                        let fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
+                        if (!fid) fid = 'NEW-AR-' + (idx + 1);
+
+                        const rawRisk = String(r['ระดับความเสี่ยง'] || r['Risk Level'] || r['risk_level'] || 'ต่ำ').trim();
+                        const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
+                        const yearVal = String(r['ปี'] || r['year'] || '2570').trim();
+                        const meetRound = String(r['รอบการประชุม คตส.'] || r['meeting_round'] || '').trim();
+                        const mainTop = String(r['กิจกรรม'] || r['ประเด็นหลัก'] || r['Activity / Topic'] || r['main_topic'] || '').trim();
+                        const subTop = String(r['ประเด็น'] || r['ประเด็นย่อย'] || r['sub_topic'] || '').trim();
+                        const typeVal = String(r['ประเภท'] || r['type'] || 'ข้อตรวจพบปีปัจจุบัน').trim();
+                        const reportUrl = String(r['รายงานฉบับเต็ม'] || r['report_url'] || '').trim();
+                        let overallStat = String(r['สถานะผลการดำเนินงาน'] || r['สถานะการดำเนินงาน'] || r['overall_status'] || '').trim();
+
+                        let items = [];
+                        const itemsJsonStr = String(r['items_json'] || '').trim();
+                        if (itemsJsonStr) {
+                            try {
+                                const parsed = JSON.parse(itemsJsonStr);
+                                if (Array.isArray(parsed) && parsed.length > 0) {
+                                    items = parsed.map(it => ({
+                                        recommendation: it.recommendation || '-',
+                                        clarification: it.clarification || 'ยังไม่มีข้อมูลชี้แจง',
+                                        status: it.status || 'ยังไม่ได้ชี้แจง',
+                                        clarify_round: it.clarify_round || meetRound || ''
+                                    }));
+                                }
+                            } catch(e) {
+                                console.warn("Error parsing items_json for " + fid, e);
+                            }
+                        }
+
+                        if (items.length === 0) {
+                            const recText = String(r['ข้อเสนอแนะ'] || '').trim();
+                            const clarText = String(r['รายละเอียดผลการดำเนินงาน'] || r['รายละเอียดการชี้แจง'] || '').trim();
+                            if (recText || clarText) {
+                                const recLines = recText ? recText.split('\n').filter(l => l.trim()) : ['-'];
+                                const clarLines = clarText ? clarText.split('\n').filter(l => l.trim()) : [];
+                                recLines.forEach((rl, rIdx) => {
+                                    let cl = clarLines[rIdx] || (clarLines.length === 1 ? clarLines[0] : 'ยังไม่มีข้อมูลชี้แจง');
+                                    let st = overallStat || 'ยังไม่ได้ชี้แจง';
+                                    const match = cl.match(/^\[(.*?)\]\s*(.*)$/);
+                                    if (match) {
+                                        st = match[1];
+                                        cl = match[2];
+                                    }
+                                    items.push({
+                                        recommendation: rl,
+                                        clarification: cl,
+                                        status: st,
+                                        clarify_round: meetRound || ''
+                                    });
+                                });
+                            }
+                        }
+
+                        if (!overallStat) {
+                            if (items.length > 0) {
+                                if (items.every(i => i.status === 'ดำเนินการแล้ว')) overallStat = 'ดำเนินการแล้ว';
+                                else if (items.some(i => i.status === 'อยู่ระหว่างดำเนินการ')) overallStat = 'อยู่ระหว่างดำเนินการ';
+                                else overallStat = 'ยังไม่ได้ชี้แจง';
+                            } else {
+                                overallStat = 'ยังไม่ได้ชี้แจง';
+                            }
+                        }
+
+                        const newRecord = {
+                            finding_id: fid,
+                            year: yearVal,
+                            department: dText,
+                            meeting_round: meetRound,
+                            main_topic: mainTop,
+                            sub_topic: subTop,
+                            type: typeVal,
+                            risk_level: cleanRisk,
+                            finding: fText,
+                            report_url: reportUrl,
+                            initial_rec: items.length > 0 ? items[0].recommendation : (String(r['ข้อเสนอแนะ'] || '').trim()),
+                            overall_status: overallStat,
+                            items: items
+                        };
+
+                        if (reportMap[fid]) {
+                            const existIdx = consolidatedData.findIndex(x => x.finding_id === fid);
+                            if (existIdx >= 0) consolidatedData[existIdx] = newRecord;
+                        } else {
+                            reportMap[fid] = newRecord;
+                            consolidatedData.push(newRecord);
+                        }
+                    });
+                }
 
                 rawData = consolidatedData;
                 try { localStorage.setItem('audit_cached_consolidated', JSON.stringify(consolidatedData)); } catch(e){}
@@ -1872,12 +2006,21 @@
             const depts = [...new Set(rawData.map(d => d.department))].sort();
             fillSelectOptions("top-slicer-dept", depts, "ส่วนงาน");
             fillSelectOptions("bottom-slicer-dept", depts, "ส่วนงาน");
-            fillSelectOptions("form-dept", depts, "ส่วนงาน");
 
-            const rounds = [...new Set(rawData.map(d => String(d.meeting_round || '').trim()).filter(Boolean))].sort();
+            // Extract rounds from Master_Config and rawData
+            let rounds = [...new Set([...DYNAMIC_MEETING_ROUNDS, ...rawData.map(d => String(d.meeting_round || '').trim()).filter(Boolean)])].sort();
             fillSelectOptions("top-slicer-round", rounds, "รอบรายงาน");
             fillSelectOptions("bottom-slicer-round", rounds, "รอบรายงาน");
-            fillSelectOptions("form-meeting-round", rounds, "รอบการประชุม");
+
+            // Form meeting round with default empty option
+            const formRoundEl = document.getElementById("form-meeting-round");
+            if (formRoundEl) {
+                let rHtml = `<option value="">-- ไม่ระบุ / ปล่อยว่างไว้ --</option>`;
+                rounds.forEach(r => {
+                    rHtml += `<option value="${r}">${r}</option>`;
+                });
+                formRoundEl.innerHTML = rHtml;
+            }
 
             // Extract clarify rounds
             let clarifyRounds = [];
@@ -1888,31 +2031,42 @@
                     }
                 });
             });
-            clarifyRounds = [...new Set(clarifyRounds)].sort();
+            clarifyRounds = [...new Set([...DYNAMIC_CLARIFY_ROUNDS, ...clarifyRounds])].sort();
             fillSelectOptions("top-slicer-clarify-round", clarifyRounds, "รอบชี้แจง");
             fillSelectOptions("bottom-slicer-clarify-round", clarifyRounds, "รอบชี้แจง");
 
-            const years = ["2568", "2569", "2570", "2571"];
+            // Extract years from Master_Config and rawData
+            const years = [...new Set(["2568", "2569", "2570", "2571", "2572", ...Object.keys(DYNAMIC_DEPT_BY_YEAR), ...rawData.map(d => d.year)])].filter(Boolean).sort();
             fillSelectOptions("form-year", years, "ปีงบประมาณ");
 
             fillSelectOptions("top-slicer-main", STRICT_MAIN_TOPICS, "ประเด็นหลัก");
             fillSelectOptions("bottom-slicer-main", STRICT_MAIN_TOPICS, "ประเด็นหลัก");
             
             const formMainSelect = document.getElementById("form-main-topic");
-            formMainSelect.innerHTML = STRICT_MAIN_TOPICS.map(t => `<option value="${t}">${t}</option>`).join("");
+            if (formMainSelect) {
+                formMainSelect.innerHTML = STRICT_MAIN_TOPICS.map(t => `<option value="${t}">${t}</option>`).join("");
+            }
+
+            // Initialize form department dropdown for default year 2570
+            const formYearSelect = document.getElementById("form-year");
+            const initialYear = (formYearSelect && formYearSelect.value) ? formYearSelect.value : "2570";
+            onFormYearChange(initialYear);
         }
 
         function onFormYearChange(yearVal) {
             let depts = [];
-            if (DYNAMIC_DEPT_BY_YEAR[yearVal] && DYNAMIC_DEPT_BY_YEAR[yearVal].length > 0) {
-                depts = DYNAMIC_DEPT_BY_YEAR[yearVal];
-                if (DYNAMIC_DEPT_BY_YEAR['ALL']) {
-                    depts = [...new Set([...depts, ...DYNAMIC_DEPT_BY_YEAR['ALL']])];
-                }
+            const yrStr = String(yearVal || '').trim();
+            if (DYNAMIC_DEPT_BY_YEAR[yrStr] && DYNAMIC_DEPT_BY_YEAR[yrStr].length > 0) {
+                depts = [...DYNAMIC_DEPT_BY_YEAR[yrStr]];
             } else {
-                depts = [...new Set(rawData.map(d => d.department))].sort();
+                const yrDepts = [...new Set(rawData.filter(d => String(d.year).trim() === yrStr).map(d => d.department))].sort();
+                depts = yrDepts.length > 0 ? yrDepts : [...new Set(rawData.map(d => d.department))].sort();
             }
-            fillSelectOptions("form-dept", depts, "ส่วนงาน");
+            
+            const formDeptEl = document.getElementById("form-dept");
+            if (formDeptEl) {
+                formDeptEl.innerHTML = depts.map(d => `<option value="${d}">${d}</option>`).join("");
+            }
         }
 
         function fillSelectOptions(elemId, items, label) {
@@ -2283,7 +2437,29 @@
             document.getElementById("audit-record-form").reset();
             document.getElementById("form-record-id").value = "";
             document.getElementById("form-rec-items-container").innerHTML = "";
-            onFormMainTopicChange(document.getElementById("form-main-topic").value);
+
+            // 1. ตั้งค่าเริ่มต้นปีงบประมาณเป็น 2570
+            const formYearEl = document.getElementById("form-year");
+            if (formYearEl) {
+                const has2570 = Array.from(formYearEl.options).some(o => o.value === "2570");
+                if (has2570) formYearEl.value = "2570";
+                onFormYearChange(formYearEl.value);
+            } else {
+                onFormYearChange("2570");
+            }
+
+            // 2. ตั้งค่าเริ่มต้นรอบการประชุม คตส. ให้ปล่อยว่างไว้
+            const formRoundEl = document.getElementById("form-meeting-round");
+            if (formRoundEl) {
+                formRoundEl.value = "";
+            }
+
+            const formMainEl = document.getElementById("form-main-topic");
+            if (formMainEl) {
+                if (!formMainEl.value) formMainEl.value = "ด้านผลการดำเนินงาน";
+                onFormMainTopicChange(formMainEl.value);
+            }
+
             addFormRecItem();
             document.getElementById("form-modal").classList.remove("hidden");
         }
@@ -2294,18 +2470,28 @@
 
             document.getElementById("form-modal-title").innerText = `แก้ไขข้อตรวจพบ (${item.finding_id})`;
             document.getElementById("form-record-id").value = item.finding_id;
-            document.getElementById("form-year").value = item.year;
-            document.getElementById("form-dept").value = item.department;
-            document.getElementById("form-meeting-round").value = item.meeting_round;
-            document.getElementById("form-type").value = item.type;
-            document.getElementById("form-risk").value = item.risk_level;
-            document.getElementById("form-main-topic").value = item.main_topic;
             
-            onFormMainTopicChange(item.main_topic);
-            document.getElementById("form-sub-topic-select").value = item.sub_topic;
+            const formYearEl = document.getElementById("form-year");
+            if (formYearEl) {
+                formYearEl.value = item.year || "2570";
+            }
+            onFormYearChange(item.year || "2570");
+            
+            const formDeptEl = document.getElementById("form-dept");
+            if (formDeptEl) {
+                formDeptEl.value = item.department || "";
+            }
 
-            document.getElementById("form-finding").value = item.finding;
-            document.getElementById("form-report-url").value = item.report_url;
+            document.getElementById("form-meeting-round").value = item.meeting_round || "";
+            document.getElementById("form-type").value = item.type || "ข้อตรวจพบปีปัจจุบัน";
+            document.getElementById("form-risk").value = item.risk_level || "ต่ำ";
+            document.getElementById("form-main-topic").value = item.main_topic || "ด้านผลการดำเนินงาน";
+            
+            onFormMainTopicChange(item.main_topic || "ด้านผลการดำเนินงาน");
+            document.getElementById("form-sub-topic-select").value = item.sub_topic || "";
+
+            document.getElementById("form-finding").value = item.finding || "";
+            document.getElementById("form-report-url").value = item.report_url || "";
 
             const container = document.getElementById("form-rec-items-container");
             container.innerHTML = "";
