@@ -378,7 +378,7 @@
             <!-- ROW 2 (BOTTOM RIGHT): Action & Operation Buttons (Aligned Right) -->
             <div class="flex flex-wrap items-center gap-2.5">
                 <button onclick="openPdfExportModal()" class="px-4 py-2 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white font-bold rounded-xl transition flex items-center gap-1.5 shadow-md shadow-rose-900/15">
-                    <i class="fa-solid fa-file-pdf"></i> ส่งออกรายงาน PDF (3 รูปแบบ)
+                    <i class="fa-solid fa-file-pdf"></i> ส่งออกรายงาน PDF (4 รูปแบบ)
                 </button>
 
                 <button id="btn-add-new-record" onclick="openFormModal()" class="px-4 py-2 bg-[#A393EB] hover:bg-[#8e7ee3] text-white font-bold rounded-xl transition flex items-center gap-1.5 shadow-md shadow-[#A393EB]/30">
@@ -957,7 +957,7 @@
                         <i class="fa-solid fa-file-pdf text-lg"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-base text-slate-900">ส่งออกรายงาน PDF (3 รูปแบบตามตัวกรองที่เลือก)</h3>
+                        <h3 class="font-bold text-base text-slate-900">ส่งออกรายงาน PDF (4 รูปแบบตามตัวกรองที่เลือก)</h3>
                         <p class="text-xs text-purple-900 font-medium">เลือกรูปแบบรายงาน และใช้เครื่องมือ Rich Text จัดรูปแบบตัวอักษรก่อนพิมพ์ได้เลย</p>
                     </div>
                 </div>
@@ -2695,7 +2695,23 @@
         }
 
         let customRiskDetailTableOverrides = {};
+        let customRiskDetailDeptOrder = [];
         let riskDetailSource = "report"; // "report" or "clarify"
+
+        function moveRiskDetailDeptOrder(idx, direction) {
+            const targetDepts = getRiskDetailTargetDepts();
+            if (!customRiskDetailDeptOrder || customRiskDetailDeptOrder.length !== targetDepts.length || !targetDepts.every(d => customRiskDetailDeptOrder.includes(d))) {
+                customRiskDetailDeptOrder = [...targetDepts];
+            }
+            const newIdx = idx + direction;
+            if (newIdx < 0 || newIdx >= customRiskDetailDeptOrder.length) return;
+
+            const temp = customRiskDetailDeptOrder[idx];
+            customRiskDetailDeptOrder[idx] = customRiskDetailDeptOrder[newIdx];
+            customRiskDetailDeptOrder[newIdx] = temp;
+
+            renderPdfPreEditor();
+        }
 
         function getRiskDetailTargetDepts() {
             // ดึงเฉพาะส่วนงานที่ผ่านตัวกรองบน Dashboard (เช่น กรองแล้วได้ 7 ส่วนงาน)
@@ -2726,6 +2742,7 @@
             riskDetailSource = source;
             customRiskDetailTableOverrides = {};
             const targetDepts = getRiskDetailTargetDepts();
+            customRiskDetailDeptOrder = [...targetDepts];
             initCustomRiskDetailData(targetDepts, source);
             renderPdfPreEditor();
         }
@@ -2982,13 +2999,19 @@
             container.innerHTML = "";
 
             if (currentPdfExportMode === 'mode4') {
-                const depts = getRiskDetailTargetDepts();
-                initCustomRiskDetailData(depts, riskDetailSource);
+                const targetDepts = getRiskDetailTargetDepts();
+                initCustomRiskDetailData(targetDepts, riskDetailSource);
 
-                if (depts.length === 0) {
+                if (targetDepts.length === 0) {
                     container.innerHTML = `<div class="p-8 text-center text-slate-400 font-medium">ไม่พบข้อมูลส่วนงานตามตัวกรองที่เลือกสำหรับส่งออก</div>`;
                     return;
                 }
+
+                // Maintain or initialize order
+                if (!customRiskDetailDeptOrder || customRiskDetailDeptOrder.length !== targetDepts.length || !targetDepts.every(d => customRiskDetailDeptOrder.includes(d))) {
+                    customRiskDetailDeptOrder = [...targetDepts];
+                }
+                const depts = customRiskDetailDeptOrder;
 
                 const headerNote = document.createElement("div");
                 headerNote.className = "p-3.5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl text-purple-950 text-xs space-y-2.5 shadow-2xs";
@@ -3012,7 +3035,7 @@
                             </label>
                         </div>
                     </div>
-                    <p class="text-[11px] text-purple-900/80 font-medium">💡 คุณสามารถเลือกสลับแหล่งข้อมูล ปรับตัวเลขจำนวนระดับความเสี่ยง (สูง/ค่อนข้างสูง/ปานกลาง/ต่ำ) และพิมพ์จัดรูปแบบข้อความในช่อง <strong>รายละเอียด</strong> (กว้าง 40% ของตาราง) ได้อิสระ</p>
+                    <p class="text-[11px] text-purple-900/80 font-medium">💡 คุณสามารถคลิกปุ่ม <strong>เลื่อนขึ้น / เลื่อนลง</strong> ที่หัวการ์ดเพื่อจัดลำดับส่วนงานก่อนหลังได้เอง, สลับแหล่งข้อมูล (ชีท Report / Clarify), ปรับตัวเลขจำนวนระดับความเสี่ยง และพิมพ์จัดรูปแบบข้อความในช่อง <strong>รายละเอียด</strong> (กว้าง 40% ของตาราง) ได้อย่างอิสระ</p>
                 `;
                 container.appendChild(headerNote);
 
@@ -3026,12 +3049,24 @@
                     card.innerHTML = `
                         <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-200">
                             <div class="flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-full bg-[#A393EB] text-white flex items-center justify-center font-bold text-xs">${idx + 1}</span>
+                                <span class="w-6 h-6 rounded-full bg-[#A393EB] text-white flex items-center justify-center font-bold text-xs shadow-xs">${idx + 1}</span>
                                 <h4 class="font-black text-slate-900 text-sm">${dept}</h4>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs text-slate-500 font-medium">รวมประเด็นย่อย:</span>
-                                <span id="risk-detail-tot-${cleanId}" class="px-3 py-0.5 rounded-full bg-purple-100 text-purple-950 font-black text-xs">${tot}</span>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <!-- Reorder Buttons -->
+                                <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-0.5 shadow-2xs">
+                                    <button type="button" onclick="moveRiskDetailDeptOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-700 hover:bg-[#A393EB] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1 cursor-pointer" title="เลื่อนลำดับขึ้น">
+                                        <i class="fa-solid fa-arrow-up text-[10px]"></i> เลื่อนขึ้น
+                                    </button>
+                                    <div class="w-px h-4 bg-slate-200 mx-0.5"></div>
+                                    <button type="button" onclick="moveRiskDetailDeptOrder(${idx}, 1)" ${idx === depts.length - 1 ? 'disabled' : ''} class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-700 hover:bg-[#A393EB] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1 cursor-pointer" title="เลื่อนลำดับลง">
+                                        <i class="fa-solid fa-arrow-down text-[10px]"></i> เลื่อนลง
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-1.5 bg-purple-50 border border-purple-200/80 px-2.5 py-1 rounded-xl">
+                                    <span class="text-xs text-purple-900 font-medium">รวมประเด็นย่อย:</span>
+                                    <span id="risk-detail-tot-${cleanId}" class="px-2 py-0.2 rounded-full bg-[#A393EB] text-white font-black text-xs">${tot}</span>
+                                </div>
                             </div>
                         </div>
 
@@ -4062,8 +4097,12 @@
             const line1Title = titleInput ? titleInput.value : "สรุปประเด็นความเสี่ยงและรายละเอียดผลการตรวจสอบ";
             const line2Meeting = meetingInput ? `การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ ${meetingInput.value}` : "การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ 1/2568";
 
-            const depts = getRiskDetailTargetDepts();
-            initCustomRiskDetailData(depts, riskDetailSource);
+            const targetDepts = getRiskDetailTargetDepts();
+            initCustomRiskDetailData(targetDepts, riskDetailSource);
+            if (!customRiskDetailDeptOrder || customRiskDetailDeptOrder.length !== targetDepts.length || !targetDepts.every(d => customRiskDetailDeptOrder.includes(d))) {
+                customRiskDetailDeptOrder = [...targetDepts];
+            }
+            const depts = customRiskDetailDeptOrder;
 
             let rowsHtml = "";
             let grandRed = 0, grandOrange = 0, grandYellow = 0, grandGreen = 0, grandTotal = 0;
