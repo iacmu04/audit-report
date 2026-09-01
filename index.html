@@ -1487,7 +1487,7 @@
             for (let i = 1; i < r.length; i++) {
                 const rowCells = r[i];
                 if (!rowCells.some(cell => cell && cell.trim() !== '')) continue;
-                const obj = {};
+                const obj = { _rawCells: rowCells };
                 headers.forEach((h, hIdx) => {
                     if (h) obj[h] = (rowCells[hIdx] !== undefined ? rowCells[hIdx].trim() : '');
                 });
@@ -1598,8 +1598,32 @@
                     const cleanRisk = rawRisk.replace(/\(ต่อ\)|ต่อ/g, '').trim() || 'ต่ำ';
                     const recFromReport = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
 
+                    // Extract Column N: ความเสี่ยงข้อตรวจพบปีก่อน / Finding ID ปีก่อน
+                    let prevFid = String(
+                        r['ความเสี่ยงข้อตรวจพบปีก่อน'] || 
+                        r['ความเสี่ยงข้อตรวจพบปีก่อน (Finding ID)'] ||
+                        r['ความเสี่ยงข้อตรวจพบปีก่อน(Finding ID)'] ||
+                        r['Finding ID ปีก่อน'] || 
+                        r['Finding_ID_ปีก่อน'] || 
+                        r['prev_finding_id'] || 
+                        r['Finding_ID_Prev'] || 
+                        r['finding_id_prev'] || 
+                        r['ความเสี่ยงปีก่อน'] || 
+                        r['ข้อตรวจพบปีก่อน'] || 
+                        r['Finding ID เดิม'] || 
+                        r['Finding_ID_Old'] ||
+                        r['Finding ID 2568'] ||
+                        r['Finding ID ปี 2568'] ||
+                        ''
+                    ).trim();
+
+                    if (!prevFid && r._rawCells && r._rawCells[13]) {
+                        prevFid = String(r._rawCells[13]).trim();
+                    }
+
                     const newRecord = {
                         finding_id: fid,
+                        prev_finding_id: prevFid,
                         year: String(r['ปี'] || r['year'] || '2570').trim(),
                         department: dText,
                         meeting_round: String(r['รอบการประชุม คตส.'] || r['meeting_round'] || '').trim(),
@@ -2954,17 +2978,22 @@
 
         function calculateRiskAndDetailsForItems(deptItems, source) {
             let red = 0, orange = 0, yellow = 0, green = 0;
-            const detailLines = [];
+
+            // Group items by main topic
+            const topicGroups = {};
+            STRICT_MAIN_TOPICS.forEach(t => { topicGroups[t] = []; });
 
             if (source === 'clarify') {
                 // ดึงจากชีท Clarify (ข้อเสนอแนะรายข้อ)
-                let itemIndex = 1;
                 deptItems.forEach(it => {
                     const rkStr = String(it.risk_level || '');
                     let rkType = 'green';
                     if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) rkType = 'red';
                     else if (rkStr.includes("ค่อนข้างสูง")) rkType = 'orange';
                     else if (rkStr.includes("ปานกลาง")) rkType = 'yellow';
+
+                    const mainTopicNorm = normalizeMainTopic(it.main_topic) || 'ด้านการดำเนินงาน';
+                    if (!topicGroups[mainTopicNorm]) topicGroups[mainTopicNorm] = [];
 
                     if (it.items && it.items.length > 0) {
                         it.items.forEach(rec => {
@@ -2975,9 +3004,8 @@
 
                             const txt = (rec.recommendation && rec.recommendation !== '-') 
                                 ? rec.recommendation 
-                                : (it.sub_topic || it.main_topic || `ประเด็นที่ ${itemIndex}`);
-                            detailLines.push(`${itemIndex}. ${txt}`);
-                            itemIndex++;
+                                : (it.sub_topic || it.finding || 'ข้อเสนอแนะ');
+                            topicGroups[mainTopicNorm].push(txt);
                         });
                     } else {
                         if (rkType === 'red') red++;
@@ -2985,14 +3013,13 @@
                         else if (rkType === 'yellow') yellow++;
                         else green++;
 
-                        const txt = it.initial_rec || it.sub_topic || it.main_topic || `ประเด็นที่ ${itemIndex}`;
-                        detailLines.push(`${itemIndex}. ${txt}`);
-                        itemIndex++;
+                        const txt = it.initial_rec || it.sub_topic || it.finding || 'ข้อเสนอแนะ';
+                        topicGroups[mainTopicNorm].push(txt);
                     }
                 });
             } else {
                 // ดึงจากชีท Report (ข้อตรวจพบ / ประเด็นย่อยทั้งหมดครบทุกประเด็น)
-                deptItems.forEach((it, i) => {
+                deptItems.forEach(it => {
                     const rkStr = String(it.risk_level || '');
                     if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) red++;
                     else if (rkStr.includes("ค่อนข้างสูง")) orange++;
@@ -3000,10 +3027,28 @@
                     else if (rkStr.includes("ต่ำ")) green++;
                     else green++;
 
-                    const topicText = it.sub_topic || it.main_topic || `ประเด็นที่ ${i + 1}`;
-                    detailLines.push(`${i + 1}. ${topicText}`);
+                    const mainTopicNorm = normalizeMainTopic(it.main_topic) || 'ด้านการดำเนินงาน';
+                    if (!topicGroups[mainTopicNorm]) topicGroups[mainTopicNorm] = [];
+
+                    const topicText = it.sub_topic || it.finding || 'ประเด็นย่อย';
+                    topicGroups[mainTopicNorm].push(topicText);
                 });
             }
+
+            // จัดโครงสร้างข้อความ: ประเด็นหลัก (ตัวหนา) ตามด้วยลำดับตัวเลข 1 2 3... ในแต่ละประเด็นหลัก
+            const detailLines = [];
+            Object.keys(topicGroups).forEach(topicName => {
+                const subList = topicGroups[topicName];
+                if (subList && subList.length > 0) {
+                    if (detailLines.length > 0) {
+                        detailLines.push(''); // บรรทัดว่างคั่นระหว่างประเด็นหลัก
+                    }
+                    detailLines.push(`<b>${topicName}</b>`);
+                    subList.forEach((subText, idx) => {
+                        detailLines.push(`${idx + 1} ${subText}`);
+                    });
+                }
+            });
 
             return {
                 red: red,
@@ -3076,6 +3121,36 @@
                         "ด้านการดำเนินงาน": { red: 0, orange: 0, yellow: 0, green: 0 },
                         "ด้านการปฏิบัติตามกฎระเบียบ": { red: 0, orange: 0, yellow: 0, green: 0 }
                     };
+
+                    // Auto-populate from Column N (Finding ID ปีก่อน) for follow-up findings (ติดตามงานเดิม)
+                    const deptFollowUps = rawData.filter(d => d.department === dept && d.type === 'ติดตามงานเดิม');
+                    deptFollowUps.forEach(item => {
+                        if (item.prev_finding_id) {
+                            const pId = String(item.prev_finding_id).trim().toLowerCase();
+                            // ค้นหา Finding ID ใน rawData
+                            const prevItem = rawData.find(d => {
+                                const curId = String(d.finding_id || '').trim().toLowerCase();
+                                if (curId === pId) return true;
+                                const curDigits = curId.replace(/\D/g, '');
+                                const pDigits = pId.replace(/\D/g, '');
+                                return curDigits && pDigits && curDigits === pDigits;
+                            });
+
+                            if (prevItem) {
+                                const rk = String(prevItem.risk_level || '');
+                                let rkKey = 'green';
+                                if (rk.includes("สูง") && !rk.includes("ค่อนข้าง")) rkKey = 'red';
+                                else if (rk.includes("ค่อนข้างสูง")) rkKey = 'orange';
+                                else if (rk.includes("ปานกลาง")) rkKey = 'yellow';
+                                else rkKey = 'green';
+
+                                const normTopic = normalizeMainTopic(item.main_topic || prevItem.main_topic);
+                                if (custom2568MatrixData[dept][normTopic]) {
+                                    custom2568MatrixData[dept][normTopic][rkKey]++;
+                                }
+                            }
+                        }
+                    });
                 }
             });
         }
