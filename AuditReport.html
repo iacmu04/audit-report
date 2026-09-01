@@ -566,11 +566,10 @@
                         <thead id="summary-table-thead">
                             <tr class="bg-purple-100/70 text-purple-950 font-bold border-b border-purple-200 text-[11px]">
                                 <th class="p-2">กิจกรรม</th>
-                                <th class="p-2 text-center text-purple-900 font-bold">จำนวนข้อตรวจพบ</th>
+                                <th class="p-2 text-center text-purple-900 font-bold">จำนวนข้อเสนอแนะ</th>
                                 <th class="p-2 text-center text-lime-900">🟢 ดำเนินการแล้ว</th>
                                 <th class="p-2 text-center text-amber-900">🟡 อยู่ระหว่างดำเนินการ</th>
                                 <th class="p-2 text-center text-rose-900">🔴 ยังไม่ได้ชี้แจง</th>
-                                <th class="p-2 text-center font-bold">จำนวนรวมข้อเสนอแนะ</th>
                                 <th class="p-2 text-right text-emerald-900">ร้อยละที่ดำเนินการแล้ว</th>
                             </tr>
                         </thead>
@@ -5413,11 +5412,10 @@
                     thead.innerHTML = `
                         <tr class="bg-purple-100/70 text-purple-950 font-bold border-b border-purple-200 text-[11px]">
                             <th class="p-2">กิจกรรม</th>
-                            <th class="p-2 text-center text-purple-900 font-bold">จำนวนข้อตรวจพบ</th>
+                            <th class="p-2 text-center text-purple-900 font-bold">จำนวนข้อเสนอแนะ</th>
                             <th class="p-2 text-center text-lime-900">🟢 ดำเนินการแล้ว</th>
                             <th class="p-2 text-center text-amber-900">🟡 อยู่ระหว่างดำเนินการ</th>
                             <th class="p-2 text-center text-rose-900">🔴 ยังไม่ได้ชี้แจง</th>
-                            <th class="p-2 text-center font-bold text-slate-800">จำนวนรวมข้อเสนอแนะ</th>
                             <th class="p-2 text-right text-emerald-900">ร้อยละที่ดำเนินการแล้ว</th>
                         </tr>
                     `;
@@ -5428,7 +5426,6 @@
                 STRICT_MAIN_TOPICS.forEach(topic => {
                     let done = 0, inProg = 0, unclarified = 0, recTotal = 0;
                     const topicRecords = filteredData.filter(d => normalizeMainTopic(d.main_topic) === normalizeMainTopic(topic));
-                    const findingTotal = topicRecords.length;
 
                     topicRecords.forEach(item => {
                         (item.items || []).forEach(s => {
@@ -5443,11 +5440,10 @@
                     tr.className = "border-b border-purple-100/80 hover:bg-purple-50/60 font-medium text-[11px]";
                     tr.innerHTML = `
                         <td class="p-2 font-bold text-slate-800">${topic}</td>
-                        <td class="p-2 text-center font-bold text-purple-900">${findingTotal}</td>
+                        <td class="p-2 text-center font-bold text-purple-900 text-xs">${recTotal}</td>
                         <td class="p-2 text-center font-bold text-lime-700">${done}</td>
                         <td class="p-2 text-center font-bold text-amber-600">${inProg}</td>
                         <td class="p-2 text-center font-bold text-rose-600">${unclarified}</td>
-                        <td class="p-2 text-center font-bold text-slate-900">${recTotal}</td>
                         <td class="p-2 text-right font-bold text-emerald-600 text-xs">${pct}%</td>
                     `;
                     tbody.appendChild(tr);
