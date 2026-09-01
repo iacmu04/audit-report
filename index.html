@@ -555,7 +555,7 @@
                     <span id="bar-chart-tag" class="text-[10px] bg-purple-100 text-purple-950 font-bold px-2.5 py-0.5 rounded-full border border-purple-200">จำแนกรายปี</span>
                 </div>
 
-                <div class="relative py-2 my-auto h-[320px] w-full">
+                <div class="relative py-2 my-auto h-[340px] w-full">
                     <canvas id="mainTopicBarChart"></canvas>
                 </div>
                 <div id="bar-chart-custom-legend" class="flex justify-center flex-wrap gap-4 py-1.5 text-xs font-bold border-t border-purple-100 mt-1"></div>
@@ -5044,56 +5044,31 @@
                     const numCols = rawLabelTopicMap.length;
 
                     for (let colIdx = 0; colIdx < numCols; colIdx++) {
-                        const yrTxt = rawLabelTopicMap[colIdx] ? rawLabelTopicMap[colIdx].year : '';
                         let colTotal = 0;
-                        let bottomBarObj = null;
                         let topBarY = chart.chartArea.bottom;
                         let firstBarObj = null;
 
                         // 1. Calculate column metrics across datasets
-                        chart.data.datasets.forEach((dataset) => {
+                        chart.data.datasets.forEach((dataset, dIdx) => {
                             const val = dataset.data[colIdx] || 0;
                             if (val > 0) {
                                 colTotal += val;
-                                const meta = chart.getDatasetMeta(chart.data.datasets.indexOf(dataset));
+                                const meta = chart.getDatasetMeta(dIdx);
                                 const bar = meta.data[colIdx];
                                 if (bar) {
-                                    if (!bottomBarObj) bottomBarObj = bar;
                                     firstBarObj = bar;
                                     if (bar.y < topBarY) topBarY = bar.y;
-
                                 }
                             }
                         });
 
-                        // If colTotal == 0: DO NOT DRAW ANY YEAR TEXT UNDER/NEAR BASE!
                         if (colTotal > 0 && firstBarObj) {
                             const xCenter = firstBarObj.x;
 
-                            // 2. Draw Year text ONCE vertically inside/at base of the stacked bar column
-                            const totalColHeight = chart.chartArea.bottom - topBarY;
-                            ctx.save();
-                            if (totalColHeight > 30) {
-                                ctx.translate(xCenter, chart.chartArea.bottom - 16);
-                                ctx.rotate(-Math.PI / 2);
-                                ctx.font = 'bold 11px Prompt, sans-serif';
-                                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                                ctx.textAlign = 'left';
-                                ctx.textBaseline = 'middle';
-                                ctx.fillText(`ปี ${yrTxt}`, 0, 0);
-                            } else {
-                                ctx.font = 'bold 11px Prompt, sans-serif';
-                                ctx.fillStyle = '#0f172a';
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'bottom';
-                                ctx.fillText(`ปี ${yrTxt}`, xCenter, topBarY - 2);
-                            }
-                            ctx.restore();
-
-                            // 3. Draw Total Count text above stacked bar for ALL bars in TAB 2 (clarify stacked bar chart)
+                            // 2. Draw Total Count text above stacked bar for ALL bars in TAB 2 (clarify stacked bar chart)
                             if (currentMainTab === 'clarify' && colTotal > 0) {
                                 ctx.save();
-                                ctx.font = 'bold 13px Prompt, sans-serif';
+                                ctx.font = 'bold 12px Prompt, sans-serif';
                                 ctx.fillStyle = '#0f172a';
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'bottom';
@@ -5101,14 +5076,14 @@
                                 ctx.restore();
                             }
 
-                            // 4. Draw Specular Light Sheen Line on left edge of total bar
+                            // 3. Draw Specular Light Sheen Line on left edge of total bar
                             ctx.save();
                             ctx.beginPath();
                             const highlightX = firstBarObj.x - firstBarObj.width / 2 + 3;
                             ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
                             ctx.lineWidth = 2;
-                            ctx.moveTo(highlightX, topBarY + 6);
-                            ctx.lineTo(highlightX, chart.chartArea.bottom - 6);
+                            ctx.moveTo(highlightX, topBarY + 4);
+                            ctx.lineTo(highlightX, chart.chartArea.bottom - 4);
                             ctx.stroke();
                             ctx.restore();
                         }
@@ -5125,7 +5100,20 @@
 
                     ctx.save();
 
-                    // 1. Draw crisp vertical divider lines between activity sections
+                    // 1. Draw Year Labels horizontally directly BELOW the base of each bar (ฐานกราฟ)
+                    for (let colIdx = 0; colIdx < meta.data.length; colIdx++) {
+                        const bar = meta.data[colIdx];
+                        const yrTxt = rawLabelTopicMap[colIdx] ? rawLabelTopicMap[colIdx].year : '';
+                        if (bar && yrTxt) {
+                            ctx.font = '600 11px Prompt, sans-serif';
+                            ctx.fillStyle = '#64748b';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'top';
+                            ctx.fillText(`ปี ${yrTxt}`, bar.x, chartArea.bottom + 6);
+                        }
+                    }
+
+                    // 2. Draw crisp vertical divider lines between activity sections (including the year label area)
                     STRICT_MAIN_TOPICS.forEach((topic, tIdx) => {
                         if (tIdx > 0) {
                             const startIdx = tIdx * numYears;
@@ -5134,16 +5122,16 @@
                             if (prevBar && currBar) {
                                 const dividerX = (prevBar.x + currBar.x) / 2;
                                 ctx.beginPath();
-                                ctx.strokeStyle = '#475569';
+                                ctx.strokeStyle = '#cbd5e1';
                                 ctx.lineWidth = 1.5;
                                 ctx.moveTo(dividerX, chartArea.top);
-                                ctx.lineTo(dividerX, chartArea.bottom);
+                                ctx.lineTo(dividerX, chartArea.bottom + 22);
                                 ctx.stroke();
                             }
                         }
                     });
 
-                    // 2. Draw perfectly centered activity (Main Topic) name below each activity group
+                    // 3. Draw perfectly centered activity (Main Topic) name below each activity group
                     STRICT_MAIN_TOPICS.forEach((topic, tIdx) => {
                         const startIdx = tIdx * numYears;
                         const endIdx = (tIdx + 1) * numYears - 1;
@@ -5151,10 +5139,10 @@
                         const endBar = meta.data[endIdx];
                         if (startBar && endBar) {
                             const centerX = (startBar.x + endBar.x) / 2;
-                            const labelY = chartArea.bottom + 10;
+                            const labelY = chartArea.bottom + 24;
 
                             ctx.font = 'bold 12px Prompt, sans-serif';
-                            ctx.fillStyle = '#1e293b';
+                            ctx.fillStyle = '#0f172a';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'top';
                             ctx.fillText(topic, centerX, labelY);
@@ -5178,7 +5166,8 @@
                         return filteredData.filter(d => d.year === item.year && normalizeMainTopic(d.main_topic) === normalizeMainTopic(item.topic)).length;
                     }),
                     backgroundColor: bgGradients,
-                    borderRadius: { topLeft: 16, topRight: 16, bottomLeft: 4, bottomRight: 4 },
+                    borderRadius: { topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 },
+                    borderSkipped: false,
                     categoryPercentage: 0.82,
                     barPercentage: 0.85
                 }];
@@ -5255,7 +5244,7 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         layout: {
-                            padding: { bottom: 32, top: 12, left: 8, right: 8 }
+                            padding: { bottom: 46, top: 14, left: 8, right: 8 }
                         },
                         plugins: {
                             legend: { display: false },
@@ -5336,17 +5325,18 @@
                     const datasetIndex = context.datasetIndex;
                     const datasets = context.chart.data.datasets;
 
-                    if (datasets[datasetIndex].data[index] <= 0) return 0;
+                    const currentVal = datasets[datasetIndex].data[index] || 0;
+                    if (currentVal <= 0) return 0;
                     
-                    let hasHigherValue = false;
+                    let isTopmost = true;
                     for (let i = datasetIndex + 1; i < datasets.length; i++) {
-                        if (datasets[i].data[index] > 0) {
-                            hasHigherValue = true;
+                        if ((datasets[i].data[index] || 0) > 0) {
+                            isTopmost = false;
                             break;
                         }
                     }
-                    if (!hasHigherValue) {
-                        return { topLeft: 16, topRight: 16, bottomLeft: 0, bottomRight: 0 };
+                    if (isTopmost) {
+                        return { topLeft: 10, topRight: 10, bottomLeft: 0, bottomRight: 0 };
                     }
                     return 0;
                 };
@@ -5357,6 +5347,7 @@
                         data: doneData,
                         backgroundColor: STATUS_COLORS["ดำเนินการแล้ว"], // #a3e635
                         borderRadius: getTopmostBarRadius,
+                        borderSkipped: false,
                         categoryPercentage: 0.82,
                         barPercentage: 0.85
                     },
@@ -5365,6 +5356,7 @@
                         data: inProgData,
                         backgroundColor: STATUS_COLORS["อยู่ระหว่างดำเนินการ"], // #fde047
                         borderRadius: getTopmostBarRadius,
+                        borderSkipped: false,
                         categoryPercentage: 0.82,
                         barPercentage: 0.85
                     },
@@ -5373,6 +5365,7 @@
                         data: unclarifiedData,
                         backgroundColor: STATUS_COLORS["ยังไม่ได้ชี้แจง"], // #fb7185
                         borderRadius: getTopmostBarRadius,
+                        borderSkipped: false,
                         categoryPercentage: 0.82,
                         barPercentage: 0.85
                     }
@@ -5394,7 +5387,7 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         layout: {
-                            padding: { bottom: 32, top: 12, left: 8, right: 8 }
+                            padding: { bottom: 46, top: 14, left: 8, right: 8 }
                         },
                         plugins: {
                             legend: { display: false }
