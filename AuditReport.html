@@ -5924,7 +5924,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: {
-                        padding: { left: 4, right: 28, top: 8, bottom: 8 }
+                        padding: { left: 4, right: 30, top: 8, bottom: 8 }
                     },
                     plugins: {
                         legend: { display: false },
@@ -5945,17 +5945,21 @@
                         },
                         y: {
                             ticks: {
-                                font: { family: 'Prompt', size: window.innerWidth < 640 ? 10 : 11, weight: '600' },
+                                font: {
+                                    family: 'Prompt',
+                                    size: window.innerWidth < 640 ? 10 : (window.innerWidth < 1024 ? 11 : 12),
+                                    weight: '600'
+                                },
                                 color: '#1e293b',
+                                padding: 8,
                                 autoSkip: false,
-                                crossAlign: 'near',
                                 callback: function(val) {
                                     const label = this.getLabelForValue(val) || '';
-                                    if (window.innerWidth < 640 && label.length > 18) {
-                                        return label.substring(0, 17) + '…';
+                                    if (window.innerWidth < 640 && label.length > 15) {
+                                        return label.substring(0, 14) + '…';
                                     }
-                                    if (window.innerWidth < 1024 && label.length > 25) {
-                                        return label.substring(0, 24) + '…';
+                                    if (window.innerWidth < 1024 && label.length > 22) {
+                                        return label.substring(0, 21) + '…';
                                     }
                                     return label;
                                 }
@@ -5966,6 +5970,16 @@
                 }
             });
         }
+
+        let resizeTop10Timer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTop10Timer);
+            resizeTop10Timer = setTimeout(() => {
+                if (typeof renderTop10DeptsChart === 'function') {
+                    renderTop10DeptsChart();
+                }
+            }, 250);
+        });
 
         initDashboard();
     </script>
