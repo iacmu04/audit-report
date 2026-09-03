@@ -2906,8 +2906,9 @@
 
         let customRiskDetailTableOverrides = {};
         let customRiskDetailDeptOrder = [];
+        let customRiskDetailYearOrder = [];
         let riskDetailSource = "report"; // "report" or "clarify"
-        let riskDetailYearMode = "combined"; // "combined" or "by_year"
+        let riskDetailYearMode = "combined"; // "combined", "by_year", or "by_dept"
 
         function getRiskDetailActiveYears() {
             let yrs = [];
@@ -2916,7 +2917,13 @@
             } else {
                 yrs = [...new Set(filteredData.map(d => String(d.year || '').trim()))].filter(Boolean);
             }
-            return yrs.sort();
+            // เรียงลำดับปีล่าสุดขึ้นก่อนเป็นค่าเริ่มต้น (เช่น 2570 -> 2569 -> 2568)
+            yrs.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+
+            if (customRiskDetailYearOrder && customRiskDetailYearOrder.length === yrs.length && yrs.every(y => customRiskDetailYearOrder.includes(y))) {
+                return customRiskDetailYearOrder;
+            }
+            return yrs;
         }
 
         function setRiskDetailYearMode(mode) {
@@ -2937,6 +2944,21 @@
             const temp = customRiskDetailDeptOrder[idx];
             customRiskDetailDeptOrder[idx] = customRiskDetailDeptOrder[newIdx];
             customRiskDetailDeptOrder[newIdx] = temp;
+
+            renderPdfPreEditor();
+        }
+
+        function moveRiskDetailYearOrder(idx, direction) {
+            const activeYears = getRiskDetailActiveYears();
+            if (!customRiskDetailYearOrder || customRiskDetailYearOrder.length !== activeYears.length || !activeYears.every(y => customRiskDetailYearOrder.includes(y))) {
+                customRiskDetailYearOrder = [...activeYears];
+            }
+            const newIdx = idx + direction;
+            if (newIdx < 0 || newIdx >= customRiskDetailYearOrder.length) return;
+
+            const temp = customRiskDetailYearOrder[idx];
+            customRiskDetailYearOrder[idx] = customRiskDetailYearOrder[newIdx];
+            customRiskDetailYearOrder[newIdx] = temp;
 
             renderPdfPreEditor();
         }
@@ -2987,10 +3009,13 @@
                 deptItems.forEach(it => {
                     const rkStr = String(it.risk_level || '');
                     let rkType = 'green';
-                    if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) rkType = 'red';
-                    else if (rkStr.includes("ค่อนข้างสูง")) rkType = 'orange';
-                    else if (rkStr.includes("ปานกลาง")) rkType = 'yellow';
+                    let rkThai = 'ต่ำ';
+                    if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) { rkType = 'red'; rkThai = 'สูง'; }
+                    else if (rkStr.includes("ค่อนข้างสูง")) { rkType = 'orange'; rkThai = 'ค่อนข้างสูง'; }
+                    else if (rkStr.includes("ปานกลาง")) { rkType = 'yellow'; rkThai = 'ปานกลาง'; }
+                    else { rkType = 'green'; rkThai = 'ต่ำ'; }
 
+                    const fType = it.type || 'ข้อตรวจพบปีปัจจุบัน';
                     const mainTopicNorm = normalizeMainTopic(it.main_topic) || 'ด้านการดำเนินงาน';
                     if (!topicGroups[mainTopicNorm]) topicGroups[mainTopicNorm] = [];
 
@@ -3004,7 +3029,7 @@
                             const txt = (rec.recommendation && rec.recommendation !== '-') 
                                 ? rec.recommendation 
                                 : (it.sub_topic || it.finding || 'ข้อเสนอแนะ');
-                            topicGroups[mainTopicNorm].push(txt);
+                            topicGroups[mainTopicNorm].push(`${txt} (${rkThai} : ${fType})`);
                         });
                     } else {
                         if (rkType === 'red') red++;
@@ -3013,24 +3038,25 @@
                         else green++;
 
                         const txt = it.initial_rec || it.sub_topic || it.finding || 'ข้อเสนอแนะ';
-                        topicGroups[mainTopicNorm].push(txt);
+                        topicGroups[mainTopicNorm].push(`${txt} (${rkThai} : ${fType})`);
                     }
                 });
             } else {
                 // ดึงจากชีท Report (ข้อตรวจพบ / ประเด็นย่อยทั้งหมดครบทุกประเด็น)
                 deptItems.forEach(it => {
                     const rkStr = String(it.risk_level || '');
-                    if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) red++;
-                    else if (rkStr.includes("ค่อนข้างสูง")) orange++;
-                    else if (rkStr.includes("ปานกลาง")) yellow++;
-                    else if (rkStr.includes("ต่ำ")) green++;
-                    else green++;
+                    let rkThai = 'ต่ำ';
+                    if (rkStr.includes("สูง") && !rkStr.includes("ค่อนข้าง")) { red++; rkThai = 'สูง'; }
+                    else if (rkStr.includes("ค่อนข้างสูง")) { orange++; rkThai = 'ค่อนข้างสูง'; }
+                    else if (rkStr.includes("ปานกลาง")) { yellow++; rkThai = 'ปานกลาง'; }
+                    else { green++; rkThai = 'ต่ำ'; }
 
+                    const fType = it.type || 'ข้อตรวจพบปีปัจจุบัน';
                     const mainTopicNorm = normalizeMainTopic(it.main_topic) || 'ด้านการดำเนินงาน';
                     if (!topicGroups[mainTopicNorm]) topicGroups[mainTopicNorm] = [];
 
                     const topicText = it.sub_topic || it.finding || 'ประเด็นย่อย';
-                    topicGroups[mainTopicNorm].push(topicText);
+                    topicGroups[mainTopicNorm].push(`${topicText} (${rkThai} : ${fType})`);
                 });
             }
 
@@ -3320,7 +3346,7 @@
                 headerNote.innerHTML = `
                     <div class="flex items-center justify-between flex-wrap gap-2">
                         <span class="font-black text-slate-800 text-sm">📋 ตารางสรุปประเด็นความเสี่ยงและรายละเอียด (${depts.length} ส่วนงาน)</span>
-                        <span class="font-bold bg-[#A393EB] text-white px-2.5 py-0.5 rounded-full text-xs">${depts.length} ส่วนงาน</span>
+                        <span class="font-bold bg-[#A393EB] text-white px-2.5 py-0.5 rounded-full text-xs">${depts.length} ส่วนงาน | ${activeYears.length} ปีงบประมาณ</span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                         <!-- 1. Source Toggle -->
@@ -3340,33 +3366,129 @@
                             </div>
                         </div>
 
-                        <!-- 2. Year Display Mode Toggle -->
+                        <!-- 2. Export Mode Toggle (3 Modes) -->
                         <div class="flex items-center gap-2 flex-wrap bg-white/90 p-2.5 rounded-xl border border-purple-200/80">
                             <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                                <i class="fa-solid fa-calendar-days text-purple-600"></i> รูปแบบแสดงปี:
+                                <i class="fa-solid fa-layer-group text-purple-600"></i> รูปแบบการส่งออก:
                             </span>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <label class="flex items-center gap-1.5 cursor-pointer px-3 py-1 rounded-lg border text-xs font-bold transition ${riskDetailYearMode === 'combined' ? 'bg-[#A393EB] text-white border-[#A393EB] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-lg border text-xs font-bold transition ${riskDetailYearMode === 'combined' ? 'bg-[#A393EB] text-white border-[#A393EB] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
                                     <input type="radio" name="riskDetailYearMode" value="combined" ${riskDetailYearMode === 'combined' ? 'checked' : ''} onchange="setRiskDetailYearMode('combined')" class="hidden">
-                                    <span>📊 รวมทุกปี</span>
+                                    <span>📊 รวมทุกปี (1 ตารางยาว)</span>
                                 </label>
-                                <label class="flex items-center gap-1.5 cursor-pointer px-3 py-1 rounded-lg border text-xs font-bold transition ${riskDetailYearMode === 'by_year' ? 'bg-[#A393EB] text-white border-[#A393EB] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                                <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-lg border text-xs font-bold transition ${riskDetailYearMode === 'by_year' ? 'bg-[#A393EB] text-white border-[#A393EB] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
                                     <input type="radio" name="riskDetailYearMode" value="by_year" ${riskDetailYearMode === 'by_year' ? 'checked' : ''} onchange="setRiskDetailYearMode('by_year')" class="hidden">
-                                    <span>📑 แยกรายปี (คนละหน้า)</span>
+                                    <span>📑 แยกรายปี (1 หน้า/ปี)</span>
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 rounded-lg border text-xs font-bold transition ${riskDetailYearMode === 'by_dept' ? 'bg-[#A393EB] text-white border-[#A393EB] shadow-xs' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
+                                    <input type="radio" name="riskDetailYearMode" value="by_dept" ${riskDetailYearMode === 'by_dept' ? 'checked' : ''} onchange="setRiskDetailYearMode('by_dept')" class="hidden">
+                                    <span>🏢 แยกส่วนงาน (1 หน้า/ส่วนงาน)</span>
                                 </label>
                             </div>
                         </div>
                     </div>
-                    <p class="text-[11px] text-purple-900/80 font-medium">💡 คุณสามารถคลิกปุ่ม <strong>เลื่อนขึ้น / เลื่อนลง</strong> ที่หัวการ์ดเพื่อจัดลำดับส่วนงานก่อนหลังได้เอง, สลับแหล่งข้อมูล (ชีท Report / Clarify), เลือกรูปแบบแสดงผลรวมแบบ <strong>รวมทุกปี</strong> หรือ <strong>แยกรายปีคนละหน้ากระดาษ</strong> (เรียงตามส่วนงานและปีต่อกัน), ปรับตัวเลขจำนวนระดับความเสี่ยง และพิมพ์จัดรูปแบบข้อความในช่อง <strong>รายละเอียด</strong> ได้อย่างอิสระ</p>
+                    <p class="text-[11px] text-purple-900/80 font-medium">💡 คุณสามารถเลือกรูปแบบส่งออกได้ 3 รูปแบบ: <strong>รวมทุกปี</strong> (1 ตารางยาวต่อเนื่อง), <strong>แยกรายปี</strong> (1 ตารางคือ 1 ปี ขึ้นหน้าใหม่), หรือ <strong>แยกส่วนงาน</strong> (1 ตารางคือ 1 ส่วนงาน แสดงประเด็นแยกตามปีล่าสุดขึ้นก่อน ขึ้นหน้าใหม่เมื่อเปลี่ยนส่วนงาน) พร้อมปุ่มจัดลำดับส่วนงาน/ปี และแก้ไขข้อมูลได้อย่างอิสระ</p>
                 `;
                 container.appendChild(headerNote);
 
-                if (riskDetailYearMode === 'by_year' && activeYears.length > 1) {
-                    // Render grouped by Department, with Year sub-cards
+                if (riskDetailYearMode === 'by_year') {
+                    // ----------------------------------------------------
+                    // MODE 2: แยกรายปี (Year Cards -> Depts inside)
+                    // ----------------------------------------------------
+                    activeYears.forEach((yr, yIdx) => {
+                        const yearCard = document.createElement("div");
+                        yearCard.className = "w-full p-4 bg-slate-50 border-2 border-purple-200 rounded-2xl space-y-3.5 shadow-xs";
+
+                        let deptRowsHtml = "";
+                        depts.forEach((dept, dIdx) => {
+                            const yKey = `${dept}__${yr}`;
+                            const d = customRiskDetailTableOverrides[yKey] || { red: 0, orange: 0, yellow: 0, green: 0, details: '-' };
+                            const cleanKey = yKey.replace(/[^a-zA-Z0-9ก-๙]/g, '_');
+                            const tot = (d.red || 0) + (d.orange || 0) + (d.yellow || 0) + (d.green || 0);
+
+                            deptRowsHtml += `
+                                <div class="p-3.5 bg-white border border-slate-200 rounded-xl space-y-2.5 shadow-2xs">
+                                    <div class="flex items-center justify-between flex-wrap gap-2 pb-1.5 border-b border-slate-100">
+                                        <div class="flex items-center gap-2 font-bold text-slate-800 text-xs">
+                                            <span class="w-5 h-5 rounded-full bg-[#A393EB] text-white flex items-center justify-center text-[10px]">${dIdx + 1}</span>
+                                            <span>${dept}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1 bg-purple-50 border border-purple-200/80 px-2 py-0.5 rounded-lg">
+                                            <span class="text-[11px] text-purple-900 font-medium">รวม (ปี ${yr}):</span>
+                                            <span id="risk-detail-tot-${cleanKey}" class="px-2 py-0.2 rounded-full bg-[#A393EB] text-white font-black text-xs">${tot}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 4 Risk Count Inputs -->
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50/70 p-2.5 rounded-lg border border-slate-200/70">
+                                        <div>
+                                            <label class="block font-bold text-red-700 text-[11px] mb-1">🔴 สูง:</label>
+                                            <input type="number" min="0" value="${d.red || 0}" oninput="updateCustomRiskDetailCount('${yKey.replace(/'/g, "\\'")}', 'red', this.value)" class="w-full px-2 py-1 bg-red-50/80 border border-red-200 rounded-lg text-center font-black text-red-900 text-xs outline-none focus:ring-2 focus:ring-red-400">
+                                        </div>
+                                        <div>
+                                            <label class="block font-bold text-orange-700 text-[11px] mb-1">🟠 ค่อนข้างสูง:</label>
+                                            <input type="number" min="0" value="${d.orange || 0}" oninput="updateCustomRiskDetailCount('${yKey.replace(/'/g, "\\'")}', 'orange', this.value)" class="w-full px-2 py-1 bg-orange-50/80 border border-orange-200 rounded-lg text-center font-black text-orange-900 text-xs outline-none focus:ring-2 focus:ring-orange-400">
+                                        </div>
+                                        <div>
+                                            <label class="block font-bold text-amber-700 text-[11px] mb-1">🟡 ปานกลาง:</label>
+                                            <input type="number" min="0" value="${d.yellow || 0}" oninput="updateCustomRiskDetailCount('${yKey.replace(/'/g, "\\'")}', 'yellow', this.value)" class="w-full px-2 py-1 bg-amber-50/80 border border-amber-200 rounded-lg text-center font-black text-amber-900 text-xs outline-none focus:ring-2 focus:ring-amber-400">
+                                        </div>
+                                        <div>
+                                            <label class="block font-bold text-emerald-700 text-[11px] mb-1">🟢 ต่ำ:</label>
+                                            <input type="number" min="0" value="${d.green || 0}" oninput="updateCustomRiskDetailCount('${yKey.replace(/'/g, "\\'")}', 'green', this.value)" class="w-full px-2 py-1 bg-emerald-50/80 border border-emerald-200 rounded-lg text-center font-black text-emerald-900 text-xs outline-none focus:ring-2 focus:ring-emerald-400">
+                                        </div>
+                                    </div>
+
+                                    <!-- Details Rich Text -->
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1 flex-wrap gap-2">
+                                            <label class="block font-bold text-slate-700 text-[11px]">รายละเอียด (ประจำปี ${yr} - กว้าง 40% ของตาราง):</label>
+                                            <div class="flex items-center gap-1 bg-slate-50 p-0.5 rounded-lg border border-slate-200 text-[10px]">
+                                                <button type="button" onmousedown="event.preventDefault(); document.execCommand('bold', false, null);" class="px-1.5 py-0.5 bg-white hover:bg-[#A393EB]/30 text-slate-800 font-black rounded text-[11px] transition" title="ตัวหนา"><b>B</b></button>
+                                                <button type="button" onmousedown="event.preventDefault(); document.execCommand('underline', false, null);" class="px-1.5 py-0.5 bg-white hover:bg-[#A393EB]/30 text-slate-800 font-black rounded text-[11px] transition" title="ขีดเส้นใต้"><u>U</u></button>
+                                                <button type="button" onmousedown="event.preventDefault(); document.execCommand('italic', false, null);" class="px-1.5 py-0.5 bg-white hover:bg-[#A393EB]/30 text-slate-800 italic rounded text-[11px] transition" title="ตัวเอียง"><i>I</i></button>
+                                                <button type="button" onmousedown="event.preventDefault(); document.execCommand('removeFormat', false, null);" class="px-1.5 py-0.5 bg-white hover:bg-slate-200 text-slate-600 rounded text-[11px] transition" title="ล้างรูปแบบ">🧹</button>
+                                            </div>
+                                        </div>
+                                        <div contenteditable="true" oninput="updateCustomRiskDetailText('${yKey.replace(/'/g, "\\'")}', this.innerHTML)" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 min-h-[70px] max-h-[200px] overflow-y-auto text-xs focus:ring-2 focus:ring-[#A393EB] outline-none leading-relaxed text-slate-800 shadow-2xs">${d.details}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        yearCard.innerHTML = `
+                            <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-purple-200">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-7 h-7 rounded-full bg-[#A393EB] text-white flex items-center justify-center font-bold text-xs shadow-xs">${yIdx + 1}</span>
+                                    <h4 class="font-black text-slate-900 text-base flex items-center gap-2">
+                                        <i class="fa-solid fa-calendar-days text-[#A393EB]"></i>
+                                        ตารางประจำปีงบประมาณ ${yr}
+                                    </h4>
+                                </div>
+                                <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-0.5 shadow-2xs">
+                                    <button type="button" onclick="moveRiskDetailYearOrder(${yIdx}, -1)" ${yIdx === 0 ? 'disabled' : ''} class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-700 hover:bg-[#A393EB] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1 cursor-pointer" title="เลื่อนปีขึ้น">
+                                        <i class="fa-solid fa-arrow-up text-[10px]"></i> เลื่อนปีขึ้น
+                                    </button>
+                                    <div class="w-px h-4 bg-slate-200 mx-0.5"></div>
+                                    <button type="button" onclick="moveRiskDetailYearOrder(${yIdx}, 1)" ${yIdx === activeYears.length - 1 ? 'disabled' : ''} class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-700 hover:bg-[#A393EB] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1 cursor-pointer" title="เลื่อนปีลง">
+                                        <i class="fa-solid fa-arrow-down text-[10px]"></i> เลื่อนปีลง
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                ${deptRowsHtml}
+                            </div>
+                        `;
+                        container.appendChild(yearCard);
+                    });
+                } else if (riskDetailYearMode === 'by_dept') {
+                    // ----------------------------------------------------
+                    // MODE 3: แยกส่วนงาน (Dept Cards -> Years inside)
+                    // ----------------------------------------------------
                     depts.forEach((dept, idx) => {
-                        const deptGroupCard = document.createElement("div");
-                        deptGroupCard.className = "w-full p-4 bg-slate-50 border-2 border-purple-200/80 rounded-2xl space-y-3.5 shadow-xs";
-                        
+                        const deptCard = document.createElement("div");
+                        deptCard.className = "w-full p-4 bg-slate-50 border-2 border-purple-200/80 rounded-2xl space-y-3.5 shadow-xs";
+
                         let yearCardsHtml = "";
                         activeYears.forEach(yr => {
                             const yKey = `${dept}__${yr}`;
@@ -3382,7 +3504,7 @@
                                             <span>ประจำปีงบประมาณ ${yr}</span>
                                         </div>
                                         <div class="flex items-center gap-1 bg-purple-50 border border-purple-200/80 px-2 py-0.5 rounded-lg">
-                                            <span class="text-[11px] text-purple-900 font-medium">รวมประเด็นย่อย (ปี ${yr}):</span>
+                                            <span class="text-[11px] text-purple-900 font-medium">รวม (ปี ${yr}):</span>
                                             <span id="risk-detail-tot-${cleanKey}" class="px-2 py-0.2 rounded-full bg-[#A393EB] text-white font-black text-xs">${tot}</span>
                                         </div>
                                     </div>
@@ -3424,31 +3546,32 @@
                             `;
                         });
 
-                        deptGroupCard.innerHTML = `
+                        deptCard.innerHTML = `
                             <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-purple-200">
                                 <div class="flex items-center gap-2">
                                     <span class="w-6 h-6 rounded-full bg-[#A393EB] text-white flex items-center justify-center font-bold text-xs shadow-xs">${idx + 1}</span>
                                     <h4 class="font-black text-slate-900 text-sm">${dept}</h4>
                                 </div>
                                 <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-0.5 shadow-2xs">
-                                    <button type="button" onclick="moveRiskDetailDeptOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-700 hover:bg-[#A393EB] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1 cursor-pointer" title="เลื่อนลำดับขึ้น">
+                                    <button type="button" onclick="moveRiskDetailDeptOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-700 hover:bg-[#A393EB] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1 cursor-pointer" title="เลื่อนส่วนงานขึ้น">
                                         <i class="fa-solid fa-arrow-up text-[10px]"></i> เลื่อนขึ้น
                                     </button>
                                     <div class="w-px h-4 bg-slate-200 mx-0.5"></div>
-                                    <button type="button" onclick="moveRiskDetailDeptOrder(${idx}, 1)" ${idx === depts.length - 1 ? 'disabled' : ''} class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-700 hover:bg-[#A393EB] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1 cursor-pointer" title="เลื่อนลำดับลง">
+                                    <button type="button" onclick="moveRiskDetailDeptOrder(${idx}, 1)" ${idx === depts.length - 1 ? 'disabled' : ''} class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-700 hover:bg-[#A393EB] hover:text-white disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1 cursor-pointer" title="เลื่อนส่วนงานลง">
                                         <i class="fa-solid fa-arrow-down text-[10px]"></i> เลื่อนลง
                                     </button>
                                 </div>
                             </div>
-
                             <div class="space-y-3">
                                 ${yearCardsHtml}
                             </div>
                         `;
-                        container.appendChild(deptGroupCard);
+                        container.appendChild(deptCard);
                     });
                 } else {
-                    // Standard Combined Card per Department
+                    // ----------------------------------------------------
+                    // MODE 1: รวมทุกปี (Combined Card per Department)
+                    // ----------------------------------------------------
                     depts.forEach((dept, idx) => {
                         const d = customRiskDetailTableOverrides[dept] || { red: 0, orange: 0, yellow: 0, green: 0, details: '-' };
                         const cleanId = dept.replace(/[^a-zA-Z0-9ก-๙]/g, '_');
@@ -4516,16 +4639,18 @@
             const depts = customRiskDetailDeptOrder;
             const activeYears = getRiskDetailActiveYears();
 
-            const isByYearMode = (riskDetailYearMode === 'by_year' && activeYears.length > 1);
+            if (riskDetailYearMode === 'by_year' && activeYears.length > 0) {
+                // ----------------------------------------------------
+                // MODE 2: แยกรายปี (1 ตารางคือ 1 ปี ขึ้นหน้าใหม่และตารางใหม่)
+                // ----------------------------------------------------
+                let pagesHtml = "";
 
-            let rowsHtml = "";
-            let grandRed = 0, grandOrange = 0, grandYellow = 0, grandGreen = 0, grandTotal = 0;
-            let rowIndex = 0;
+                activeYears.forEach((yr, yIdx) => {
+                    let rowsHtml = "";
+                    let grandRed = 0, grandOrange = 0, grandYellow = 0, grandGreen = 0, grandTotal = 0;
+                    let rIdx = 0;
 
-            if (isByYearMode) {
-                // เรียงแบบ ส่วนงานที่ 1 (ปีที่ 1, 2, 3...) -> ส่วนงานที่ 2 (ปีที่ 1, 2, 3...) ตามตัวกรอง
-                depts.forEach((dept) => {
-                    activeYears.forEach((yr) => {
+                    depts.forEach((dept) => {
                         const yKey = `${dept}__${yr}`;
                         const d = customRiskDetailTableOverrides[yKey] || { red: 0, orange: 0, yellow: 0, green: 0, details: '-' };
                         const rowTot = (d.red || 0) + (d.orange || 0) + (d.yellow || 0) + (d.green || 0);
@@ -4536,14 +4661,13 @@
                         grandGreen += (d.green || 0);
                         grandTotal += rowTot;
 
-                        const rowBg = rowIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
-                        rowIndex++;
+                        const rowBg = rIdx % 2 === 0 ? '#ffffff' : '#f8fafc';
+                        rIdx++;
 
                         rowsHtml += `
                             <tr style="background-color: ${rowBg}; border-bottom: 1px solid #cbd5e1; font-size: 13pt; page-break-inside: avoid; break-inside: avoid; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                                 <td style="padding: 10px 12px; font-weight: bold; color: #0f172a; text-align: left; vertical-align: top; border: 1px solid #94a3b8; width: 25%; background-color: inherit; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                                     ${dept}
-                                    <span style="font-size: 11pt; font-weight: 600; color: #475569; display: block; margin-top: 2px;">(ปี ${yr})</span>
                                 </td>
                                 <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #991b1b !important; vertical-align: top; border: 1px solid #94a3b8; width: 7%; background-color: #fef2f2 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                                     ${d.red || ''}
@@ -4566,13 +4690,167 @@
                             </tr>
                         `;
                     });
+
+                    const pageBreakStyle = (yIdx < activeYears.length - 1) ? 'page-break-after: always; break-after: page;' : '';
+
+                    pagesHtml += `
+                        <div style="width: 100%; font-family: 'Prompt', sans-serif; padding: 6px 2px; box-sizing: border-box; ${pageBreakStyle} -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                            <!-- Header Titles for Year -->
+                            <div style="text-align: center; margin-bottom: 18px;">
+                                <h1 style="font-size: 20pt; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; line-height: 1.3;">
+                                    ${line1Title}
+                                </h1>
+                                <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
+                                    ${line2Meeting} (ประจำปีงบประมาณ ${yr})
+                                </h2>
+                            </div>
+
+                            <!-- Risk Summary Table for Year -->
+                            <div style="width: 100%; overflow: hidden; border-radius: 8px; border: 1.5px solid #475569;">
+                                <table class="pdf-table" style="width: 100%; border-collapse: collapse; font-family: 'Prompt', sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    <thead style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                        <tr style="background-color: #0f172a; color: #ffffff; text-align: center; font-size: 13pt; font-weight: bold;">
+                                            <th style="padding: 10px 8px; border: 1px solid #475569; width: 25%; text-align: center; vertical-align: middle; background-color: #f1f5f9 !important; color: #0f172a !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ส่วนงาน (ปี ${yr})</th>
+                                            <th class="th-risk-red" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #ef4444 !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">สูง</th>
+                                            <th class="th-risk-orange" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #f97316 !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ค่อนข้างสูง</th>
+                                            <th class="th-risk-yellow" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #facc15 !important; color: #0f172a !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ปานกลาง</th>
+                                            <th class="th-risk-green" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #22c55e !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ต่ำ</th>
+                                            <th style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #e2e8f0 !important; color: #0f172a !important; text-align: center; vertical-align: middle; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รวม</th>
+                                            <th style="padding: 10px 8px; border: 1px solid #475569; width: 40%; text-align: center; vertical-align: middle; background-color: #f1f5f9 !important; color: #0f172a !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รายละเอียด</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                        ${rowsHtml}
+                                    </tbody>
+                                    <tfoot style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                        <tr style="background-color: #e2e8f0; font-weight: 800; color: #0f172a; text-align: center; font-size: 13pt; border-top: 2px solid #334155;">
+                                            <td style="padding: 10px 12px; text-align: center; border: 1px solid #94a3b8; width: 25%; background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รวม</td>
+                                            <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #991b1b !important; background-color: #fee2e2 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandRed || ''}</td>
+                                            <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #9a3412 !important; background-color: #ffedd5 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandOrange || ''}</td>
+                                            <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #854d0e !important; background-color: #fefce8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandYellow || ''}</td>
+                                            <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #166534 !important; background-color: #f0fdf4 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandGreen || ''}</td>
+                                            <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #0f172a !important; background-color: #cbd5e1 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandTotal || 0}</td>
+                                            <td style="padding: 10px 8px; border: 1px solid #94a3b8; width: 40%; text-align: center; color: #64748b; background-color: #f8fafc !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">-</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    `;
                 });
+
+                printContainer.innerHTML = pagesHtml;
+            } else if (riskDetailYearMode === 'by_dept') {
+                // ----------------------------------------------------
+                // MODE 3: แยกส่วนงาน (1 ตารางคือ 1 ส่วนงาน ขึ้นหน้าใหม่และตารางใหม่)
+                // ----------------------------------------------------
+                let pagesHtml = "";
+
+                depts.forEach((dept, dIdx) => {
+                    let rowsHtml = "";
+                    let grandRed = 0, grandOrange = 0, grandYellow = 0, grandGreen = 0, grandTotal = 0;
+
+                    activeYears.forEach((yr, yIdx) => {
+                        const yKey = `${dept}__${yr}`;
+                        const d = customRiskDetailTableOverrides[yKey] || { red: 0, orange: 0, yellow: 0, green: 0, details: '-' };
+                        const rowTot = (d.red || 0) + (d.orange || 0) + (d.yellow || 0) + (d.green || 0);
+
+                        grandRed += (d.red || 0);
+                        grandOrange += (d.orange || 0);
+                        grandYellow += (d.yellow || 0);
+                        grandGreen += (d.green || 0);
+                        grandTotal += rowTot;
+
+                        const rowBg = yIdx % 2 === 0 ? '#ffffff' : '#f8fafc';
+
+                        rowsHtml += `
+                            <tr style="background-color: ${rowBg}; border-bottom: 1px solid #cbd5e1; font-size: 13pt; page-break-inside: avoid; break-inside: avoid; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                <td style="padding: 10px 12px; font-weight: bold; color: #0f172a; text-align: center; vertical-align: top; border: 1px solid #94a3b8; width: 25%; background-color: inherit; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    ปีงบประมาณ ${yr}
+                                </td>
+                                <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #991b1b !important; vertical-align: top; border: 1px solid #94a3b8; width: 7%; background-color: #fef2f2 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    ${d.red || ''}
+                                </td>
+                                <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #9a3412 !important; vertical-align: top; border: 1px solid #94a3b8; width: 7%; background-color: #fff7ed !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    ${d.orange || ''}
+                                </td>
+                                <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #854d0e !important; vertical-align: top; border: 1px solid #94a3b8; width: 7%; background-color: #fefce8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    ${d.yellow || ''}
+                                </td>
+                                <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #166534 !important; vertical-align: top; border: 1px solid #94a3b8; width: 7%; background-color: #f0fdf4 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    ${d.green || ''}
+                                </td>
+                                <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #0f172a !important; vertical-align: top; border: 1px solid #94a3b8; width: 7%; background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    ${rowTot || 0}
+                                </td>
+                                <td style="padding: 10px 14px; text-align: left; vertical-align: top; border: 1px solid #94a3b8; width: 40%; line-height: 1.55; color: #1e293b; font-size: 13pt; word-break: break-word; background-color: inherit; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    ${formatInitialHtml(d.details || '-')}
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    const pageBreakStyle = (dIdx < depts.length - 1) ? 'page-break-after: always; break-after: page;' : '';
+
+                    pagesHtml += `
+                        <div style="width: 100%; font-family: 'Prompt', sans-serif; padding: 6px 2px; box-sizing: border-box; ${pageBreakStyle} -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                            <!-- Header Titles for Department -->
+                            <div style="text-align: center; margin-bottom: 18px;">
+                                <h1 style="font-size: 20pt; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; line-height: 1.3;">
+                                    ${line1Title}
+                                </h1>
+                                <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0 0 8px 0; line-height: 1.3;">
+                                    ${line2Meeting}
+                                </h2>
+                                <div style="display: inline-block; font-size: 14pt; font-weight: 800; color: #1e1b4b; background-color: #f1f5f9; padding: 4px 18px; border-radius: 8px; border: 1.5px solid #cbd5e1;">
+                                    ส่วนงาน: ${dept}
+                                </div>
+                            </div>
+
+                            <!-- Risk Summary Table for Department -->
+                            <div style="width: 100%; overflow: hidden; border-radius: 8px; border: 1.5px solid #475569;">
+                                <table class="pdf-table" style="width: 100%; border-collapse: collapse; font-family: 'Prompt', sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    <thead style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                        <tr style="background-color: #0f172a; color: #ffffff; text-align: center; font-size: 13pt; font-weight: bold;">
+                                            <th style="padding: 10px 8px; border: 1px solid #475569; width: 25%; text-align: center; vertical-align: middle; background-color: #f1f5f9 !important; color: #0f172a !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ปีงบประมาณ</th>
+                                            <th class="th-risk-red" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #ef4444 !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">สูง</th>
+                                            <th class="th-risk-orange" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #f97316 !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ค่อนข้างสูง</th>
+                                            <th class="th-risk-yellow" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #facc15 !important; color: #0f172a !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ปานกลาง</th>
+                                            <th class="th-risk-green" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #22c55e !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ต่ำ</th>
+                                            <th style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #e2e8f0 !important; color: #0f172a !important; text-align: center; vertical-align: middle; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รวม</th>
+                                            <th style="padding: 10px 8px; border: 1px solid #475569; width: 40%; text-align: center; vertical-align: middle; background-color: #f1f5f9 !important; color: #0f172a !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รายละเอียด</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                        ${rowsHtml}
+                                    </tbody>
+                                    <tfoot style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                        <tr style="background-color: #e2e8f0; font-weight: 800; color: #0f172a; text-align: center; font-size: 13pt; border-top: 2px solid #334155;">
+                                            <td style="padding: 10px 12px; text-align: center; border: 1px solid #94a3b8; width: 25%; background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รวม</td>
+                                            <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #991b1b !important; background-color: #fee2e2 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandRed || ''}</td>
+                                            <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #9a3412 !important; background-color: #ffedd5 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandOrange || ''}</td>
+                                            <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #854d0e !important; background-color: #fefce8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandYellow || ''}</td>
+                                            <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #166534 !important; background-color: #f0fdf4 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandGreen || ''}</td>
+                                            <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #0f172a !important; background-color: #cbd5e1 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandTotal || 0}</td>
+                                            <td style="padding: 10px 8px; border: 1px solid #94a3b8; width: 40%; text-align: center; color: #64748b; background-color: #f8fafc !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">-</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                printContainer.innerHTML = pagesHtml;
             } else {
-                // Combined / Single Year
+                // ----------------------------------------------------
+                // MODE 1: รวมทุกปี (1 ตารางยาว รวมประเด็นทั้งหมดของแต่ละส่วนงาน)
+                // ----------------------------------------------------
+                let rowsHtml = "";
+                let grandRed = 0, grandOrange = 0, grandYellow = 0, grandGreen = 0, grandTotal = 0;
+
                 depts.forEach((dept, idx) => {
-                    const d = (riskDetailYearMode === 'by_year' && activeYears.length === 1)
-                        ? (customRiskDetailTableOverrides[`${dept}__${activeYears[0]}`] || customRiskDetailTableOverrides[dept] || { red: 0, orange: 0, yellow: 0, green: 0, details: '-' })
-                        : (customRiskDetailTableOverrides[dept] || { red: 0, orange: 0, yellow: 0, green: 0, details: '-' });
+                    const d = customRiskDetailTableOverrides[dept] || { red: 0, orange: 0, yellow: 0, green: 0, details: '-' };
                     const rowTot = (d.red || 0) + (d.orange || 0) + (d.yellow || 0) + (d.green || 0);
 
                     grandRed += (d.red || 0);
@@ -4582,12 +4860,11 @@
                     grandTotal += rowTot;
 
                     const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
-                    const yrSuffix = (activeYears.length === 1) ? ` <span style="font-size: 11pt; font-weight: 600; color: #475569; display: block; margin-top: 2px;">(ปี ${activeYears[0]})</span>` : '';
 
                     rowsHtml += `
                         <tr style="background-color: ${rowBg}; border-bottom: 1px solid #cbd5e1; font-size: 13pt; page-break-inside: avoid; break-inside: avoid; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                             <td style="padding: 10px 12px; font-weight: bold; color: #0f172a; text-align: left; vertical-align: top; border: 1px solid #94a3b8; width: 25%; background-color: inherit; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                ${dept}${yrSuffix}
+                                ${dept}
                             </td>
                             <td style="padding: 10px 4px; text-align: center; font-weight: bold; color: #991b1b !important; vertical-align: top; border: 1px solid #94a3b8; width: 7%; background-color: #fef2f2 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                                 ${d.red || ''}
@@ -4610,54 +4887,52 @@
                         </tr>
                     `;
                 });
+
+                printContainer.innerHTML = `
+                    <div style="width: 100%; font-family: 'Prompt', sans-serif; padding: 6px 2px; box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                        <!-- Header Titles -->
+                        <div style="text-align: center; margin-bottom: 18px;">
+                            <h1 style="font-size: 20pt; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; line-height: 1.3;">
+                                ${line1Title}
+                            </h1>
+                            <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
+                                ${line2Meeting}
+                            </h2>
+                        </div>
+
+                        <!-- Risk Summary Table (5 equal 7% metric columns + 25% Dept + 40% Details = 100%) -->
+                        <div style="width: 100%; overflow: hidden; border-radius: 8px; border: 1.5px solid #475569;">
+                            <table class="pdf-table" style="width: 100%; border-collapse: collapse; font-family: 'Prompt', sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                <thead style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    <tr style="background-color: #0f172a; color: #ffffff; text-align: center; font-size: 13pt; font-weight: bold;">
+                                        <th style="padding: 10px 8px; border: 1px solid #475569; width: 25%; text-align: center; vertical-align: middle; background-color: #f1f5f9 !important; color: #0f172a !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ส่วนงาน</th>
+                                        <th class="th-risk-red" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #ef4444 !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">สูง</th>
+                                        <th class="th-risk-orange" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #f97316 !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ค่อนข้างสูง</th>
+                                        <th class="th-risk-yellow" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #facc15 !important; color: #0f172a !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ปานกลาง</th>
+                                        <th class="th-risk-green" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #22c55e !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ต่ำ</th>
+                                        <th style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #e2e8f0 !important; color: #0f172a !important; text-align: center; vertical-align: middle; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รวม</th>
+                                        <th style="padding: 10px 8px; border: 1px solid #475569; width: 40%; text-align: center; vertical-align: middle; background-color: #f1f5f9 !important; color: #0f172a !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รายละเอียด</th>
+                                    </tr>
+                                </thead>
+                                <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    ${rowsHtml}
+                                </tbody>
+                                <tfoot style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    <tr style="background-color: #e2e8f0; font-weight: 800; color: #0f172a; text-align: center; font-size: 13pt; border-top: 2px solid #334155;">
+                                        <td style="padding: 10px 12px; text-align: center; border: 1px solid #94a3b8; width: 25%; background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รวม</td>
+                                        <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #991b1b !important; background-color: #fee2e2 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandRed || ''}</td>
+                                        <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #9a3412 !important; background-color: #ffedd5 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandOrange || ''}</td>
+                                        <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #854d0e !important; background-color: #fefce8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandYellow || ''}</td>
+                                        <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #166534 !important; background-color: #f0fdf4 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandGreen || ''}</td>
+                                        <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #0f172a !important; background-color: #cbd5e1 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandTotal || 0}</td>
+                                        <td style="padding: 10px 8px; border: 1px solid #94a3b8; width: 40%; text-align: center; color: #64748b; background-color: #f8fafc !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">-</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                `;
             }
-
-            const headerDeptTitle = isByYearMode ? "ส่วนงาน (แยกตามปี)" : ((activeYears.length === 1) ? `ส่วนงาน (ปี ${activeYears[0]})` : "ส่วนงาน");
-
-            printContainer.innerHTML = `
-                <div style="width: 100%; font-family: 'Prompt', sans-serif; padding: 6px 2px; box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                    <!-- Header Titles -->
-                    <div style="text-align: center; margin-bottom: 18px;">
-                        <h1 style="font-size: 20pt; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; line-height: 1.3;">
-                            ${line1Title}
-                        </h1>
-                        <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
-                            ${line2Meeting}
-                        </h2>
-                    </div>
-
-                    <!-- Risk Summary Table (5 equal 7% metric columns + 25% Dept + 40% Details = 100%) -->
-                    <div style="width: 100%; overflow: hidden; border-radius: 8px; border: 1.5px solid #475569;">
-                        <table class="pdf-table" style="width: 100%; border-collapse: collapse; font-family: 'Prompt', sans-serif; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                            <thead style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                <tr style="background-color: #0f172a; color: #ffffff; text-align: center; font-size: 13pt; font-weight: bold;">
-                                    <th style="padding: 10px 8px; border: 1px solid #475569; width: 25%; text-align: center; vertical-align: middle; background-color: #f1f5f9 !important; color: #0f172a !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${headerDeptTitle}</th>
-                                    <th class="th-risk-red" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #ef4444 !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">สูง</th>
-                                    <th class="th-risk-orange" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #f97316 !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ค่อนข้างสูง</th>
-                                    <th class="th-risk-yellow" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #facc15 !important; color: #0f172a !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ปานกลาง</th>
-                                    <th class="th-risk-green" style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #22c55e !important; color: #ffffff !important; text-align: center; vertical-align: middle; word-break: break-word; white-space: normal; line-height: 1.25; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">ต่ำ</th>
-                                    <th style="padding: 8px 4px; border: 1px solid #475569; width: 7%; background-color: #e2e8f0 !important; color: #0f172a !important; text-align: center; vertical-align: middle; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รวม</th>
-                                    <th style="padding: 10px 8px; border: 1px solid #475569; width: 40%; text-align: center; vertical-align: middle; background-color: #f1f5f9 !important; color: #0f172a !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รายละเอียด</th>
-                                </tr>
-                            </thead>
-                            <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                ${rowsHtml}
-                            </tbody>
-                            <tfoot style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                <tr style="background-color: #e2e8f0; font-weight: 800; color: #0f172a; text-align: center; font-size: 13pt; border-top: 2px solid #334155;">
-                                    <td style="padding: 10px 12px; text-align: center; border: 1px solid #94a3b8; width: 25%; background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">รวม</td>
-                                    <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #991b1b !important; background-color: #fee2e2 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandRed || ''}</td>
-                                    <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #9a3412 !important; background-color: #ffedd5 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandOrange || ''}</td>
-                                    <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #854d0e !important; background-color: #fefce8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandYellow || ''}</td>
-                                    <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #166534 !important; background-color: #f0fdf4 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandGreen || ''}</td>
-                                    <td style="padding: 10px 4px; border: 1px solid #94a3b8; width: 7%; color: #0f172a !important; background-color: #cbd5e1 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">${grandTotal || 0}</td>
-                                    <td style="padding: 10px 8px; border: 1px solid #94a3b8; width: 40%; text-align: center; color: #64748b; background-color: #f8fafc !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">-</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            `;
         }
 
         function triggerPrintPdf() {
