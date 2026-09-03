@@ -594,7 +594,7 @@
                     <span>รายละเอียดส่วนงาน</span>
                 </button>
             </div>
-            <div class="relative py-2 h-[400px] w-full">
+            <div class="relative py-2 h-[440px] w-full min-w-0">
                 <canvas id="top10DeptsChart"></canvas>
             </div>
         </div>
@@ -5816,7 +5816,12 @@
             const sortedDeptsList = Object.keys(deptCounts).sort((a, b) => deptCounts[b] - deptCounts[a]).slice(0, 10);
             const counts = sortedDeptsList.map(d => deptCounts[d]);
 
-            // Custom Chart.js Plugin for 3D Liquid Glass Horizontal Capsule Bars
+            const isMobile = window.innerWidth < 640;
+            const isTablet = window.innerWidth < 1024;
+            const dynamicLeftPad = isMobile ? 135 : (isTablet ? 190 : 225);
+            const maxLabelLen = isMobile ? 15 : (isTablet ? 22 : 28);
+
+            // Custom Chart.js Plugin for 3D Liquid Glass Horizontal Capsule Bars + Department Labels
             const glossy3DHorizontalPillPlugin = {
                 id: 'glossy3DHorizontalPillPlugin',
                 beforeDatasetsDraw(chart) {
@@ -5845,18 +5850,36 @@
                     ctx.restore();
                 },
                 afterDatasetsDraw(chart) {
-                    const { ctx } = chart;
+                    const { ctx, chartArea } = chart;
                     ctx.save();
                     const meta = chart.getDatasetMeta(0);
+
                     meta.data.forEach((bar, index) => {
                         const val = chart.data.datasets[0].data[index];
+
+                        // 1. Draw Department Name on the left of each bar (in the dynamicLeftPad area)
+                        ctx.save();
+                        ctx.font = isMobile ? '600 11px Prompt, sans-serif' : '600 12px Prompt, sans-serif';
+                        ctx.fillStyle = '#1e293b';
+                        ctx.textAlign = 'right';
+                        ctx.textBaseline = 'middle';
+
+                        const labelX = chartArea.left - 12;
+                        const fullDeptName = sortedDeptsList[index] || '';
+                        let displayDeptName = fullDeptName;
+                        if (displayDeptName.length > maxLabelLen) {
+                            displayDeptName = displayDeptName.substring(0, maxLabelLen - 1) + '…';
+                        }
+                        ctx.fillText(displayDeptName, labelX, bar.y);
+                        ctx.restore();
+
                         if (val === null || val === undefined || val === 0) return;
 
                         const xEnd = bar.x;
                         const yCenter = bar.y;
                         const badgeRadius = Math.max(Math.min(bar.height * 0.46, 16.5), 13);
 
-                        // Draw floating 3D white circle badge at end of horizontal bar
+                        // 2. Draw floating 3D white circle badge at end of horizontal bar
                         ctx.save();
                         ctx.beginPath();
                         ctx.arc(xEnd, yCenter, badgeRadius, 0, Math.PI * 2);
@@ -5871,7 +5894,7 @@
                         ctx.strokeStyle = (index % 2 === 0) ? '#A393EB' : '#776AD6';
                         ctx.stroke();
 
-                        // Draw value text inside circle badge clearly
+                        // 3. Draw value text inside circle badge clearly
                         ctx.font = 'bold 12px Prompt, sans-serif';
                         ctx.fillStyle = '#0f172a';
                         ctx.textAlign = 'center';
@@ -5879,14 +5902,14 @@
                         ctx.fillText(val, xEnd, yCenter);
                         ctx.restore();
 
-                        // Specular sheen light line along top edge of horizontal bar
+                        // 4. Specular sheen light line along top edge of horizontal bar
                         ctx.save();
                         ctx.beginPath();
                         const topY = bar.y - bar.height / 2 + 2;
                         ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
                         ctx.lineWidth = 2;
-                        ctx.moveTo(chart.chartArea.left + 6, topY);
-                        ctx.lineTo(Math.max(chart.chartArea.left + 10, bar.x - 6), topY);
+                        ctx.moveTo(chartArea.left + 6, topY);
+                        ctx.lineTo(Math.max(chartArea.left + 10, bar.x - 6), topY);
                         ctx.stroke();
                         ctx.restore();
                     });
@@ -5928,7 +5951,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: {
-                        padding: { left: 4, right: 32, top: 8, bottom: 8 }
+                        padding: { left: dynamicLeftPad, right: 36, top: 10, bottom: 10 }
                     },
                     plugins: {
                         legend: { display: false },
@@ -5948,36 +5971,7 @@
                             grid: { color: 'rgba(226, 232, 240, 0.6)' }
                         },
                         y: {
-                            position: 'left',
-                            afterFit: function(axis) {
-                                const isMobile = window.innerWidth < 640;
-                                const isTablet = window.innerWidth < 1024;
-                                const minW = isMobile ? 120 : (isTablet ? 170 : 195);
-                                if (axis.width < minW) {
-                                    axis.width = minW;
-                                }
-                            },
-                            ticks: {
-                                mirror: false,
-                                font: {
-                                    family: 'Prompt, sans-serif',
-                                    size: window.innerWidth < 640 ? 10 : (window.innerWidth < 1024 ? 11 : 12),
-                                    weight: '600'
-                                },
-                                color: '#1e293b',
-                                padding: 10,
-                                autoSkip: false,
-                                callback: function(val) {
-                                    const label = this.getLabelForValue(val) || '';
-                                    const isMobile = window.innerWidth < 640;
-                                    const isTablet = window.innerWidth < 1024;
-                                    const maxLen = isMobile ? 14 : (isTablet ? 18 : 24);
-                                    if (label.length > maxLen) {
-                                        return label.substring(0, maxLen - 1) + '…';
-                                    }
-                                    return label;
-                                }
-                            },
+                            display: false,
                             grid: { display: false }
                         }
                     }
