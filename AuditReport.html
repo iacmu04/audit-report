@@ -996,7 +996,13 @@
                         <input type="text" id="pdf-header-title-input" value="สรุปข้อตรวจพบประเด็นความเสี่ยงและข้อเสนอแนะจากการตรวจสอบภายใน" class="w-full px-3 py-2 bg-white border border-purple-200 rounded-xl font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-[#A393EB]">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-800 mb-1">การประชุมคตส. ครั้งที่ (กรอกเลขครั้งที่ เช่น 1/2568):</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block font-bold text-slate-800 text-xs">การประชุมคตส. ครั้งที่ (กรอกเลขครั้งที่ เช่น 1/2568):</label>
+                            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-purple-900 bg-white/90 px-2.5 py-0.5 rounded-lg border border-purple-200/90 hover:bg-purple-100/70 transition shadow-2xs">
+                                <input type="checkbox" id="pdf-header-meeting-show-checkbox" checked onchange="togglePdfMeetingLine(this.checked)" class="accent-[#A393EB] rounded cursor-pointer">
+                                <span>แสดงบรรทัดนี้ใน PDF</span>
+                            </label>
+                        </div>
                         <div class="flex items-center gap-2">
                             <span class="font-bold text-slate-700 whitespace-nowrap text-xs md:text-sm">การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่</span>
                             <input type="text" id="pdf-header-meeting-input" value="1/2568" placeholder="เช่น 1/2568" class="w-full px-3 py-2 bg-white border border-purple-200 rounded-xl font-bold text-purple-950 outline-none focus:ring-2 focus:ring-[#A393EB]">
@@ -2904,6 +2910,22 @@
             renderPdfPreEditor();
         }
 
+        let showPdfMeetingLine = true;
+        function togglePdfMeetingLine(val) {
+            showPdfMeetingLine = !!val;
+            const inp = document.getElementById("pdf-header-meeting-input");
+            if (inp) {
+                inp.disabled = !showPdfMeetingLine;
+                inp.style.opacity = showPdfMeetingLine ? "1" : "0.5";
+            }
+        }
+
+        let showMatrixPart1 = true;
+        function toggleMatrixPart1(val) {
+            showMatrixPart1 = !!val;
+            renderPdfPreEditor();
+        }
+
         let customRiskDetailTableOverrides = {};
         let customRiskDetailDeptOrder = [];
         let customRiskDetailYearOrder = [];
@@ -3779,23 +3801,7 @@
                     `;
                 });
 
-                container.innerHTML = `
-                    <div class="space-y-4 text-xs font-sans">
-                        <div class="p-4 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-200 rounded-xl space-y-2 text-amber-950">
-                            <div class="flex items-center justify-between">
-                                <h4 class="font-bold text-sm flex items-center gap-2 text-amber-900">
-                                    <i class="fa-solid fa-pen-to-square text-amber-600"></i> กำหนดข้อมูลความเสี่ยงหน้า 1: การติดตามงานเดิม
-                                </h4>
-                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200/80 text-amber-900 border border-amber-300">
-                                    ${matrixDepts.length} ส่วนงานตามตัวกรอง
-                                </span>
-                            </div>
-                            <p class="text-[11px] text-amber-800 leading-relaxed">
-                                💡 <strong>คำแนะนำ:</strong> สามารถ<strong>แก้ไขเลขปี</strong>ในช่องสีส้มด้านล่างได้ตามต้องการ (เช่น 2568 หรือ 2569) และกรอกจำนวนความเสี่ยงช่อง 🔴 🟠 🟡 🟢 ระบบจะ<strong>คำนวณผลรวม (รวมแต่ละด้าน และ รวมทั้งหมด) ให้อัตโนมัติ</strong><br>
-                                ส่วนตารางที่ 2 ดึงข้อมูลผลติดตามงานเดิมจากระบบให้อัตโนมัติแล้ว เมื่อสั่งพิมพ์ PDF ระบบจะนำข้อมูลทั้ง 2 ส่วนไปรวมในหน้า 1 ให้อย่างสมบูรณ์
-                            </p>
-                        </div>
-
+                const part1EditorHtml = showMatrixPart1 ? `
                         <!-- Editable Baseline Year Section -->
                         <div class="border border-orange-200 rounded-xl overflow-hidden shadow-xs bg-white">
                             <div class="p-2.5 bg-orange-100/90 border-b border-orange-200 font-bold text-orange-950 flex justify-between items-center text-xs">
@@ -3841,12 +3847,53 @@
                                     </tfoot>
                                 </table>
                             </div>
+                        </div>` : `
+                        <!-- Part 1 Disabled Notice Card -->
+                        <div class="p-3 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-between text-slate-600 text-xs">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-eye-slash text-slate-400"></i>
+                                <span>ซ่อนส่วนที่ 1 (การตรวจสอบครั้งก่อน) — ระบบจะรวม <strong>การติดตามงานเดิมปีปัจจุบัน (${latestYr})</strong> และ <strong>ข้อตรวจพบปีปัจจุบัน</strong> ไว้ใน <strong>1 หน้ากระดาษ</strong></span>
+                            </span>
+                            <button type="button" onclick="toggleMatrixPart1(true)" class="text-xs font-bold text-[#A393EB] hover:underline cursor-pointer">
+                                + เปิดแสดงส่วนที่ 1
+                            </button>
                         </div>
+                    `;
+
+                container.innerHTML = `
+                    <div class="space-y-4 text-xs font-sans">
+                        <div class="p-4 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-200 rounded-xl space-y-2.5 text-amber-950">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <h4 class="font-bold text-sm flex items-center gap-2 text-amber-900">
+                                    <i class="fa-solid fa-chart-column text-amber-600"></i> รายงานสรุปเชิงบริหาร (Executive Matrix Summary)
+                                </h4>
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200/80 text-amber-900 border border-amber-300">
+                                    ${matrixDepts.length} ส่วนงานตามตัวกรอง
+                                </span>
+                            </div>
+                            
+                            <!-- Toggle Checkbox for Part 1 -->
+                            <div class="flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-amber-200/80">
+                                <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-orange-300 shadow-2xs hover:bg-orange-50/60 transition">
+                                    <input type="checkbox" id="matrix-show-part1-checkbox" ${showMatrixPart1 ? 'checked' : ''} onchange="toggleMatrixPart1(this.checked)" class="accent-orange-600 rounded cursor-pointer w-4 h-4">
+                                    <span class="font-bold text-orange-950 text-xs">แสดง ส่วนที่ 1: การติดตามงานเดิม (จากการตรวจสอบครั้งก่อน ${customBaselineYear})</span>
+                                </label>
+                                <span class="text-[11px] font-bold ${showMatrixPart1 ? 'text-amber-800' : 'text-emerald-800 bg-emerald-100/90 px-2.5 py-1 rounded-lg border border-emerald-300'}">
+                                    ${showMatrixPart1 ? '📑 รูปแบบ 2 หน้า (หน้า 1: ติดตามงานเดิม 2 ตาราง, หน้า 2: ข้อตรวจพบ)' : '📄 รูปแบบ 1 หน้า (รวมติดตามงานเดิมและข้อตรวจพบปีปัจจุบันใน 1 หน้า)'}
+                                </span>
+                            </div>
+
+                            <p class="text-[11px] text-amber-800 leading-relaxed">
+                                💡 <strong>คำแนะนำ:</strong> ${showMatrixPart1 ? 'สามารถ<strong>แก้ไขเลขปี</strong>ในช่องสีส้มด้านล่างได้ตามต้องการ (เช่น 2568 หรือ 2569) และกรอกจำนวนความเสี่ยงช่อง 🔴 🟠 🟡 🟢 ระบบจะ<strong>คำนวณผลรวมให้อัตโนมัติ</strong>' : 'เมื่อปิดการแสดงส่วนที่ 1 ระบบจะ<strong>ตัดตารางการตรวจสอบครั้งก่อนออก และนำตารางการติดตามงานเดิมปีปัจจุบันมารวมกับตารางข้อตรวจพบปีปัจจุบันไว้ใน 1 หน้ากระดาษ</strong>อย่างสมบูรณ์'}
+                            </p>
+                        </div>
+
+                        ${part1EditorHtml}
 
                         <!-- Read-only Follow-up Preview Section -->
                         <div class="border border-emerald-200 rounded-xl overflow-hidden shadow-xs bg-white">
                             <div class="p-2.5 bg-emerald-100/90 border-b border-emerald-200 font-bold text-emerald-950 flex justify-between items-center text-xs">
-                                <span>🟢 ส่วนที่ 2: การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน ${latestYr}) - [ข้อมูลจากระบบอัตโนมัติ]</span>
+                                <span>🟢 ${showMatrixPart1 ? 'ส่วนที่ 2' : 'ส่วนที่ 1'}: การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน ${latestYr}) - [ข้อมูลจากระบบอัตโนมัติ]</span>
                                 <span class="text-[11px] font-normal text-emerald-800">ดึงจากข้อตรวจพบประเภท 'ติดตามงานเดิม'</span>
                             </div>
                             <div class="overflow-x-auto max-h-[220px] overflow-y-auto">
@@ -3888,7 +3935,9 @@
                     </div>
                 `;
 
-                recalc2568PreEditorTable();
+                if (showMatrixPart1) {
+                    recalc2568PreEditorTable();
+                }
                 return;
             }
 
@@ -4044,7 +4093,14 @@
         // PDF REPORT GENERATOR: 3 DISTINCT SPECIALIZED TEMPLATES
         // =========================================================================
         function renderExecutiveMatrixPdf(printContainer) {
+            const line1TitleInput = document.getElementById("pdf-header-title-input");
+            const line1Title = (line1TitleInput && line1TitleInput.value.trim()) ? line1TitleInput.value.trim() : "สรุปภาพรวมประเด็นความเสี่ยงและการประเมินระบบการควบคุมภายใน";
+            const meetingInput = document.getElementById("pdf-header-meeting-input");
             const roundNo = selectedRound !== 'ALL' ? selectedRound : (filteredData[0]?.meeting_round || "4/2569");
+            const roundVal = (meetingInput && meetingInput.value.trim()) ? meetingInput.value.trim() : roundNo;
+            const line2Meeting = roundVal.includes("การประชุม") ? roundVal : `การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ ${roundVal}`;
+            const isShowMeeting = document.getElementById("pdf-header-meeting-show-checkbox") ? document.getElementById("pdf-header-meeting-show-checkbox").checked : showPdfMeetingLine;
+
             const matrixDepts = [...new Set(filteredData.map(d => d.department))].sort();
 
             // Calculate active years for labels
@@ -4090,12 +4146,8 @@
                 </thead>
             `;
 
-            // ==========================================
-            // PAGE 1: การติดตามงานเดิม (Baseline Year & Current Year)
-            // ==========================================
-            initCustom2568MatrixData(matrixDepts);
-
             // 1. Part 1 Rows: Baseline Year (from custom2568MatrixData)
+            initCustom2568MatrixData(matrixDepts);
             let p1_2568_rowsHtml = "";
             let p1_2568_grand = {
                 "ด้านผลการดำเนินงาน": { red: 0, orange: 0, yellow: 0, green: 0, total: 0 },
@@ -4194,56 +4246,8 @@
                 `;
             });
 
-            const page1CombinedTableHtml = `
-                <div style="font-family: 'Prompt', sans-serif;">
-                    <div style="background-color: #0f172a; color: white; padding: 8px 12px; margin-bottom: 10px; font-weight: bold; font-size: 14pt; border-radius: 6px;">
-                        🟣 สรุปประเด็นผลการตรวจสอบ ประชุมคณะกรรมการตรวจสอบ ครั้งที่ ${roundNo} จำนวน ${matrixDepts.length} ส่วนงาน
-                    </div>
-
-                    <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 8px; color: #0f172a;">การติดตามงานเดิม (Follow-up Audit)</h3>
-
-                    <table class="matrix-table" style="width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; font-size: 8pt !important;">
-                        ${matrixHeaderHtml}
-                        <tbody>
-                            <!-- Section 1 Banner: Baseline Year -->
-                            <tr style="background-color: #fed7aa; color: #7c2d12; font-weight: bold; text-align: left;">
-                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569;">การติดตามงานเดิม (จากการตรวจสอบครั้งก่อน ${baselineYear})</td>
-                            </tr>
-                            ${p1_2568_rowsHtml}
-                            <!-- Section 1 Footer: Baseline Year -->
-                            <tr style="font-weight: bold; background-color: #fed7aa; color: #7c2d12;">
-                                <td colspan="2" class="matrix-footer-label">รวม ${baselineYear}</td>
-                                <td>${p1_2568_grand["ด้านผลการดำเนินงาน"].red}</td><td>${p1_2568_grand["ด้านผลการดำเนินงาน"].orange}</td><td>${p1_2568_grand["ด้านผลการดำเนินงาน"].yellow}</td><td>${p1_2568_grand["ด้านผลการดำเนินงาน"].green}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านผลการดำเนินงาน"].total}</td>
-                                <td>${p1_2568_grand["ด้านการเงิน"].red}</td><td>${p1_2568_grand["ด้านการเงิน"].orange}</td><td>${p1_2568_grand["ด้านการเงิน"].yellow}</td><td>${p1_2568_grand["ด้านการเงิน"].green}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการเงิน"].total}</td>
-                                <td>${p1_2568_grand["ด้านการดำเนินงาน"].red}</td><td>${p1_2568_grand["ด้านการดำเนินงาน"].orange}</td><td>${p1_2568_grand["ด้านการดำเนินงาน"].yellow}</td><td>${p1_2568_grand["ด้านการดำเนินงาน"].green}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการดำเนินงาน"].total}</td>
-                                <td>${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red}</td><td>${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange}</td><td>${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow}</td><td>${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                                <td>${p1_2568_grand.overall.red}</td><td>${p1_2568_grand.overall.orange}</td><td>${p1_2568_grand.overall.yellow}</td><td>${p1_2568_grand.overall.green}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p1_2568_grand.overall.total}</td>
-                            </tr>
-
-                            <!-- Section 2 Banner: Current Year -->
-                            <tr style="background-color: #bbf7d0; color: #14532d; font-weight: bold; text-align: left;">
-                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569;">การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน ${currentFollowUpYr})</td>
-                            </tr>
-                            ${p1_2569_rowsHtml}
-                            <!-- Section 2 Footer: Current Year -->
-                            <tr style="font-weight: bold; background-color: #bbf7d0; color: #14532d;">
-                                <td colspan="2" class="matrix-footer-label">รวม ${currentFollowUpYr}</td>
-                                <td>${p1_2569_grand["ด้านผลการดำเนินงาน"].red}</td><td>${p1_2569_grand["ด้านผลการดำเนินงาน"].orange}</td><td>${p1_2569_grand["ด้านผลการดำเนินงาน"].yellow}</td><td>${p1_2569_grand["ด้านผลการดำเนินงาน"].green}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านผลการดำเนินงาน"].total}</td>
-                                <td>${p1_2569_grand["ด้านการเงิน"].red}</td><td>${p1_2569_grand["ด้านการเงิน"].orange}</td><td>${p1_2569_grand["ด้านการเงิน"].yellow}</td><td>${p1_2569_grand["ด้านการเงิน"].green}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการเงิน"].total}</td>
-                                <td>${p1_2569_grand["ด้านการดำเนินงาน"].red}</td><td>${p1_2569_grand["ด้านการดำเนินงาน"].orange}</td><td>${p1_2569_grand["ด้านการดำเนินงาน"].yellow}</td><td>${p1_2569_grand["ด้านการดำเนินงาน"].green}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการดำเนินงาน"].total}</td>
-                                <td>${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red}</td><td>${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange}</td><td>${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow}</td><td>${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                                <td>${p1_2569_grand.overall.red}</td><td>${p1_2569_grand.overall.orange}</td><td>${p1_2569_grand.overall.yellow}</td><td>${p1_2569_grand.overall.green}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p1_2569_grand.overall.total}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            `;
-
-            // ==========================================
-            // PAGE 2: ข้อตรวจพบประจำปีงบประมาณ
-            // ==========================================
+            // 3. Current Year Findings (ข้อตรวจพบปีปัจจุบัน)
             const typeItems = filteredData.filter(d => d.type === 'ข้อตรวจพบปีปัจจุบัน');
-
             let p2_rowsHtml = "";
             let p2_grandCounts = {
                 "ด้านผลการดำเนินงาน": { red:0, orange:0, yellow:0, green:0, total:0 },
@@ -4310,25 +4314,133 @@
                 yearLabel = "2569 - 2570";
             }
 
+            const headerBannerText = `🟣 ${line1Title} ${isShowMeeting ? `(${line2Meeting})` : ''} จำนวน ${matrixDepts.length} ส่วนงาน`;
+
+            if (!showMatrixPart1) {
+                // ==========================================
+                // 1-PAGE MODE: รวมติดตามงานเดิมและข้อตรวจพบปีปัจจุบันใน 1 หน้า
+                // ==========================================
+                printContainer.innerHTML = `
+                    <div style="font-family: 'Prompt', sans-serif; padding: 4px 2px; box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                        <!-- Header Banner -->
+                        <div style="background-color: #0f172a; color: white; padding: 6px 12px; margin-bottom: 8px; font-weight: bold; font-size: 13pt; border-radius: 6px; text-align: left; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                            ${headerBannerText}
+                        </div>
+
+                        <!-- Section 1: การติดตามงานเดิม ปีปัจจุบัน -->
+                        <div style="margin-bottom: 10px;">
+                            <h3 style="font-size: 11pt; font-weight: bold; margin: 0 0 4px 0; color: #0f172a;">การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน ${currentFollowUpYr})</h3>
+                            <table class="matrix-table" style="width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; font-size: 7.5pt !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                ${matrixHeaderHtml}
+                                <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    <tr style="background-color: #bbf7d0; color: #14532d; font-weight: bold; text-align: left; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                        <td colspan="27" style="padding: 3px 6px; font-size: 7.5pt; border: 1px solid #475569; background-color: #bbf7d0 !important; color: #14532d !important;">การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน ${currentFollowUpYr})</td>
+                                    </tr>
+                                    ${p1_2569_rowsHtml}
+                                    <tr style="font-weight: bold; background-color: #bbf7d0; color: #14532d; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                        <td colspan="2" class="matrix-footer-label" style="background-color: #bbf7d0 !important; color: #14532d !important;">รวม ${currentFollowUpYr}</td>
+                                        <td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านผลการดำเนินงาน"].total}</td>
+                                        <td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการเงิน"].total}</td>
+                                        <td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการดำเนินงาน"].total}</td>
+                                        <td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                        <td style="background-color: inherit;">${p1_2569_grand.overall.red || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p1_2569_grand.overall.total}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Section 2: ข้อตรวจพบ ประจำปีงบประมาณ -->
+                        <div>
+                            <h3 style="font-size: 11pt; font-weight: bold; margin: 0 0 4px 0; color: #0f172a;">ข้อตรวจพบ ประจำปีงบประมาณ ${yearLabel}</h3>
+                            <table class="matrix-table" style="width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; font-size: 7.5pt !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                ${matrixHeaderHtml}
+                                <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                    ${p2_rowsHtml}
+                                    <tr style="font-weight: bold; background-color: #f1f5f9; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                        <td colspan="2" class="matrix-footer-label">รวมทั้งหมด</td>
+                                        <td>${p2_grandCounts["ด้านผลการดำเนินงาน"].red || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].orange || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].yellow || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านผลการดำเนินงาน"].total}</td>
+                                        <td>${p2_grandCounts["ด้านการเงิน"].red || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].orange || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].yellow || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการเงิน"].total}</td>
+                                        <td>${p2_grandCounts["ด้านการดำเนินงาน"].red || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].orange || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].yellow || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการดำเนินงาน"].total}</td>
+                                        <td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                        <td>${p2_grandCounts.overall.red || ''}</td><td>${p2_grandCounts.overall.orange || ''}</td><td>${p2_grandCounts.overall.yellow || ''}</td><td>${p2_grandCounts.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p2_grandCounts.overall.total}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // ==========================================
+            // 2-PAGE MODE (Default)
+            // ==========================================
+            // PAGE 1: การติดตามงานเดิม (Baseline Year & Current Year)
+            const page1CombinedTableHtml = `
+                <div style="font-family: 'Prompt', sans-serif;">
+                    <div style="background-color: #0f172a; color: white; padding: 8px 12px; margin-bottom: 10px; font-weight: bold; font-size: 14pt; border-radius: 6px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                        ${headerBannerText}
+                    </div>
+
+                    <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 8px; color: #0f172a;">การติดตามงานเดิม (Follow-up Audit)</h3>
+
+                    <table class="matrix-table" style="width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; font-size: 8pt !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                        ${matrixHeaderHtml}
+                        <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                            <!-- Section 1 Banner: Baseline Year -->
+                            <tr style="background-color: #fed7aa; color: #7c2d12; font-weight: bold; text-align: left; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569; background-color: #fed7aa !important; color: #7c2d12 !important;">การติดตามงานเดิม (จากการตรวจสอบครั้งก่อน ${baselineYear})</td>
+                            </tr>
+                            ${p1_2568_rowsHtml}
+                            <!-- Section 1 Footer: Baseline Year -->
+                            <tr style="font-weight: bold; background-color: #fed7aa; color: #7c2d12; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                <td colspan="2" class="matrix-footer-label" style="background-color: #fed7aa !important; color: #7c2d12 !important;">รวม ${baselineYear}</td>
+                                <td style="background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านผลการดำเนินงาน"].total}</td>
+                                <td style="background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].red || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].orange || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการเงิน"].total}</td>
+                                <td style="background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการดำเนินงาน"].total}</td>
+                                <td style="background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                <td style="background-color: inherit;">${p1_2568_grand.overall.red || ''}</td><td style="background-color: inherit;">${p1_2568_grand.overall.orange || ''}</td><td style="background-color: inherit;">${p1_2568_grand.overall.yellow || ''}</td><td style="background-color: inherit;">${p1_2568_grand.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p1_2568_grand.overall.total}</td>
+                            </tr>
+
+                            <!-- Section 2 Banner: Current Year -->
+                            <tr style="background-color: #bbf7d0; color: #14532d; font-weight: bold; text-align: left; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569; background-color: #bbf7d0 !important; color: #14532d !important;">การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน ${currentFollowUpYr})</td>
+                            </tr>
+                            ${p1_2569_rowsHtml}
+                            <!-- Section 2 Footer: Current Year -->
+                            <tr style="font-weight: bold; background-color: #bbf7d0; color: #14532d; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                                <td colspan="2" class="matrix-footer-label" style="background-color: #bbf7d0 !important; color: #14532d !important;">รวม ${currentFollowUpYr}</td>
+                                <td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านผลการดำเนินงาน"].total}</td>
+                                <td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการเงิน"].total}</td>
+                                <td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการดำเนินงาน"].total}</td>
+                                <td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                <td style="background-color: inherit;">${p1_2569_grand.overall.red || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p1_2569_grand.overall.total}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            // PAGE 2: ข้อตรวจพบประจำปีงบประมาณ
             const page2CombinedTableHtml = `
                 <div style="font-family: 'Prompt', sans-serif;">
-                    <div style="background-color: #0f172a; color: white; padding: 8px 12px; margin-bottom: 10px; font-weight: bold; font-size: 14pt; border-radius: 6px;">
-                        🟣 สรุปประเด็นผลการตรวจสอบ ประชุมคณะกรรมการตรวจสอบ ครั้งที่ ${roundNo} จำนวน ${matrixDepts.length} ส่วนงาน
+                    <div style="background-color: #0f172a; color: white; padding: 8px 12px; margin-bottom: 10px; font-weight: bold; font-size: 14pt; border-radius: 6px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+                        ${headerBannerText}
                     </div>
 
                     <h3 style="font-size: 12pt; font-weight: bold; margin-bottom: 8px; color: #0f172a;">ข้อตรวจพบ ประจำปีงบประมาณ ${yearLabel}</h3>
 
-                    <table class="matrix-table" style="width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; font-size: 8pt !important;">
+                    <table class="matrix-table" style="width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; font-size: 8pt !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                         ${matrixHeaderHtml}
-                        <tbody>
+                        <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                             ${p2_rowsHtml}
-                            <tr style="font-weight: bold; background-color: #f1f5f9;">
+                            <tr style="font-weight: bold; background-color: #f1f5f9; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                                 <td colspan="2" class="matrix-footer-label">รวมทั้งหมด</td>
-                                <td>${p2_grandCounts["ด้านผลการดำเนินงาน"].red}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].orange}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].yellow}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].green}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านผลการดำเนินงาน"].total}</td>
-                                <td>${p2_grandCounts["ด้านการเงิน"].red}</td><td>${p2_grandCounts["ด้านการเงิน"].orange}</td><td>${p2_grandCounts["ด้านการเงิน"].yellow}</td><td>${p2_grandCounts["ด้านการเงิน"].green}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการเงิน"].total}</td>
-                                <td>${p2_grandCounts["ด้านการดำเนินงาน"].red}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].orange}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].yellow}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].green}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการดำเนินงาน"].total}</td>
-                                <td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].red}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].orange}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].yellow}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].green}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                                <td>${p2_grandCounts.overall.red}</td><td>${p2_grandCounts.overall.orange}</td><td>${p2_grandCounts.overall.yellow}</td><td>${p2_grandCounts.overall.green}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p2_grandCounts.overall.total}</td>
+                                <td>${p2_grandCounts["ด้านผลการดำเนินงาน"].red || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].orange || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].yellow || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านผลการดำเนินงาน"].total}</td>
+                                <td>${p2_grandCounts["ด้านการเงิน"].red || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].orange || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].yellow || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการเงิน"].total}</td>
+                                <td>${p2_grandCounts["ด้านการดำเนินงาน"].red || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].orange || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].yellow || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการดำเนินงาน"].total}</td>
+                                <td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                <td>${p2_grandCounts.overall.red || ''}</td><td>${p2_grandCounts.overall.orange || ''}</td><td>${p2_grandCounts.overall.yellow || ''}</td><td>${p2_grandCounts.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p2_grandCounts.overall.total}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -4371,6 +4483,7 @@
             const line1Title = (line1TitleInput && line1TitleInput.value.trim()) ? line1TitleInput.value.trim() : defaultTitle;
             const roundVal = (line2MeetingInput && line2MeetingInput.value.trim()) ? line2MeetingInput.value.trim() : "4/2569";
             const line2Meeting = roundVal.includes("การประชุม") ? roundVal : `การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ ${roundVal}`;
+            const isShowMeeting = document.getElementById("pdf-header-meeting-show-checkbox") ? document.getElementById("pdf-header-meeting-show-checkbox").checked : showPdfMeetingLine;
 
             // ----------------------------------------------------
             // PART 1: COVER SLIDE & ACTIVITY MATRIX SUMMARY TABLE
@@ -4433,9 +4546,10 @@
                         <h1 style="font-size: 22pt; font-weight: 800; color: #0f172a; margin: 0 0 8px 0; line-height: 1.3;">
                             ${line1Title}
                         </h1>
+                        ${isShowMeeting ? `
                         <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
                             ${line2Meeting}
-                        </h2>
+                        </h2>` : ''}
                     </div>
 
                     <!-- Activity Matrix Table with 5-color theme support -->
@@ -4629,7 +4743,9 @@
             const titleInput = document.getElementById("pdf-header-title-input");
             const meetingInput = document.getElementById("pdf-header-meeting-input");
             const line1Title = titleInput ? titleInput.value : "สรุปประเด็นความเสี่ยงและรายละเอียดผลการตรวจสอบ";
-            const line2Meeting = meetingInput ? `การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ ${meetingInput.value}` : "การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ 1/2568";
+            const roundVal = (meetingInput && meetingInput.value.trim()) ? meetingInput.value.trim() : "1/2568";
+            const line2Meeting = roundVal.includes("การประชุม") ? roundVal : `การประชุมคณะกรรมการตรวจสอบ มหาวิทยาลัยเชียงใหม่ ครั้งที่ ${roundVal}`;
+            const isShowMeeting = document.getElementById("pdf-header-meeting-show-checkbox") ? document.getElementById("pdf-header-meeting-show-checkbox").checked : showPdfMeetingLine;
 
             const targetDepts = getRiskDetailTargetDepts();
             initCustomRiskDetailData(targetDepts, riskDetailSource);
@@ -4700,9 +4816,13 @@
                                 <h1 style="font-size: 20pt; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; line-height: 1.3;">
                                     ${line1Title}
                                 </h1>
+                                ${isShowMeeting ? `
                                 <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
                                     ${line2Meeting} (ประจำปีงบประมาณ ${yr})
-                                </h2>
+                                </h2>` : `
+                                <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
+                                    ประจำปีงบประมาณ ${yr}
+                                </h2>`}
                             </div>
 
                             <!-- Risk Summary Table for Year -->
@@ -4799,9 +4919,10 @@
                                 <h1 style="font-size: 20pt; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; line-height: 1.3;">
                                     ${line1Title}
                                 </h1>
+                                ${isShowMeeting ? `
                                 <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0 0 8px 0; line-height: 1.3;">
                                     ${line2Meeting}
-                                </h2>
+                                </h2>` : ''}
                                 <div style="display: inline-block; font-size: 14pt; font-weight: 800; color: #1e1b4b; background-color: #f1f5f9; padding: 4px 18px; border-radius: 8px; border: 1.5px solid #cbd5e1;">
                                     ส่วนงาน: ${dept}
                                 </div>
@@ -4895,9 +5016,10 @@
                             <h1 style="font-size: 20pt; font-weight: 800; color: #0f172a; margin: 0 0 6px 0; line-height: 1.3;">
                                 ${line1Title}
                             </h1>
+                            ${isShowMeeting ? `
                             <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
                                 ${line2Meeting}
-                            </h2>
+                            </h2>` : ''}
                         </div>
 
                         <!-- Risk Summary Table (5 equal 7% metric columns + 25% Dept + 40% Details = 100%) -->
