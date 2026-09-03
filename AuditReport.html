@@ -5835,7 +5835,11 @@
                         // Draw frosted background capsule track
                         ctx.beginPath();
                         ctx.fillStyle = 'rgba(241, 245, 249, 0.65)';
-                        ctx.roundRect(left, yPos, width, height, [4, radius, radius, 4]);
+                        if (typeof ctx.roundRect === 'function') {
+                            ctx.roundRect(left, yPos, width, height, [4, radius, radius, 4]);
+                        } else {
+                            ctx.rect(left, yPos, width, height);
+                        }
                         ctx.fill();
                     });
                     ctx.restore();
@@ -5924,7 +5928,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     layout: {
-                        padding: { left: 4, right: 30, top: 8, bottom: 8 }
+                        padding: { left: 4, right: 32, top: 8, bottom: 8 }
                     },
                     plugins: {
                         legend: { display: false },
@@ -5940,26 +5944,36 @@
                         x: { 
                             beginAtZero: true, 
                             grace: '15%',
-                            ticks: { precision: 0, font: { family: 'Prompt', size: 11 } },
+                            ticks: { precision: 0, font: { family: 'Prompt, sans-serif', size: 11 } },
                             grid: { color: 'rgba(226, 232, 240, 0.6)' }
                         },
                         y: {
+                            position: 'left',
+                            afterFit: function(axis) {
+                                const isMobile = window.innerWidth < 640;
+                                const isTablet = window.innerWidth < 1024;
+                                const minW = isMobile ? 120 : (isTablet ? 170 : 195);
+                                if (axis.width < minW) {
+                                    axis.width = minW;
+                                }
+                            },
                             ticks: {
+                                mirror: false,
                                 font: {
-                                    family: 'Prompt',
+                                    family: 'Prompt, sans-serif',
                                     size: window.innerWidth < 640 ? 10 : (window.innerWidth < 1024 ? 11 : 12),
                                     weight: '600'
                                 },
                                 color: '#1e293b',
-                                padding: 8,
+                                padding: 10,
                                 autoSkip: false,
                                 callback: function(val) {
                                     const label = this.getLabelForValue(val) || '';
-                                    if (window.innerWidth < 640 && label.length > 15) {
-                                        return label.substring(0, 14) + '…';
-                                    }
-                                    if (window.innerWidth < 1024 && label.length > 22) {
-                                        return label.substring(0, 21) + '…';
+                                    const isMobile = window.innerWidth < 640;
+                                    const isTablet = window.innerWidth < 1024;
+                                    const maxLen = isMobile ? 14 : (isTablet ? 18 : 24);
+                                    if (label.length > maxLen) {
+                                        return label.substring(0, maxLen - 1) + '…';
                                     }
                                     return label;
                                 }
@@ -5980,6 +5994,14 @@
                 }
             }, 250);
         });
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                if (typeof renderTop10DeptsChart === 'function') {
+                    renderTop10DeptsChart();
+                }
+            });
+        }
 
         initDashboard();
     </script>
