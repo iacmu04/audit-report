@@ -132,140 +132,208 @@
                 background: #ffffff !important;
                 color: #000000 !important;
                 margin: 0 !important;
-                padding: 5mm !important;
+        /* =========================================================================
+           GLOBAL PDF & MATRIX TABLE STYLES (APPLIES TO SCREEN PREVIEW & PRINT)
+           ========================================================================= */
+        table.pdf-table,
+        table.matrix-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            border-spacing: 0 !important;
+            font-family: 'Prompt', sans-serif !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* 1. PDF Standard Table Styling (Mode 4 & General) */
+        table.pdf-table th, 
+        table.pdf-table td {
+            display: table-cell !important;
+            border: 1px solid #475569 !important;
+            padding: 6px 8px !important;
+            font-size: 11pt !important;
+            line-height: 1.35 !important;
+            vertical-align: top !important;
+            box-sizing: border-box !important;
+        }
+        table.pdf-table th {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+            font-size: 11.5pt !important;
+            font-weight: bold !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+        table.pdf-table th.th-risk-red {
+            background-color: #ef4444 !important;
+            color: #ffffff !important;
+        }
+        table.pdf-table th.th-risk-orange {
+            background-color: #f97316 !important;
+            color: #ffffff !important;
+        }
+        table.pdf-table th.th-risk-yellow {
+            background-color: #facc15 !important;
+            color: #0f172a !important;
+        }
+        table.pdf-table th.th-risk-green {
+            background-color: #22c55e !important;
+            color: #ffffff !important;
+        }
+
+        /* 2. Executive Matrix Table Styling (Mode 3) */
+        table.matrix-table {
+            table-layout: fixed !important;
+            font-size: 7.5pt !important;
+        }
+        table.matrix-table th, 
+        table.matrix-table td {
+            display: table-cell !important;
+            border: 1px solid #475569 !important;
+            text-align: center !important;
+            padding: 2px 1px !important;
+            font-size: 7.5pt !important;
+            line-height: 1.15 !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            word-break: break-word !important;
+            white-space: normal !important;
+        }
+        table.matrix-table th {
+            font-size: 7.5pt !important;
+            font-weight: bold !important;
+        }
+        table.matrix-table th.bg-matrix-red,
+        table.matrix-table th.bg-matrix-orange,
+        table.matrix-table th.bg-matrix-yellow,
+        table.matrix-table th.bg-matrix-green {
+            height: 14px !important;
+            padding: 0 !important;
+        }
+        .bg-matrix-header { background-color: #0f172a !important; color: #ffffff !important; }
+        .bg-matrix-sub1 { background-color: #e2e8f0 !important; color: #0f172a !important; }
+        .bg-matrix-sub2 { background-color: #f1f5f9 !important; color: #0f172a !important; }
+        .bg-matrix-red, table.matrix-table th.bg-matrix-red { background-color: #dc2626 !important; color: #ffffff !important; }
+        .bg-matrix-orange, table.matrix-table th.bg-matrix-orange { background-color: #f97316 !important; color: #ffffff !important; }
+        .bg-matrix-yellow, table.matrix-table th.bg-matrix-yellow { background-color: #facc15 !important; color: #0f172a !important; }
+        .bg-matrix-green, table.matrix-table th.bg-matrix-green { background-color: #22c55e !important; color: #ffffff !important; }
+        
+        .bg-matrix-total,
+        .bg-matrix-total-header,
+        table.matrix-table td.bg-matrix-total,
+        table.matrix-table th.bg-matrix-total-header {
+            background-color: #cbd5e1 !important;
+            color: #0f172a !important;
+            font-weight: bold !important;
+        }
+        table.matrix-table td.dept-name-cell {
+            text-align: left !important;
+            padding-left: 4px !important;
+            padding-right: 2px !important;
+            font-weight: 500 !important;
+        }
+        table.matrix-table td.matrix-footer-label {
+            text-align: right !important;
+            padding-right: 4px !important;
+            font-weight: bold !important;
+        }
+
+        /* 3. Live PDF Print Preview Page Sheet Styling (On-Screen Mockup) */
+        .pdf-preview-sheet {
+            background: #ffffff !important;
+            border: 1.5px solid #94a3b8 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.18), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            padding: 24px 28px !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .pdf-preview-page-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 6px 12px !important;
+            margin-bottom: 16px !important;
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            font-size: 11px !important;
+            color: #334155 !important;
+        }
+        .pdf-preview-break-indicator {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 28px 0 !important;
+            position: relative !important;
+        }
+        .pdf-preview-break-indicator::before {
+            content: '' !important;
+            position: absolute !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: 50% !important;
+            border-top: 2px dashed #94a3b8 !important;
+            z-index: 0 !important;
+        }
+        .pdf-preview-break-indicator span {
+            position: relative !important;
+            z-index: 1 !important;
+            background: #f1f5f9 !important;
+            color: #475569 !important;
+            font-size: 11px !important;
+            font-weight: bold !important;
+            padding: 4px 16px !important;
+            border-radius: 20px !important;
+            border: 1.5px solid #cbd5e1 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important;
+        }
+
+        /* 4. Print-Only Media Queries */
+        @media print {
+            body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            body > *:not(#printable-pdf-container) {
+                display: none !important;
+            }
+
+            #printable-pdf-container {
+                display: block !important;
+                visibility: visible !important;
+                position: static !important;
+                width: 100% !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 4mm !important;
                 font-family: 'Prompt', sans-serif !important;
             }
 
-            #printable-pdf-container table.pdf-table {
-                display: table !important;
-                width: 100% !important;
-                border-collapse: collapse !important;
-                border-spacing: 0 !important;
-                margin-top: 4px !important;
-            }
-            #printable-pdf-container table.pdf-table thead {
-                display: table-header-group !important;
-            }
-            #printable-pdf-container table.pdf-table tbody {
-                display: table-row-group !important;
-            }
-            #printable-pdf-container table.pdf-table tr {
-                display: table-row !important;
-                page-break-inside: auto !important;
-                break-inside: auto !important;
-            }
-            #printable-pdf-container table.pdf-table th, 
-            #printable-pdf-container table.pdf-table td {
-                display: table-cell !important;
-                border: 1px solid #475569 !important;
-                padding: 6px 8px !important;
-                font-size: 13pt !important;
-                line-height: 1.35 !important;
-                vertical-align: top !important;
-                box-sizing: border-box !important;
-            }
-            #printable-pdf-container table.pdf-table th {
-                background-color: #f1f5f9;
-                color: #0f172a;
-                font-size: 13pt !important;
-                font-weight: bold !important;
-                text-align: center !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            #printable-pdf-container table.pdf-table th.th-risk-red {
-                background-color: #ef4444 !important;
-                color: #ffffff !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            #printable-pdf-container table.pdf-table th.th-risk-orange {
-                background-color: #f97316 !important;
-                color: #ffffff !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            #printable-pdf-container table.pdf-table th.th-risk-yellow {
-                background-color: #facc15 !important;
-                color: #0f172a !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            #printable-pdf-container table.pdf-table th.th-risk-green {
-                background-color: #22c55e !important;
-                color: #ffffff !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            #printable-pdf-container table.pdf-table td * {
-                font-size: 13pt !important;
-                line-height: 1.35 !important;
+            .no-print, #login-modal, .pdf-preview-page-header, .pdf-preview-break-indicator {
+                display: none !important;
             }
 
-            .no-print, #pdf-export-modal, #login-modal {
-                display: none !important;
+            .pdf-preview-sheet {
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
             }
 
             .pdf-page-break-after {
                 page-break-after: always !important;
                 break-after: page !important;
-            }
-
-            #printable-pdf-container table.matrix-table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                table-layout: fixed !important;
-                font-size: 7.5pt !important;
-            }
-            #printable-pdf-container table.matrix-table th, 
-            #printable-pdf-container table.matrix-table td {
-                display: table-cell !important;
-                border: 1px solid #475569 !important;
-                text-align: center !important;
-                padding: 2px 1px !important;
-                font-size: 7.5pt !important;
-                line-height: 1.15 !important;
-                box-sizing: border-box !important;
-                overflow: hidden !important;
-                word-break: break-word !important;
-                white-space: normal !important;
-            }
-            #printable-pdf-container table.matrix-table th {
-                font-size: 7.5pt !important;
-                font-weight: bold !important;
-            }
-            #printable-pdf-container table.matrix-table th.bg-matrix-red,
-            #printable-pdf-container table.matrix-table th.bg-matrix-orange,
-            #printable-pdf-container table.matrix-table th.bg-matrix-yellow,
-            #printable-pdf-container table.matrix-table th.bg-matrix-green {
-                height: 14px !important;
-                padding: 0 !important;
-            }
-            .bg-matrix-header { background-color: #0f172a !important; color: #ffffff !important; }
-            .bg-matrix-sub1 { background-color: #e2e8f0 !important; color: #0f172a !important; }
-            .bg-matrix-sub2 { background-color: #f1f5f9 !important; color: #0f172a !important; }
-            .bg-matrix-red { background-color: #dc2626 !important; color: #ffffff !important; }
-            .bg-matrix-orange { background-color: #f97316 !important; color: #ffffff !important; }
-            .bg-matrix-yellow { background-color: #facc15 !important; color: #0f172a !important; }
-            .bg-matrix-green { background-color: #22c55e !important; color: #ffffff !important; }
-            .bg-matrix-total,
-            .bg-matrix-total-header,
-            #printable-pdf-container table.matrix-table td.bg-matrix-total,
-            #printable-pdf-container table.matrix-table th.bg-matrix-total-header {
-                background-color: #cbd5e1 !important; /* Soft Dark Gray/Slate */
-                color: #0f172a !important;
-                font-weight: bold !important;
-            }
-            #printable-pdf-container table.matrix-table td.dept-name-cell {
-                text-align: left !important;
-                padding-left: 4px !important;
-                padding-right: 2px !important;
-                font-weight: 500 !important;
-            }
-            #printable-pdf-container table.matrix-table td.matrix-footer-label {
-                text-align: right !important;
-                padding-right: 4px !important;
-                font-weight: bold !important;
             }
         }
     </style>
@@ -1142,7 +1210,7 @@
 
             <!-- Paper-style live preview container -->
             <div class="w-full overflow-x-auto custom-scrollbar p-4 md:p-6 bg-slate-200/80 rounded-2xl flex justify-center border border-slate-300">
-                <div id="pdf-studio-live-preview-canvas" class="bg-white shadow-2xl rounded-lg p-6 min-w-[750px] max-w-[1100px] w-full text-slate-800 border border-slate-300">
+                <div id="pdf-studio-live-preview-canvas" class="min-w-[750px] max-w-[1100px] w-full text-slate-800 flex flex-col gap-2">
                     <!-- Live preview content populated here -->
                 </div>
             </div>
@@ -3218,11 +3286,11 @@
             canvas.innerHTML = "";
 
             if (currentPdfExportMode === 'mode3') {
-                renderExecutiveMatrixPdf(canvas);
+                renderExecutiveMatrixPdf(canvas, true);
             } else if (currentPdfExportMode === 'mode4') {
-                renderRiskDetailTablePdf(canvas);
+                renderRiskDetailTablePdf(canvas, true);
             } else {
-                renderPresentationPdf(canvas);
+                renderPresentationPdf(canvas, true);
             }
         }
 
@@ -4418,7 +4486,35 @@
         // =========================================================================
         // PDF REPORT GENERATOR: 3 DISTINCT SPECIALIZED TEMPLATES
         // =========================================================================
-        function renderExecutiveMatrixPdf(printContainer) {
+        function buildLivePreviewPagesHtml(pages, isLandscape = true) {
+            if (!pages || pages.length === 0) return '';
+            const total = pages.length;
+            const orientationLabel = isLandscape ? 'A4 แนวนอน (Landscape)' : 'A4 แนวตั้ง (Portrait)';
+            
+            return pages.map((p, idx) => {
+                const pageNum = idx + 1;
+                const breakIndicator = idx > 0 ? `
+                    <div class="pdf-preview-break-indicator">
+                        <span><i class="fa-solid fa-scissors"></i> รอยตัดแบ่งหน้ากระดาษ (ขึ้นหน้าใหม่: หน้าที่ ${pageNum} / ${total})</span>
+                    </div>
+                ` : '';
+                
+                return `
+                    ${breakIndicator}
+                    <div class="pdf-preview-sheet">
+                        <div class="pdf-preview-page-header">
+                            <span class="pdf-preview-page-badge font-bold text-slate-700"><i class="fa-regular fa-file-lines text-indigo-600 mr-1.5"></i> หน้าที่ ${pageNum} / ${total} ${p.title ? `• ${p.title}` : ''}</span>
+                            <span class="pdf-preview-page-meta font-medium text-slate-500"><i class="fa-solid fa-print mr-1"></i> ${orientationLabel}</span>
+                        </div>
+                        <div class="pdf-preview-sheet-content">
+                            ${p.html}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderExecutiveMatrixPdf(printContainer, isLivePreview = false) {
             const line1TitleInput = document.getElementById("pdf-header-title-input");
             const line1Title = (line1TitleInput && line1TitleInput.value.trim()) ? line1TitleInput.value.trim() : "สรุปภาพรวมประเด็นความเสี่ยงและการประเมินระบบการควบคุมภายใน";
             const meetingInput = document.getElementById("pdf-header-meeting-input");
@@ -4646,7 +4742,7 @@
                 // ==========================================
                 // 1-PAGE MODE: รวมติดตามงานเดิมและข้อตรวจพบปีปัจจุบันใน 1 หน้า
                 // ==========================================
-                printContainer.innerHTML = `
+                const singlePageHtml = `
                     <div style="font-family: 'Prompt', sans-serif; padding: 4px 2px; box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                         <!-- Header Banner -->
                         <div style="background-color: #0f172a; color: white; padding: 6px 12px; margin-bottom: 8px; font-weight: bold; font-size: 13pt; border-radius: 6px; text-align: left; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
@@ -4695,6 +4791,12 @@
                         </div>
                     </div>
                 `;
+
+                if (isLivePreview) {
+                    printContainer.innerHTML = buildLivePreviewPagesHtml([{ title: 'สรุปภาพรวมผู้บริหาร (1 หน้า)', html: singlePageHtml }], true);
+                } else {
+                    printContainer.innerHTML = singlePageHtml;
+                }
                 return;
             }
 
@@ -4773,14 +4875,21 @@
                 </div>
             `;
 
-            printContainer.innerHTML = `
-                <div class="pdf-page-break-after">
-                    ${page1CombinedTableHtml}
-                </div>
-                <div>
-                    ${page2CombinedTableHtml}
-                </div>
-            `;
+            if (isLivePreview) {
+                printContainer.innerHTML = buildLivePreviewPagesHtml([
+                    { title: 'ส่วนที่ 1: การติดตามงานเดิม', html: page1CombinedTableHtml },
+                    { title: 'ส่วนที่ 2: ข้อตรวจพบ ประจำปีงบประมาณ', html: page2CombinedTableHtml }
+                ], true);
+            } else {
+                printContainer.innerHTML = `
+                    <div class="pdf-page-break-after">
+                        ${page1CombinedTableHtml}
+                    </div>
+                    <div>
+                        ${page2CombinedTableHtml}
+                    </div>
+                `;
+            }
         }
 
         // =========================================================================
@@ -4790,7 +4899,7 @@
         // PART 2: AUDIT FINDINGS (ข้อตรวจพบ)
         // PART 3: RECOMMENDATIONS & CLARIFICATIONS (ข้อเสนอแนะ & การชี้แจง)
         // =========================================================================
-        function renderPresentationPdf(printContainer) {
+        function renderPresentationPdf(printContainer, isLivePreview = false) {
             const line1TitleInput = document.getElementById("pdf-header-title-input");
             const line2MeetingInput = document.getElementById("pdf-header-meeting-input");
 
@@ -4865,52 +4974,54 @@
 
             const theme = PDF_TABLE_THEMES[selectedPdfTableTheme] || PDF_TABLE_THEMES['gray'];
 
-            const part1CoverHtml = `
-                <div class="pdf-page-break-after" style="padding: 12px 6px; font-family: 'Prompt', sans-serif; box-sizing: border-box;">
-                    <!-- Header Titles (Part 1) -->
-                    <div style="text-align: center; margin-bottom: 22px;">
-                        <h1 style="font-size: 22pt; font-weight: 800; color: #0f172a; margin: 0 0 8px 0; line-height: 1.3;">
-                            ${line1Title}
-                        </h1>
-                        ${isShowMeeting ? `
-                        <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
-                            ${line2Meeting}
-                        </h2>` : ''}
-                    </div>
+            const part1CoverInnerHtml = `
+                <!-- Header Titles (Part 1) -->
+                <div style="text-align: center; margin-bottom: 22px;">
+                    <h1 style="font-size: 22pt; font-weight: 800; color: #0f172a; margin: 0 0 8px 0; line-height: 1.3;">
+                        ${line1Title}
+                    </h1>
+                    ${isShowMeeting ? `
+                    <h2 style="font-size: 14pt; font-weight: 600; color: #475569; margin: 0; line-height: 1.3;">
+                        ${line2Meeting}
+                    </h2>` : ''}
+                </div>
 
-                    <!-- Activity Matrix Table with 5-color theme support -->
-                    <div style="width: 100%; overflow: hidden; border-radius: 8px; border: 1px solid ${theme.border}; margin-top: 10px;">
-                        <table style="width: 100%; border-collapse: collapse; font-family: 'Prompt', sans-serif;">
-                            <thead>
-                                <tr style="background-color: ${theme.headerBg}; color: ${theme.headerText}; text-align: center;">
-                                    <th colspan="6" style="padding: 10px; font-size: 14pt; font-weight: 800; border: 1px solid ${theme.border}; letter-spacing: 0.5px;">กิจกรรม</th>
-                                </tr>
-                                <tr style="background-color: ${theme.subHeaderBg}; color: ${theme.subHeaderText}; text-align: center; font-weight: bold; font-size: 11pt;">
-                                    <th style="padding: 10px 14px; border: 1px solid ${theme.border}; width: 30%; text-align: left;">ส่วนงาน</th>
-                                    <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านผลการดำเนินงาน</th>
-                                    <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ติดตามงานเดิม</th>
-                                    <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านการเงิน</th>
-                                    <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านการดำเนินงาน</th>
-                                    <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านการปฏิบัติตามกฎ<br>ระเบียบ ข้อบังคับ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${summaryRowsHtml}
-                            </tbody>
-                            <tfoot>
-                                <tr style="background-color: ${theme.footerBg}; font-weight: 800; color: ${theme.footerText}; text-align: center; font-size: 12pt; border-top: 2px solid ${theme.footerBorderTop};">
-                                    <td style="padding: 10px 14px; text-align: left; border: 1px solid ${theme.border};">รวม</td>
-                                    <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านผลการดำเนินงาน'] || ''}</td>
-                                    <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ติดตามงานเดิม'] || ''}</td>
-                                    <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านการเงิน'] || ''}</td>
-                                    <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านการดำเนินงาน'] || ''}</td>
-                                    <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านการปฏิบัติตามกฎระเบียบ'] || ''}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+                <!-- Activity Matrix Table with 5-color theme support -->
+                <div style="width: 100%; overflow: hidden; border-radius: 8px; border: 1px solid ${theme.border}; margin-top: 10px;">
+                    <table style="width: 100%; border-collapse: collapse; font-family: 'Prompt', sans-serif;">
+                        <thead>
+                            <tr style="background-color: ${theme.headerBg}; color: ${theme.headerText}; text-align: center;">
+                                <th colspan="6" style="padding: 10px; font-size: 14pt; font-weight: 800; border: 1px solid ${theme.border}; letter-spacing: 0.5px;">กิจกรรม</th>
+                            </tr>
+                            <tr style="background-color: ${theme.subHeaderBg}; color: ${theme.subHeaderText}; text-align: center; font-weight: bold; font-size: 11pt;">
+                                <th style="padding: 10px 14px; border: 1px solid ${theme.border}; width: 30%; text-align: left;">ส่วนงาน</th>
+                                <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านผลการดำเนินงาน</th>
+                                <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ติดตามงานเดิม</th>
+                                <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านการเงิน</th>
+                                <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านการดำเนินงาน</th>
+                                <th style="padding: 10px 8px; border: 1px solid ${theme.border}; width: 14%;">ด้านการปฏิบัติตามกฎ<br>ระเบียบ ข้อบังคับ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${summaryRowsHtml}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color: ${theme.footerBg}; font-weight: 800; color: ${theme.footerText}; text-align: center; font-size: 12pt; border-top: 2px solid ${theme.footerBorderTop};">
+                                <td style="padding: 10px 14px; text-align: left; border: 1px solid ${theme.border};">รวม</td>
+                                <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านผลการดำเนินงาน'] || ''}</td>
+                                <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ติดตามงานเดิม'] || ''}</td>
+                                <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านการเงิน'] || ''}</td>
+                                <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านการดำเนินงาน'] || ''}</td>
+                                <td style="padding: 10px 8px; border: 1px solid ${theme.border};">${colTotals['ด้านการปฏิบัติตามกฎระเบียบ'] || ''}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             `;
+
+            const livePages = [
+                { title: 'หน้าปกและตารางสรุปกิจกรรม', html: part1CoverInnerHtml }
+            ];
 
             // ----------------------------------------------------
             // PART 2 & PART 3: AUDIT FINDINGS & RECOMMENDATIONS SLIDES
@@ -4933,28 +5044,34 @@
                 const findingSlides = splitTextInto19LineSlides(rawFinding, 19);
 
                 findingSlides.forEach((fChunk) => {
+                    const findingCardInnerHtml = `
+                        <div style="background-color: #ffffff; border: 2.5px solid ${riskBgColor}; border-radius: 14px; padding: 18px 24px; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
+                            <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
+                            <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
+                                ${item.department}
+                            </div>
+                            <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
+                            <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 10px; line-height: 1.3; text-align: center;">
+                                ${item.main_topic} : ${item.sub_topic}
+                            </div>
+                            <!-- บรรทัดที่ 3: หัวข้อ ข้อตรวจพบ : ระดับความเสี่ยง (ตรงกลาง 18pt) -->
+                            <div style="text-align: center; margin-bottom: 14px;">
+                                <span style="display: inline-block; background-color: ${riskBgColor}; color: ${riskTextColor}; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                    ข้อตรวจพบ : ระดับความเสี่ยง ${item.risk_level || rkKey}
+                                </span>
+                            </div>
+                            <!-- บรรทัดที่ 4: เนื้อหาข้อตรวจพบ (14pt) -->
+                            <div style="font-size: 14pt; line-height: 1.55; color: #1e293b; text-align: left; word-break: break-word;">
+                                ${fChunk}
+                            </div>
+                        </div>
+                    `;
+
+                    livePages.push({ title: `${item.department} • ข้อตรวจพบ`, html: findingCardInnerHtml });
+
                     contentSlidesHtml += `
                         <div class="pdf-page-break-after" style="width: 100%; padding: 4px 2px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
-                            <div style="background-color: #ffffff; border: 2.5px solid ${riskBgColor}; border-radius: 14px; padding: 18px 24px; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
-                                <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
-                                <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
-                                    ${item.department}
-                                </div>
-                                <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
-                                <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 10px; line-height: 1.3; text-align: center;">
-                                    ${item.main_topic} : ${item.sub_topic}
-                                </div>
-                                <!-- บรรทัดที่ 3: หัวข้อ ข้อตรวจพบ : ระดับความเสี่ยง (ตรงกลาง 18pt) -->
-                                <div style="text-align: center; margin-bottom: 14px;">
-                                    <span style="display: inline-block; background-color: ${riskBgColor}; color: ${riskTextColor}; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                        ข้อตรวจพบ : ระดับความเสี่ยง ${item.risk_level || rkKey}
-                                    </span>
-                                </div>
-                                <!-- บรรทัดที่ 4: เนื้อหาข้อตรวจพบ (14pt) -->
-                                <div style="font-size: 14pt; line-height: 1.55; color: #1e293b; text-align: left; word-break: break-word;">
-                                    ${fChunk}
-                                </div>
-                            </div>
+                            ${findingCardInnerHtml}
                         </div>
                     `;
                 });
@@ -4978,28 +5095,34 @@
                         const isLastSlide = (index === filteredData.length - 1) && (sIdx === recSlides.length - 1);
                         const pageBreakClass = isLastSlide ? "" : "pdf-page-break-after";
 
+                        const recCardInnerHtml = `
+                            <div style="background-color: #ffffff; border: 2.5px solid #3b82f6; border-radius: 14px; padding: 18px 24px; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
+                                <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
+                                <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
+                                    ${item.department}
+                                </div>
+                                <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
+                                <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 10px; line-height: 1.3; text-align: center;">
+                                    ${item.main_topic} : ${item.sub_topic}
+                                </div>
+                                <!-- บรรทัดที่ 3: หัวข้อ ข้อเสนอแนะ (ตรงกลาง 18pt) -->
+                                <div style="text-align: center; margin-bottom: 14px;">
+                                    <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                        ข้อเสนอแนะ
+                                    </span>
+                                </div>
+                                <!-- บรรทัดที่ 4: เนื้อหาข้อเสนอแนะ (14pt) -->
+                                <div style="font-size: 14pt; line-height: 1.55; color: #1e293b; text-align: left; word-break: break-word;">
+                                    ${rChunk}
+                                </div>
+                            </div>
+                        `;
+
+                        livePages.push({ title: `${item.department} • ข้อเสนอแนะ`, html: recCardInnerHtml });
+
                         contentSlidesHtml += `
                             <div class="${pageBreakClass}" style="width: 100%; padding: 4px 2px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
-                                <div style="background-color: #ffffff; border: 2.5px solid #3b82f6; border-radius: 14px; padding: 18px 24px; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
-                                    <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
-                                    <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
-                                        ${item.department}
-                                    </div>
-                                    <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
-                                    <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 10px; line-height: 1.3; text-align: center;">
-                                        ${item.main_topic} : ${item.sub_topic}
-                                    </div>
-                                    <!-- บรรทัดที่ 3: หัวข้อ ข้อเสนอแนะ (ตรงกลาง 18pt) -->
-                                    <div style="text-align: center; margin-bottom: 14px;">
-                                        <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                            ข้อเสนอแนะ
-                                        </span>
-                                    </div>
-                                    <!-- บรรทัดที่ 4: เนื้อหาข้อเสนอแนะ (14pt) -->
-                                    <div style="font-size: 14pt; line-height: 1.55; color: #1e293b; text-align: left; word-break: break-word;">
-                                        ${rChunk}
-                                    </div>
-                                </div>
+                                ${recCardInnerHtml}
                             </div>
                         `;
                     });
@@ -5022,34 +5145,40 @@
                             const isLastSlide = (index === filteredData.length - 1) && (rIdx === clarifyItems.length - 1) && (sIdx === clarifySlides.length - 1);
                             const pageBreakClass = isLastSlide ? "" : "pdf-page-break-after";
 
+                            const clarifyCardInnerHtml = `
+                                <div style="background-color: #ffffff; border: 2.5px solid #3b82f6; border-radius: 14px; padding: 18px 24px; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
+                                    <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
+                                    <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
+                                        ${item.department}
+                                    </div>
+                                    <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
+                                    <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 10px; line-height: 1.3; text-align: center;">
+                                        ${item.main_topic} : ${item.sub_topic}
+                                    </div>
+                                    <!-- บรรทัดที่ 3: หัวข้อ ผลการดำเนินงานตามข้อเสนอแนะ (ตรงกลาง 18pt) -->
+                                    <div style="text-align: center; margin-bottom: 14px;">
+                                        <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                            ผลการดำเนินงานตามข้อเสนอแนะ
+                                        </span>
+                                    </div>
+                                    <!-- สถานะการดำเนินงาน -->
+                                    <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                        ${showItemNumber ? `<span style="font-weight: 800; color: #0f172a; font-size: 14pt;">รายการที่ ${rIdx + 1}:</span>` : ''}
+                                        <span style="font-weight: bold; color: #475569; font-size: 13pt;">สถานะ:</span>
+                                        <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12pt; font-weight: bold; background-color: ${stBg}; color: ${stText};">${statusVal}</span>
+                                    </div>
+                                    <!-- บรรทัดที่ 4: เนื้อหาผลการดำเนินงาน (14pt) -->
+                                    <div style="font-size: 14pt; line-height: 1.55; color: #1e293b; text-align: left; word-break: break-word;">
+                                        ${cChunk}
+                                    </div>
+                                </div>
+                            `;
+
+                            livePages.push({ title: `${item.department} • ผลการดำเนินงาน`, html: clarifyCardInnerHtml });
+
                             contentSlidesHtml += `
                                 <div class="${pageBreakClass}" style="width: 100%; padding: 4px 2px; font-family: 'Prompt', sans-serif; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
-                                    <div style="background-color: #ffffff; border: 2.5px solid #3b82f6; border-radius: 14px; padding: 18px 24px; box-sizing: border-box; page-break-inside: avoid; break-inside: avoid;">
-                                        <!-- บรรทัดที่ 1: ชื่อส่วนงาน (ตรงกลาง 20pt) -->
-                                        <div style="font-size: 20pt; font-weight: 800; color: #0f172a; margin-bottom: 4px; line-height: 1.3; text-align: center;">
-                                            ${item.department}
-                                        </div>
-                                        <!-- บรรทัดที่ 2: ประเด็นหลัก : ประเด็นย่อย (ตรงกลาง 18pt) -->
-                                        <div style="font-size: 18pt; font-weight: 600; color: #334155; margin-bottom: 10px; line-height: 1.3; text-align: center;">
-                                            ${item.main_topic} : ${item.sub_topic}
-                                        </div>
-                                        <!-- บรรทัดที่ 3: หัวข้อ ผลการดำเนินงานตามข้อเสนอแนะ (ตรงกลาง 18pt) -->
-                                        <div style="text-align: center; margin-bottom: 14px;">
-                                            <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 20px; border-radius: 8px; font-weight: 800; font-size: 18pt; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                                ผลการดำเนินงานตามข้อเสนอแนะ
-                                            </span>
-                                        </div>
-                                        <!-- สถานะการดำเนินงาน -->
-                                        <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-                                            ${showItemNumber ? `<span style="font-weight: 800; color: #0f172a; font-size: 14pt;">รายการที่ ${rIdx + 1}:</span>` : ''}
-                                            <span style="font-weight: bold; color: #475569; font-size: 13pt;">สถานะ:</span>
-                                            <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12pt; font-weight: bold; background-color: ${stBg}; color: ${stText};">${statusVal}</span>
-                                        </div>
-                                        <!-- บรรทัดที่ 4: เนื้อหาผลการดำเนินงาน (14pt) -->
-                                        <div style="font-size: 14pt; line-height: 1.55; color: #1e293b; text-align: left; word-break: break-word;">
-                                            ${cChunk}
-                                        </div>
-                                    </div>
+                                    ${clarifyCardInnerHtml}
                                 </div>
                             `;
                         });
@@ -5057,15 +5186,21 @@
                 }
             });
 
-            printContainer.innerHTML = `
-                <div style="width: 100%; font-family: 'Prompt', sans-serif;">
-                    ${part1CoverHtml}
-                    ${contentSlidesHtml}
-                </div>
-            `;
+            if (isLivePreview) {
+                printContainer.innerHTML = buildLivePreviewPagesHtml(livePages, true);
+            } else {
+                printContainer.innerHTML = `
+                    <div style="width: 100%; font-family: 'Prompt', sans-serif;">
+                        <div class="pdf-page-break-after" style="padding: 12px 6px; font-family: 'Prompt', sans-serif; box-sizing: border-box;">
+                            ${part1CoverInnerHtml}
+                        </div>
+                        ${contentSlidesHtml}
+                    </div>
+                `;
+            }
         }
 
-        function renderRiskDetailTablePdf(printContainer) {
+        function renderRiskDetailTablePdf(printContainer, isLivePreview = false) {
             const titleInput = document.getElementById("pdf-header-title-input");
             const meetingInput = document.getElementById("pdf-header-meeting-input");
             const line1Title = titleInput ? titleInput.value : "สรุปประเด็นความเสี่ยงและรายละเอียดผลการตรวจสอบ";
@@ -5086,6 +5221,7 @@
                 // MODE 2: แยกรายปี (1 ตารางคือ 1 ปี ขึ้นหน้าใหม่และตารางใหม่)
                 // ----------------------------------------------------
                 let pagesHtml = "";
+                const livePages = [];
 
                 activeYears.forEach((yr, yIdx) => {
                     let rowsHtml = "";
@@ -5135,7 +5271,7 @@
 
                     const pageBreakStyle = (yIdx < activeYears.length - 1) ? 'page-break-after: always; break-after: page;' : '';
 
-                    pagesHtml += `
+                    const yrPageHtml = `
                         <div style="width: 100%; font-family: 'Prompt', sans-serif; padding: 6px 2px; box-sizing: border-box; ${pageBreakStyle} -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                             <!-- Header Titles for Year -->
                             <div style="text-align: center; margin-bottom: 18px;">
@@ -5183,14 +5319,22 @@
                             </div>
                         </div>
                     `;
+
+                    livePages.push({ title: `ประจำปีงบประมาณ ${yr}`, html: yrPageHtml });
+                    pagesHtml += yrPageHtml;
                 });
 
-                printContainer.innerHTML = pagesHtml;
+                if (isLivePreview) {
+                    printContainer.innerHTML = buildLivePreviewPagesHtml(livePages, true);
+                } else {
+                    printContainer.innerHTML = pagesHtml;
+                }
             } else if (riskDetailYearMode === 'by_dept') {
                 // ----------------------------------------------------
                 // MODE 3: แยกส่วนงาน (1 ตารางคือ 1 ส่วนงาน ขึ้นหน้าใหม่และตารางใหม่)
                 // ----------------------------------------------------
                 let pagesHtml = "";
+                const livePages = [];
 
                 depts.forEach((dept, dIdx) => {
                     let rowsHtml = "";
@@ -5238,7 +5382,7 @@
 
                     const pageBreakStyle = (dIdx < depts.length - 1) ? 'page-break-after: always; break-after: page;' : '';
 
-                    pagesHtml += `
+                    const deptPageHtml = `
                         <div style="width: 100%; font-family: 'Prompt', sans-serif; padding: 6px 2px; box-sizing: border-box; ${pageBreakStyle} -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                             <!-- Header Titles for Department -->
                             <div style="text-align: center; margin-bottom: 18px;">
@@ -5286,9 +5430,16 @@
                             </div>
                         </div>
                     `;
+
+                    livePages.push({ title: `ส่วนงาน: ${dept}`, html: deptPageHtml });
+                    pagesHtml += deptPageHtml;
                 });
 
-                printContainer.innerHTML = pagesHtml;
+                if (isLivePreview) {
+                    printContainer.innerHTML = buildLivePreviewPagesHtml(livePages, true);
+                } else {
+                    printContainer.innerHTML = pagesHtml;
+                }
             } else {
                 // ----------------------------------------------------
                 // MODE 1: รวมทุกปี (1 ตารางยาว รวมประเด็นทั้งหมดของแต่ละส่วนงาน)
@@ -5335,7 +5486,7 @@
                     `;
                 });
 
-                printContainer.innerHTML = `
+                const combinedTableHtml = `
                     <div style="width: 100%; font-family: 'Prompt', sans-serif; padding: 6px 2px; box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                         <!-- Header Titles -->
                         <div style="text-align: center; margin-bottom: 18px;">
@@ -5380,6 +5531,12 @@
                         </div>
                     </div>
                 `;
+
+                if (isLivePreview) {
+                    printContainer.innerHTML = buildLivePreviewPagesHtml([{ title: 'สรุปประเด็นความเสี่ยงรวมทุกปี', html: combinedTableHtml }], true);
+                } else {
+                    printContainer.innerHTML = combinedTableHtml;
+                }
             }
         }
 
