@@ -101,37 +101,6 @@
             box-shadow: 0 18px 36px -6px rgba(184, 137, 207, 0.28);
         }
 
-        /* PRINT STYLES FOR PERFECT PDF EXPORT & MATRIX SUMMARY */
-        @media print {
-            @page {
-                size: A4 landscape;
-                margin: 6mm;
-            }
-
-            html, body {
-                background: #ffffff !important;
-                color: #000000 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 100% !important;
-                height: auto !important;
-                overflow: visible !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            body > *:not(#printable-pdf-container) {
-                display: none !important;
-            }
-
-            #printable-pdf-container {
-                display: block !important;
-                visibility: visible !important;
-                position: static !important;
-                width: 100% !important;
-                background: #ffffff !important;
-                color: #000000 !important;
-                margin: 0 !important;
         /* =========================================================================
            GLOBAL PDF & MATRIX TABLE STYLES (APPLIES TO SCREEN PREVIEW & PRINT)
            ========================================================================= */
@@ -4546,24 +4515,48 @@
                 </colgroup>
                 <thead>
                     <tr style="background-color: #f8fafc; color: #0f172a; font-weight: bold;">
-                        <th rowspan="3" style="width: 4%;">ลำดับ</th>
-                        <th rowspan="3" style="width: 18%;">ส่วนงาน</th>
-                        <th colspan="5" style="background-color: #e0f2fe; color: #0369a1; padding: 3px 2px; font-size: 7.5pt; border: 1px solid #475569;">1. ด้านผลการดำเนินงานและการบริหาร<br>(Performance & Management Audit)</th>
-                        <th colspan="15" style="background-color: #f1f5f9; color: #0f172a; padding: 3px 2px; font-size: 7.5pt; border: 1px solid #475569;">2. การประเมินระบบควบคุมภายในหน่วยงาน (Internal Control)</th>
-                        <th rowspan="2" colspan="5" style="background-color: #cbd5e1; color: #0f172a; padding: 3px 2px; font-size: 7.5pt; border: 1px solid #475569;">รวมทั้งหมด</th>
+                        <th rowspan="3" style="width: 4%; border: 1px solid #475569 !important; text-align: center; vertical-align: middle;">ลำดับ</th>
+                        <th rowspan="3" style="width: 18%; border: 1px solid #475569 !important; text-align: center; vertical-align: middle;">ส่วนงาน</th>
+                        <th colspan="5" style="background-color: #e0f2fe; color: #0369a1; padding: 3px 2px; font-size: 7.5pt; border: 1px solid #475569 !important; text-align: center; vertical-align: middle;">1. ด้านผลการดำเนินงานและการบริหาร<br>(Performance & Management Audit)</th>
+                        <th colspan="15" style="background-color: #f1f5f9; color: #0f172a; padding: 3px 2px; font-size: 7.5pt; border: 1px solid #475569 !important; text-align: center; vertical-align: middle;">2. การประเมินระบบควบคุมภายในหน่วยงาน (Internal Control)</th>
+                        <th rowspan="2" colspan="5" style="background-color: #cbd5e1; color: #0f172a; padding: 3px 2px; font-size: 7.5pt; border: 1px solid #475569 !important; text-align: center; vertical-align: middle;">รวมทั้งหมด</th>
                     </tr>
                     <tr style="background-color: #f1f5f9; color: #0f172a; font-weight: bold;">
-                        <th colspan="5" style="background-color: #e0f2fe; color: #0369a1; padding: 2px 1px; font-size: 7pt; border: 1px solid #475569;">ด้านผลการดำเนินงาน</th>
-                        <th colspan="5" style="background-color: #f1f5f9; color: #0f172a; padding: 2px 1px; font-size: 7pt; border: 1px solid #475569;">ด้านการเงินและบัญชี</th>
-                        <th colspan="5" style="background-color: #f1f5f9; color: #0f172a; padding: 2px 1px; font-size: 7pt; border: 1px solid #475569;">ด้านการดำเนินงาน</th>
-                        <th colspan="5" style="background-color: #f1f5f9; color: #0f172a; padding: 2px 1px; font-size: 7pt; border: 1px solid #475569;">ด้านปฏิบัติตามกฎ ระเบียบ</th>
+                        <th colspan="5" style="background-color: #e0f2fe; color: #0369a1; padding: 2px 1px; font-size: 7pt; border: 1px solid #475569 !important; text-align: center; vertical-align: middle;">ด้านผลการดำเนินงาน</th>
+                        <th colspan="5" style="background-color: #f1f5f9; color: #0f172a; padding: 2px 1px; font-size: 7pt; border: 1px solid #475569 !important; text-align: center; vertical-align: middle;">ด้านการเงินและบัญชี</th>
+                        <th colspan="5" style="background-color: #f1f5f9; color: #0f172a; padding: 2px 1px; font-size: 7pt; border: 1px solid #475569 !important; text-align: center; vertical-align: middle;">ด้านการดำเนินงาน</th>
+                        <th colspan="5" style="background-color: #f1f5f9; color: #0f172a; padding: 2px 1px; font-size: 7pt; border: 1px solid #475569 !important; text-align: center; vertical-align: middle;">ด้านปฏิบัติตามกฎ ระเบียบ</th>
                     </tr>
                     <tr>
-                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th class="bg-matrix-total-header">รวม</th>
-                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th class="bg-matrix-total-header">รวม</th>
-                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th class="bg-matrix-total-header">รวม</th>
-                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th class="bg-matrix-total-header">รวม</th>
-                        <th class="bg-matrix-red"></th><th class="bg-matrix-orange"></th><th class="bg-matrix-yellow"></th><th class="bg-matrix-green"></th><th class="bg-matrix-total-header">รวม</th>
+                        <th style="background-color: #dc2626 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #f97316 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #facc15 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #22c55e !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #cbd5e1 !important; color: #0f172a !important; border: 1px solid #475569 !important; font-weight: bold; font-size: 7pt; text-align: center;">รวม</th>
+
+                        <th style="background-color: #dc2626 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #f97316 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #facc15 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #22c55e !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #cbd5e1 !important; color: #0f172a !important; border: 1px solid #475569 !important; font-weight: bold; font-size: 7pt; text-align: center;">รวม</th>
+
+                        <th style="background-color: #dc2626 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #f97316 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #facc15 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #22c55e !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #cbd5e1 !important; color: #0f172a !important; border: 1px solid #475569 !important; font-weight: bold; font-size: 7pt; text-align: center;">รวม</th>
+
+                        <th style="background-color: #dc2626 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #f97316 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #facc15 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #22c55e !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #cbd5e1 !important; color: #0f172a !important; border: 1px solid #475569 !important; font-weight: bold; font-size: 7pt; text-align: center;">รวม</th>
+
+                        <th style="background-color: #dc2626 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #f97316 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #facc15 !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #22c55e !important; border: 1px solid #475569 !important; height: 16px; padding: 0;">&nbsp;</th>
+                        <th style="background-color: #cbd5e1 !important; color: #0f172a !important; border: 1px solid #475569 !important; font-weight: bold; font-size: 7pt; text-align: center;">รวม</th>
                     </tr>
                 </thead>
             `;
@@ -4602,13 +4595,33 @@
 
                 p1_2568_rowsHtml += `
                     <tr>
-                        <td>${idx + 1}</td>
-                        <td class="dept-name-cell">${dept}</td>
-                        <td>${c['ด้านผลการดำเนินงาน'].red || ''}</td><td>${c['ด้านผลการดำเนินงาน'].orange || ''}</td><td>${c['ด้านผลการดำเนินงาน'].yellow || ''}</td><td>${c['ด้านผลการดำเนินงาน'].green || ''}</td><td class="bg-matrix-total">${tTotals['ด้านผลการดำเนินงาน']}</td>
-                        <td>${c['ด้านการเงิน'].red || ''}</td><td>${c['ด้านการเงิน'].orange || ''}</td><td>${c['ด้านการเงิน'].yellow || ''}</td><td>${c['ด้านการเงิน'].green || ''}</td><td class="bg-matrix-total">${tTotals['ด้านการเงิน']}</td>
-                        <td>${c['ด้านการดำเนินงาน'].red || ''}</td><td>${c['ด้านการดำเนินงาน'].orange || ''}</td><td>${c['ด้านการดำเนินงาน'].yellow || ''}</td><td>${c['ด้านการดำเนินงาน'].green || ''}</td><td class="bg-matrix-total">${tTotals['ด้านการดำเนินงาน']}</td>
-                        <td>${c['ด้านการปฏิบัติตามกฎระเบียบ'].red || ''}</td><td>${c['ด้านการปฏิบัติตามกฎระเบียบ'].orange || ''}</td><td>${c['ด้านการปฏิบัติตามกฎระเบียบ'].yellow || ''}</td><td>${c['ด้านการปฏิบัติตามกฎระเบียบ'].green || ''}</td><td class="bg-matrix-total">${tTotals['ด้านการปฏิบัติตามกฎระเบียบ']}</td>
-                        <td>${oRed || ''}</td><td>${oOrange || ''}</td><td>${oYellow || ''}</td><td>${oGreen || ''}</td><td class="bg-matrix-total">${oTot}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${idx + 1}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: left; padding-left: 4px;" class="dept-name-cell">${dept}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านผลการดำเนินงาน'].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านผลการดำเนินงาน'].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านผลการดำเนินงาน'].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านผลการดำเนินงาน'].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${tTotals['ด้านผลการดำเนินงาน']}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการเงิน'].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการเงิน'].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการเงิน'].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการเงิน'].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${tTotals['ด้านการเงิน']}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการดำเนินงาน'].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการดำเนินงาน'].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการดำเนินงาน'].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการดำเนินงาน'].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${tTotals['ด้านการดำเนินงาน']}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการปฏิบัติตามกฎระเบียบ'].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการปฏิบัติตามกฎระเบียบ'].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการปฏิบัติตามกฎระเบียบ'].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${c['ด้านการปฏิบัติตามกฎระเบียบ'].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${tTotals['ด้านการปฏิบัติตามกฎระเบียบ']}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${oRed || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${oOrange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${oYellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${oGreen || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #94a3b8 !important; color: #ffffff !important; font-weight: bold;" class="bg-matrix-total">${oTot}</td>
                     </tr>
                 `;
             });
@@ -4657,13 +4670,33 @@
 
                 p1_2569_rowsHtml += `
                     <tr>
-                        <td>${idx + 1}</td>
-                        <td class="dept-name-cell">${dept}</td>
-                        <td>${dc['ด้านผลการดำเนินงาน'].red || ''}</td><td>${dc['ด้านผลการดำเนินงาน'].orange || ''}</td><td>${dc['ด้านผลการดำเนินงาน'].yellow || ''}</td><td>${dc['ด้านผลการดำเนินงาน'].green || ''}</td><td class="bg-matrix-total">${dc['ด้านผลการดำเนินงาน'].total}</td>
-                        <td>${dc['ด้านการเงิน'].red || ''}</td><td>${dc['ด้านการเงิน'].orange || ''}</td><td>${dc['ด้านการเงิน'].yellow || ''}</td><td>${dc['ด้านการเงิน'].green || ''}</td><td class="bg-matrix-total">${dc['ด้านการเงิน'].total}</td>
-                        <td>${dc['ด้านการดำเนินงาน'].red || ''}</td><td>${dc['ด้านการดำเนินงาน'].orange || ''}</td><td>${dc['ด้านการดำเนินงาน'].yellow || ''}</td><td>${dc['ด้านการดำเนินงาน'].green || ''}</td><td class="bg-matrix-total">${dc['ด้านการดำเนินงาน'].total}</td>
-                        <td>${dc['ด้านการปฏิบัติตามกฎระเบียบ'].red || ''}</td><td>${dc['ด้านการปฏิบัติตามกฎระเบียบ'].orange || ''}</td><td>${dc['ด้านการปฏิบัติตามกฎระเบียบ'].yellow || ''}</td><td>${dc['ด้านการปฏิบัติตามกฎระเบียบ'].green || ''}</td><td class="bg-matrix-total">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].total}</td>
-                        <td>${dc.overall.red || ''}</td><td>${dc.overall.orange || ''}</td><td>${dc.overall.yellow || ''}</td><td>${dc.overall.green || ''}</td><td class="bg-matrix-total">${dc.overall.total}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${idx + 1}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: left; padding-left: 4px;" class="dept-name-cell">${dept}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านผลการดำเนินงาน'].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านผลการดำเนินงาน'].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านผลการดำเนินงาน'].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านผลการดำเนินงาน'].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${dc['ด้านผลการดำเนินงาน'].total}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการเงิน'].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการเงิน'].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการเงิน'].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการเงิน'].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${dc['ด้านการเงิน'].total}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการดำเนินงาน'].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการดำเนินงาน'].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการดำเนินงาน'].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการดำเนินงาน'].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${dc['ด้านการดำเนินงาน'].total}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${dc['ด้านการปฏิบัติตามกฎระเบียบ'].total}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc.overall.red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc.overall.orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc.overall.yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${dc.overall.green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #94a3b8 !important; color: #ffffff !important; font-weight: bold;" class="bg-matrix-total">${dc.overall.total}</td>
                     </tr>
                 `;
             });
@@ -4713,13 +4746,33 @@
 
                 p2_rowsHtml += `
                     <tr>
-                        <td>${idx + 1}</td>
-                        <td class="dept-name-cell">${dept}</td>
-                        <td>${deptCounts["ด้านผลการดำเนินงาน"].red || ''}</td><td>${deptCounts["ด้านผลการดำเนินงาน"].orange || ''}</td><td>${deptCounts["ด้านผลการดำเนินงาน"].yellow || ''}</td><td>${deptCounts["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${deptCounts["ด้านผลการดำเนินงาน"].total}</td>
-                        <td>${deptCounts["ด้านการเงิน"].red || ''}</td><td>${deptCounts["ด้านการเงิน"].orange || ''}</td><td>${deptCounts["ด้านการเงิน"].yellow || ''}</td><td>${deptCounts["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${deptCounts["ด้านการเงิน"].total}</td>
-                        <td>${deptCounts["ด้านการดำเนินงาน"].red || ''}</td><td>${deptCounts["ด้านการดำเนินงาน"].orange || ''}</td><td>${deptCounts["ด้านการดำเนินงาน"].yellow || ''}</td><td>${deptCounts["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${deptCounts["ด้านการดำเนินงาน"].total}</td>
-                        <td>${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td>${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td>${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td>${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                        <td>${deptCounts.overall.red || ''}</td><td>${deptCounts.overall.orange || ''}</td><td>${deptCounts.overall.yellow || ''}</td><td>${deptCounts.overall.green || ''}</td><td class="bg-matrix-total">${deptCounts.overall.total}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${idx + 1}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: left; padding-left: 4px;" class="dept-name-cell">${dept}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านผลการดำเนินงาน"].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านผลการดำเนินงาน"].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านผลการดำเนินงาน"].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านผลการดำเนินงาน"].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${deptCounts["ด้านผลการดำเนินงาน"].total}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการเงิน"].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการเงิน"].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการเงิน"].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการเงิน"].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${deptCounts["ด้านการเงิน"].total}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการดำเนินงาน"].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการดำเนินงาน"].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการดำเนินงาน"].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการดำเนินงาน"].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${deptCounts["ด้านการดำเนินงาน"].total}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${deptCounts["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts.overall.red || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts.overall.orange || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts.overall.yellow || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center;">${deptCounts.overall.green || ''}</td>
+                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #94a3b8 !important; color: #ffffff !important; font-weight: bold;" class="bg-matrix-total">${deptCounts.overall.total}</td>
                     </tr>
                 `;
             });
@@ -4760,12 +4813,32 @@
                                     </tr>
                                     ${p1_2569_rowsHtml}
                                     <tr style="font-weight: bold; background-color: #bbf7d0; color: #14532d; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                        <td colspan="2" class="matrix-footer-label" style="background-color: #bbf7d0 !important; color: #14532d !important;">รวม ${currentFollowUpYr}</td>
-                                        <td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านผลการดำเนินงาน"].total}</td>
-                                        <td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการเงิน"].total}</td>
-                                        <td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการดำเนินงาน"].total}</td>
-                                        <td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                                        <td style="background-color: inherit;">${p1_2569_grand.overall.red || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p1_2569_grand.overall.total}</td>
+                                        <td colspan="2" class="matrix-footer-label" style="border: 1px solid #475569 !important; text-align: center; background-color: #bbf7d0 !important; color: #14532d !important;">รวม ${currentFollowUpYr}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].red || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].orange || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].yellow || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].green || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2569_grand["ด้านผลการดำเนินงาน"].total}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].red || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].orange || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].yellow || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].green || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2569_grand["ด้านการเงิน"].total}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].red || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].orange || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].yellow || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].green || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2569_grand["ด้านการดำเนินงาน"].total}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand.overall.red || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand.overall.orange || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand.overall.yellow || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand.overall.green || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #94a3b8 !important; color: #ffffff !important; font-weight: bold;" class="bg-matrix-total">${p1_2569_grand.overall.total}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -4779,12 +4852,32 @@
                                 <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                                     ${p2_rowsHtml}
                                     <tr style="font-weight: bold; background-color: #f1f5f9; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                        <td colspan="2" class="matrix-footer-label">รวมทั้งหมด</td>
-                                        <td>${p2_grandCounts["ด้านผลการดำเนินงาน"].red || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].orange || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].yellow || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านผลการดำเนินงาน"].total}</td>
-                                        <td>${p2_grandCounts["ด้านการเงิน"].red || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].orange || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].yellow || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการเงิน"].total}</td>
-                                        <td>${p2_grandCounts["ด้านการดำเนินงาน"].red || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].orange || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].yellow || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการดำเนินงาน"].total}</td>
-                                        <td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                                        <td>${p2_grandCounts.overall.red || ''}</td><td>${p2_grandCounts.overall.orange || ''}</td><td>${p2_grandCounts.overall.yellow || ''}</td><td>${p2_grandCounts.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p2_grandCounts.overall.total}</td>
+                                        <td colspan="2" class="matrix-footer-label" style="border: 1px solid #475569 !important; text-align: center; background-color: #f1f5f9 !important;">รวมทั้งหมด</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านผลการดำเนินงาน"].red || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านผลการดำเนินงาน"].orange || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านผลการดำเนินงาน"].yellow || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านผลการดำเนินงาน"].green || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p2_grandCounts["ด้านผลการดำเนินงาน"].total}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการเงิน"].red || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการเงิน"].orange || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการเงิน"].yellow || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการเงิน"].green || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p2_grandCounts["ด้านการเงิน"].total}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการดำเนินงาน"].red || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการดำเนินงาน"].orange || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการดำเนินงาน"].yellow || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการดำเนินงาน"].green || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p2_grandCounts["ด้านการดำเนินงาน"].total}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts.overall.red || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts.overall.orange || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts.overall.yellow || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts.overall.green || ''}</td>
+                                        <td style="border: 1px solid #475569 !important; text-align: center; background-color: #94a3b8 !important; color: #ffffff !important; font-weight: bold;" class="bg-matrix-total">${p2_grandCounts.overall.total}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -4817,32 +4910,72 @@
                         <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                             <!-- Section 1 Banner: Baseline Year -->
                             <tr style="background-color: #fed7aa; color: #7c2d12; font-weight: bold; text-align: left; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569; background-color: #fed7aa !important; color: #7c2d12 !important;">การติดตามงานเดิม (จากการตรวจสอบครั้งก่อน ${baselineYear})</td>
+                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569 !important; background-color: #fed7aa !important; color: #7c2d12 !important;">การติดตามงานเดิม (จากการตรวจสอบครั้งก่อน ${baselineYear})</td>
                             </tr>
                             ${p1_2568_rowsHtml}
                             <!-- Section 1 Footer: Baseline Year -->
                             <tr style="font-weight: bold; background-color: #fed7aa; color: #7c2d12; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                <td colspan="2" class="matrix-footer-label" style="background-color: #fed7aa !important; color: #7c2d12 !important;">รวม ${baselineYear}</td>
-                                <td style="background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านผลการดำเนินงาน"].total}</td>
-                                <td style="background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].red || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].orange || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการเงิน"].total}</td>
-                                <td style="background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการดำเนินงาน"].total}</td>
-                                <td style="background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td style="background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                                <td style="background-color: inherit;">${p1_2568_grand.overall.red || ''}</td><td style="background-color: inherit;">${p1_2568_grand.overall.orange || ''}</td><td style="background-color: inherit;">${p1_2568_grand.overall.yellow || ''}</td><td style="background-color: inherit;">${p1_2568_grand.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p1_2568_grand.overall.total}</td>
+                                <td colspan="2" class="matrix-footer-label" style="border: 1px solid #475569 !important; text-align: center; background-color: #fed7aa !important; color: #7c2d12 !important;">รวม ${baselineYear}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านผลการดำเนินงาน"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2568_grand["ด้านผลการดำเนินงาน"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการเงิน"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2568_grand["ด้านการเงิน"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการดำเนินงาน"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2568_grand["ด้านการดำเนินงาน"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2568_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand.overall.red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand.overall.orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand.overall.yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2568_grand.overall.green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #94a3b8 !important; color: #ffffff !important; font-weight: bold;" class="bg-matrix-total">${p1_2568_grand.overall.total}</td>
                             </tr>
 
                             <!-- Section 2 Banner: Current Year -->
                             <tr style="background-color: #bbf7d0; color: #14532d; font-weight: bold; text-align: left; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569; background-color: #bbf7d0 !important; color: #14532d !important;">การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน ${currentFollowUpYr})</td>
+                                <td colspan="27" style="padding: 4px 8px; font-size: 8pt; border: 1px solid #475569 !important; background-color: #bbf7d0 !important; color: #14532d !important;">การติดตามงานเดิม (จากการตรวจสอบปัจจุบัน ${currentFollowUpYr})</td>
                             </tr>
                             ${p1_2569_rowsHtml}
                             <!-- Section 2 Footer: Current Year -->
                             <tr style="font-weight: bold; background-color: #bbf7d0; color: #14532d; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                <td colspan="2" class="matrix-footer-label" style="background-color: #bbf7d0 !important; color: #14532d !important;">รวม ${currentFollowUpYr}</td>
-                                <td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านผลการดำเนินงาน"].total}</td>
-                                <td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการเงิน"].total}</td>
-                                <td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการดำเนินงาน"].total}</td>
-                                <td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                                <td style="background-color: inherit;">${p1_2569_grand.overall.red || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.orange || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.yellow || ''}</td><td style="background-color: inherit;">${p1_2569_grand.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p1_2569_grand.overall.total}</td>
+                                <td colspan="2" class="matrix-footer-label" style="border: 1px solid #475569 !important; text-align: center; background-color: #bbf7d0 !important; color: #14532d !important;">รวม ${currentFollowUpYr}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านผลการดำเนินงาน"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2569_grand["ด้านผลการดำเนินงาน"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการเงิน"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2569_grand["ด้านการเงิน"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการดำเนินงาน"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2569_grand["ด้านการดำเนินงาน"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p1_2569_grand["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand.overall.red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand.overall.orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand.overall.yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: inherit;">${p1_2569_grand.overall.green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #94a3b8 !important; color: #ffffff !important; font-weight: bold;" class="bg-matrix-total">${p1_2569_grand.overall.total}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -4863,12 +4996,32 @@
                         <tbody style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
                             ${p2_rowsHtml}
                             <tr style="font-weight: bold; background-color: #f1f5f9; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
-                                <td colspan="2" class="matrix-footer-label">รวมทั้งหมด</td>
-                                <td>${p2_grandCounts["ด้านผลการดำเนินงาน"].red || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].orange || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].yellow || ''}</td><td>${p2_grandCounts["ด้านผลการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านผลการดำเนินงาน"].total}</td>
-                                <td>${p2_grandCounts["ด้านการเงิน"].red || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].orange || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].yellow || ''}</td><td>${p2_grandCounts["ด้านการเงิน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการเงิน"].total}</td>
-                                <td>${p2_grandCounts["ด้านการดำเนินงาน"].red || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].orange || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].yellow || ''}</td><td>${p2_grandCounts["ด้านการดำเนินงาน"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการดำเนินงาน"].total}</td>
-                                <td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td><td>${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td><td class="bg-matrix-total">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
-                                <td>${p2_grandCounts.overall.red || ''}</td><td>${p2_grandCounts.overall.orange || ''}</td><td>${p2_grandCounts.overall.yellow || ''}</td><td>${p2_grandCounts.overall.green || ''}</td><td class="bg-matrix-total" style="background-color: #94a3b8 !important; color: #ffffff !important;">${p2_grandCounts.overall.total}</td>
+                                <td colspan="2" class="matrix-footer-label" style="border: 1px solid #475569 !important; text-align: center; background-color: #f1f5f9 !important;">รวมทั้งหมด</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านผลการดำเนินงาน"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านผลการดำเนินงาน"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านผลการดำเนินงาน"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านผลการดำเนินงาน"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p2_grandCounts["ด้านผลการดำเนินงาน"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการเงิน"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการเงิน"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการเงิน"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการเงิน"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p2_grandCounts["ด้านการเงิน"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการดำเนินงาน"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการดำเนินงาน"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการดำเนินงาน"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการดำเนินงาน"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p2_grandCounts["ด้านการดำเนินงาน"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #cbd5e1 !important; font-weight: bold;" class="bg-matrix-total">${p2_grandCounts["ด้านการปฏิบัติตามกฎระเบียบ"].total}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts.overall.red || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts.overall.orange || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts.overall.yellow || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center;">${p2_grandCounts.overall.green || ''}</td>
+                                <td style="border: 1px solid #475569 !important; text-align: center; background-color: #94a3b8 !important; color: #ffffff !important; font-weight: bold;" class="bg-matrix-total">${p2_grandCounts.overall.total}</td>
                             </tr>
                         </tbody>
                     </table>
