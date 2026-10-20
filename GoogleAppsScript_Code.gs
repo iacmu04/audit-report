@@ -192,6 +192,45 @@ function doPost(e) {
       }
 
       return createCorsResponse({ status: 'success', message: 'บันทึกข้อมูลเรียบร้อยแล้ว' });
+    } else if (action === 'uploadImage') {
+      var folderId = '1kPycsfFlHiYIGGH0yJGltmxffX4YUIxX';
+      var folder = DriveApp.getFolderById(folderId);
+
+      var base64Data = String(postData.base64 || '');
+      var filename = postData.filename || ('audit_img_' + new Date().getTime() + '.png');
+      var mimeType = postData.mimeType || 'image/png';
+
+      if (base64Data.indexOf(';base64,') > -1) {
+        var parts = base64Data.split(';base64,');
+        var contentTypeMatch = parts[0].match(/data:(.*)/);
+        if (contentTypeMatch && contentTypeMatch[1]) {
+          mimeType = contentTypeMatch[1];
+        }
+        base64Data = parts[1];
+      }
+
+      var decodedBytes = Utilities.base64Decode(base64Data);
+      var blob = Utilities.newBlob(decodedBytes, mimeType, filename);
+      var file = folder.createFile(blob);
+
+      try {
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      } catch (errSharing) {
+        Logger.log('Warning setting permission: ' + errSharing);
+      }
+
+      var fileId = file.getId();
+      // Google usercontent direct image URL
+      var directUrl = 'https://lh3.googleusercontent.com/d/' + fileId;
+      var previewUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1600';
+
+      return createCorsResponse({
+        status: 'success',
+        fileId: fileId,
+        url: directUrl,
+        thumbnailUrl: previewUrl,
+        name: filename
+      });
     }
   } catch (err) {
     return createCorsResponse({ status: 'error', message: err.toString() });
