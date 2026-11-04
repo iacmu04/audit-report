@@ -356,6 +356,17 @@
             pointer-events: none;
             display: block;
         }
+        #form-finding-editor table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+        }
+        #form-finding-editor table td, #form-finding-editor table th {
+            resize: both;
+            overflow: auto;
+            min-width: 40px;
+            box-sizing: border-box;
+        }
         #form-finding-editor table td:focus, #form-finding-editor table th:focus {
             outline: 2px solid #A393EB;
             outline-offset: -2px;
@@ -1311,7 +1322,10 @@
                 </div>
             </div>
 
-            <div class="p-4 bg-purple-50/40 border-t border-purple-100 flex justify-end">
+            <div class="p-4 bg-purple-50/40 border-t border-purple-100 flex justify-between items-center">
+                <button id="btn-detail-edit" onclick="editFromDetailModal()" class="px-4 py-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-md transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen-to-square"></i> แก้ไขประเด็นนี้
+                </button>
                 <button onclick="closeModal('detail-modal')" class="px-5 py-2 text-xs font-bold bg-[#A393EB] hover:bg-[#8e7ee3] text-white rounded-xl shadow-md transition">
                     ปิดหน้าต่าง
                 </button>
@@ -1450,6 +1464,13 @@
                         <button type="button" onclick="tableAction('insertColLeft')" class="px-2 py-0.5 bg-white hover:bg-amber-100 rounded border border-amber-300 font-medium transition">+ คอลัมน์ซ้าย</button>
                         <button type="button" onclick="tableAction('insertColRight')" class="px-2 py-0.5 bg-white hover:bg-amber-100 rounded border border-amber-300 font-medium transition">+ คอลัมน์ขวา</button>
                         <button type="button" onclick="tableAction('deleteCol')" class="px-2 py-0.5 bg-white hover:bg-rose-100 text-rose-700 rounded border border-rose-300 font-medium transition">- ลบคอลัมน์</button>
+                        <span class="text-amber-300">|</span>
+                        <span class="font-bold flex items-center gap-1 text-amber-800 pr-0.5"><i class="fa-solid fa-arrows-left-right"></i> ปรับขนาด:</span>
+                        <button type="button" onclick="tableAction('colWider')" title="ขยายคอลัมน์นี้ให้กว้างขึ้น (+35px)" class="px-2 py-0.5 bg-white hover:bg-amber-100 rounded border border-amber-300 font-medium transition">↔ กว้างขึ้น</button>
+                        <button type="button" onclick="tableAction('colNarrower')" title="ลดความกว้างคอลัมน์นี้ (-35px)" class="px-2 py-0.5 bg-white hover:bg-amber-100 rounded border border-amber-300 font-medium transition">→|← แคบลง</button>
+                        <button type="button" onclick="tableAction('rowTaller')" title="ขยายความสูงแถวนี้ (+20px)" class="px-2 py-0.5 bg-white hover:bg-amber-100 rounded border border-amber-300 font-medium transition">↕ สูงขึ้น</button>
+                        <button type="button" onclick="tableAction('rowShorter')" title="ลดความสูงแถวนี้ (-20px)" class="px-2 py-0.5 bg-white hover:bg-amber-100 rounded border border-amber-300 font-medium transition">เตี้ยลง</button>
+                        <button type="button" onclick="tableAction('resetWidth')" title="รีเซ็ตความกว้างตารางให้เต็ม 100%" class="px-2 py-0.5 bg-white hover:bg-amber-100 rounded border border-amber-300 font-medium transition">รีเซ็ต 100%</button>
                         <span class="text-amber-300">|</span>
                         <button type="button" onclick="tableAction('deleteTable')" class="px-2 py-0.5 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 rounded border border-rose-300 font-bold transition"><i class="fa-solid fa-trash-can"></i> ลบตาราง</button>
                     </div>
@@ -2511,8 +2532,35 @@
             fillSelectOptions("top-slicer-dept", depts, "ส่วนงาน");
             fillSelectOptions("bottom-slicer-dept", depts, "ส่วนงาน");
 
-            // Extract rounds from Master_Config and rawData
-            let rounds = [...new Set([...DYNAMIC_MEETING_ROUNDS, ...rawData.map(d => String(d.meeting_round || '').trim()).filter(Boolean)])].sort();
+        // Helper function: Sort meeting rounds by year DESCENDING, then round ASCENDING (e.g. 1/2570, 2/2570, ... then 1/2569, 2/2569)
+        function sortMeetingRounds(arr) {
+            return [...arr].sort((a, b) => {
+                const parse = (str) => {
+                    const m = String(str || '').match(/(\d+)\s*\/\s*(\d{4})/);
+                    if (m) {
+                        return { round: parseInt(m[1], 10), year: parseInt(m[2], 10) };
+                    }
+                    const yMatch = String(str || '').match(/\b(25\d{2}|20\d{2})\b/);
+                    const numMatch = String(str || '').match(/\b(\d+)\b/);
+                    return {
+                        round: numMatch ? parseInt(numMatch[1], 10) : 0,
+                        year: yMatch ? parseInt(yMatch[1], 10) : 0
+                    };
+                };
+                const pa = parse(a);
+                const pb = parse(b);
+                if (pa.year !== pb.year) {
+                    return pb.year - pa.year; // Year DESCENDING (2570 before 2569)
+                }
+                if (pa.round !== pb.round) {
+                    return pa.round - pb.round; // Round ASCENDING (1/2570, 2/2570, 3/2570)
+                }
+                return String(a).localeCompare(String(b), 'th');
+            });
+        }
+
+            // Extract rounds from Master_Config and rawData with custom year/round sort
+            let rounds = sortMeetingRounds([...new Set([...DYNAMIC_MEETING_ROUNDS, ...rawData.map(d => String(d.meeting_round || '').trim()).filter(Boolean)])]);
             fillSelectOptions("top-slicer-round", rounds, "รอบรายงาน");
             fillSelectOptions("bottom-slicer-round", rounds, "รอบรายงาน");
 
@@ -2868,9 +2916,25 @@
             });
         }
 
+        let currentDetailFindingId = null;
+
+        function editFromDetailModal() {
+            if (!currentDetailFindingId) return;
+            const fid = currentDetailFindingId;
+            closeModal('detail-modal');
+            editRecordRow(fid);
+        }
+
         function openDetailModal(findingId) {
-            const item = rawData.find(d => d.finding_id === findingId);
+            const item = rawData.find(d => String(d.finding_id || '').trim() === String(findingId || '').trim());
             if (!item) return;
+
+            currentDetailFindingId = item.finding_id;
+            const btnDetailEdit = document.getElementById("btn-detail-edit");
+            if (btnDetailEdit) {
+                const isViewer = (sessionUser && sessionUser.role === 'ผู้บริหาร');
+                btnDetailEdit.style.display = isViewer ? 'none' : 'inline-flex';
+            }
 
             document.getElementById("modal-subtitle").innerText = `ปีงบประมาณ ${item.year} | ส่วนงาน ${item.department}`;
             document.getElementById("modal-meeting-round").innerText = item.meeting_round || "-";
@@ -3088,6 +3152,33 @@
                     table.remove();
                     document.getElementById("finding-table-tools").classList.add("hidden");
                 }
+            } else if (action === 'colWider' || action === 'colNarrower') {
+                const cellIndex = Array.from(row.children).indexOf(cell);
+                const delta = (action === 'colWider') ? 35 : -35;
+                const currentWidth = cell.offsetWidth || 80;
+                const newWidth = Math.max(40, currentWidth + delta);
+                const rows = Array.from(table.querySelectorAll('tr'));
+                rows.forEach(r => {
+                    if (r.children[cellIndex]) {
+                        r.children[cellIndex].style.width = newWidth + 'px';
+                        r.children[cellIndex].style.minWidth = newWidth + 'px';
+                    }
+                });
+            } else if (action === 'rowTaller' || action === 'rowShorter') {
+                const delta = (action === 'rowTaller') ? 20 : -20;
+                const currentHeight = row.offsetHeight || 30;
+                const newHeight = Math.max(26, currentHeight + delta);
+                row.style.height = newHeight + 'px';
+                Array.from(row.children).forEach(c => {
+                    c.style.height = newHeight + 'px';
+                });
+            } else if (action === 'resetWidth') {
+                table.style.width = '100%';
+                const allCells = table.querySelectorAll('th, td');
+                allCells.forEach(c => {
+                    c.style.width = '';
+                    c.style.minWidth = '40px';
+                });
             } else if (action === 'deleteTable') {
                 if (confirm("คุณต้องการลบตารางนี้ใช่หรือไม่?")) {
                     table.remove();
@@ -3128,17 +3219,94 @@
             }
         }
 
+        // Sanitize & format tables copied from Microsoft Word / Excel / Google Sheets
+        function cleanWordHtml(rawHtml) {
+            if (!rawHtml) return "";
+            let html = rawHtml;
+            // Remove comments and Office XML
+            html = html.replace(/<!--[\s\S]*?-->/gi, "");
+            html = html.replace(/<style[\s\S]*?<\/style>/gi, "");
+            html = html.replace(/<xml[\s\S]*?<\/xml>/gi, "");
+            html = html.replace(/<o:p>[\s\S]*?<\/o:p>/gi, "");
+            html = html.replace(/<\/?[a-z0-9]+:[a-z0-9]+[^>]*>/gi, "");
+
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+                const tables = doc.querySelectorAll("table");
+                if (tables.length === 0) return "";
+
+                tables.forEach(tbl => {
+                    tbl.removeAttribute("class");
+                    tbl.className = "finding-table";
+                    tbl.style.width = "100%";
+                    tbl.style.borderCollapse = "collapse";
+                    tbl.style.margin = "10px 0";
+                    tbl.style.fontSize = "13px";
+                    tbl.style.border = "1px solid #cbd5e1";
+
+                    const cells = tbl.querySelectorAll("td, th");
+                    cells.forEach(cell => {
+                        cell.removeAttribute("class");
+                        cell.style.border = "1px solid #cbd5e1";
+                        cell.style.padding = "6px 10px";
+                        cell.style.verticalAlign = "top";
+                        cell.style.minWidth = "40px";
+                        cell.querySelectorAll("p").forEach(p => {
+                            p.style.margin = "0 0 4px 0";
+                            p.removeAttribute("class");
+                        });
+                        cell.querySelectorAll("span").forEach(sp => {
+                            sp.removeAttribute("class");
+                            sp.style.fontFamily = "";
+                        });
+                    });
+
+                    const thead = tbl.querySelector("thead");
+                    if (thead) {
+                        thead.querySelectorAll("th, td").forEach(th => {
+                            th.style.backgroundColor = "#f8fafc";
+                            th.style.fontWeight = "bold";
+                            th.style.color = "#0f172a";
+                        });
+                    }
+                });
+
+                const wrapper = doc.createElement("div");
+                tables.forEach(tbl => wrapper.appendChild(tbl));
+                return wrapper.innerHTML;
+            } catch (err) {
+                console.error("cleanWordHtml error:", err);
+                return "";
+            }
+        }
+
         function handleFindingEditorPaste(e) {
-            if (e.clipboardData && e.clipboardData.items) {
-                const items = e.clipboardData.items;
-                for (let i = 0; i < items.length; i++) {
-                    if (items[i].type.indexOf("image") !== -1) {
-                        e.preventDefault();
-                        const file = items[i].getAsFile();
-                        if (file) {
-                            uploadAndInsertFindingImage(file);
-                            return;
+            if (e.clipboardData) {
+                // 1. Check for pasted image
+                if (e.clipboardData.items) {
+                    const items = e.clipboardData.items;
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf("image") !== -1) {
+                            e.preventDefault();
+                            const file = items[i].getAsFile();
+                            if (file) {
+                                uploadAndInsertFindingImage(file);
+                                return;
+                            }
                         }
+                    }
+                }
+
+                // 2. Check for pasted HTML table (from Word, Excel, Docs)
+                const html = e.clipboardData.getData("text/html");
+                if (html && (html.toLowerCase().includes("<table") || html.toLowerCase().includes("mso-"))) {
+                    const cleanedTable = cleanWordHtml(html);
+                    if (cleanedTable) {
+                        e.preventDefault();
+                        insertHtmlAtCursor(cleanedTable + "<p><br></p>");
+                        syncFindingEditor();
+                        return;
                     }
                 }
             }
@@ -3291,12 +3459,15 @@
             }
 
             addFormRecItem();
-            document.getElementById("form-modal").classList.remove("hidden");
+            openModal("form-modal");
         }
 
         function editRecordRow(findingId) {
-            const item = rawData.find(d => d.finding_id === findingId);
-            if (!item) return;
+            const item = rawData.find(d => String(d.finding_id || '').trim() === String(findingId || '').trim());
+            if (!item) {
+                alert("ไม่พบข้อมูลประเด็นข้อตรวจพบที่ต้องการแก้ไข (ID: " + findingId + ")");
+                return;
+            }
 
             document.getElementById("form-modal-title").innerText = `แก้ไขข้อตรวจพบ (${item.finding_id})`;
             document.getElementById("form-record-id").value = item.finding_id;
@@ -3330,7 +3501,7 @@
             });
             if ((item.items || []).length === 0) addFormRecItem();
 
-            document.getElementById("form-modal").classList.remove("hidden");
+            openModal("form-modal");
         }
 
         function onFormMainTopicChange(val) {
