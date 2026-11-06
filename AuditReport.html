@@ -1254,16 +1254,16 @@
     </div>
 
     <!-- DETAIL VIEW MODAL -->
-    <div id="detail-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white/90 backdrop-blur-xl rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-white/90">
+    <div id="detail-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
+        <div class="bg-white/95 backdrop-blur-xl rounded-3xl w-[95vw] md:w-[85vw] lg:w-[70vw] max-w-[1400px] max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-white/90">
             <div class="p-5 bg-white/80 backdrop-blur-md border-b border-purple-200/60 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-2xl bg-[#A393EB] text-white flex items-center justify-center font-bold shadow-md shadow-[#A393EB]/30">
                         <i class="fa-solid fa-file-lines text-lg"></i>
                     </div>
                     <div>
-                        <h3 id="modal-subtitle" class="font-bold text-lg text-slate-900">ปีงบประมาณ -- | ส่วนงาน --</h3>
-                        <p class="text-xs text-purple-900 font-medium mt-0.5">รายละเอียดข้อตรวจพบ & ผลการดำเนินงานตามข้อเสนอแนะ</p>
+                        <h3 id="modal-subtitle" class="font-bold text-lg md:text-xl text-slate-900">ปีงบประมาณ -- | ส่วนงาน --</h3>
+                        <p class="text-xs text-purple-900 font-medium mt-0.5">รายละเอียดข้อตรวจพบ ข้อเสนอแนะ และการชี้แจง</p>
                     </div>
                 </div>
                 <button onclick="closeModal('detail-modal')" class="text-slate-400 hover:text-purple-900 p-2 rounded-xl transition">
@@ -1271,8 +1271,8 @@
                 </button>
             </div>
 
-            <div class="p-6 overflow-y-auto custom-scrollbar space-y-4 text-xs text-slate-700">
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+            <div class="p-6 overflow-y-auto custom-scrollbar space-y-5 text-slate-700">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5 p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs">
                     <div>
                         <span class="text-slate-400 font-semibold block mb-0.5">กิจกรรม:</span>
                         <span id="modal-main-topic" class="font-bold text-slate-800">--</span>
@@ -1300,19 +1300,19 @@
                 </div>
 
                 <div>
-                    <h4 class="font-bold text-slate-900 text-xs mb-1.5 flex items-center gap-1.5">
+                    <h4 class="font-bold text-slate-900 text-base md:text-lg mb-2 flex items-center gap-2">
                         <i class="fa-solid fa-magnifying-glass-chart text-[#A393EB]"></i> ข้อตรวจพบ / รายละเอียดประเด็น (ชีท Report)
                     </h4>
-                    <div id="modal-finding-text" class="finding-content p-3.5 bg-purple-50/40 border border-purple-200/60 rounded-xl leading-relaxed text-slate-800 overflow-x-auto">
+                    <div id="modal-finding-text" class="finding-content p-4 bg-purple-50/40 border border-purple-200/60 rounded-xl leading-relaxed text-sm md:text-base text-slate-800 overflow-x-auto">
                         --
                     </div>
                 </div>
 
                 <div>
-                    <h4 class="font-bold text-slate-900 text-xs mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-lightbulb text-emerald-500"></i> รายการข้อเสนอแนะ & ผลการดำเนินงานรายข้อ (ชีท Clarify)
+                    <h4 class="font-bold text-slate-900 text-base md:text-lg mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-emerald-500"></i> ข้อเสนอแนะ & การชี้แจง (ชีท Clarify)
                     </h4>
-                    <div id="modal-recommendations-list" class="space-y-2">
+                    <div id="modal-recommendations-list" class="space-y-3">
                         <!-- Recommendation items injected here -->
                     </div>
                 </div>
@@ -1334,8 +1334,8 @@
     </div>
 
     <!-- ADD/EDIT RECORD MODAL -->
-    <div id="form-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white/90 backdrop-blur-xl rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-white/90">
+    <div id="form-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
+        <div class="bg-white/95 backdrop-blur-xl rounded-3xl w-[95vw] md:w-[85vw] lg:w-[70vw] max-w-[1400px] max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-white/90">
             <div class="p-5 bg-white/80 backdrop-blur-md border-b border-purple-200/60 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-2xl bg-[#A393EB] text-white flex items-center justify-center font-bold shadow-md shadow-[#A393EB]/30">
@@ -2146,19 +2146,50 @@
                 let matchedClarify = 0;
                 const loadedClarifyRounds = new Set();
                 clarifyRows.forEach(r => {
-                    const fid = String(r['Finding_ID'] || r['finding_id'] || '').trim();
-                    const recText = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || '').trim();
-                    const clarText = String(r['รายละเอียดผลการดำเนินงาน'] || r['รายละเอียดการชี้แจง'] || r['Clarification'] || '').trim();
-                    const statText = String(r['สถานะผลการดำเนินงาน'] || r['สถานะการดำเนินงาน'] || r['Action Status'] || 'ยังไม่ได้ชี้แจง').trim();
-                    const clarifyRound = String(r['รอบการชี้แจง คตส.'] || r['รอบการชี้แจง'] || r['clarify_round'] || r['Clarify Round'] || '').trim();
+                    const fid = String(r['Finding_ID'] || r['finding_id'] || (r._rawCells && r._rawCells[0]) || '').trim();
+                    // Col I in Clarify: ข้อเสนอแนะ
+                    const recText = String(r['ข้อเสนอแนะ'] || r['Recommendation'] || r['recommendation'] || (r._rawCells && r._rawCells[8]) || '').trim();
+                    // Col K in Clarify: รายละเอียดการชี้แจง / รายละเอียดผลการดำเนินงาน
+                    const clarText = String(r['รายละเอียดผลการดำเนินงาน'] || r['รายละเอียดการชี้แจง'] || r['Clarification'] || (r._rawCells && r._rawCells[10]) || '').trim();
+                    // Col J in Clarify: สถานะการดำเนินงาน / สถานะผลการดำเนินงาน
+                    const rawStat = String(r['สถานะผลการดำเนินงาน'] || r['สถานะการดำเนินงาน'] || r['Action Status'] || (r._rawCells && r._rawCells[9]) || '').trim();
+                    // Col L in Clarify: รอบการชี้แจง คตส.
+                    const clarifyRound = String(r['รอบการชี้แจง คตส.'] || r['รอบการชี้แจง'] || r['clarify_round'] || r['Clarify Round'] || (r._rawCells && r._rawCells[11]) || '').trim();
 
                     if (clarifyRound) loadedClarifyRounds.add(clarifyRound);
 
-                    if (recText || clarText || statText) {
+                    // Rules:
+                    // 1. If Col I has recommendation, but Col K is empty -> 'ยังไม่ได้ชี้แจง'
+                    // 2. If Col K has clarification and Col J has 'อยู่ระหว่างดำเนินการ' -> 'อยู่ระหว่างดำเนินการ'
+                    // 3. If Col J has 'ดำเนินการแล้ว' -> 'ดำเนินการแล้ว'
+                    // 4. If no recommendation in Col I/Col H -> 'ไม่มีข้อเสนอแนะ'
+                    const hasRec = Boolean(recText && recText !== '-' && recText !== 'ไม่มี' && recText !== 'ไม่มีข้อเสนอแนะ');
+                    const hasClar = Boolean(clarText && clarText !== '-' && clarText !== 'ยังไม่มีข้อมูลชี้แจง' && clarText !== 'ยังไม่ได้ชี้แจง');
+
+                    let finalStatus = 'ยังไม่ได้ชี้แจง';
+                    if (!hasRec) {
+                        finalStatus = 'ไม่มีข้อเสนอแนะ';
+                    } else if (!hasClar) {
+                        // มีข้อเสนอแนะ แต่ยังไม่มีข้อมูลชี้แจงในคอลัมน์ K -> ยังไม่ได้ชี้แจง
+                        finalStatus = 'ยังไม่ได้ชี้แจง';
+                    } else {
+                        // มีการชี้แจงในคอลัมน์ K
+                        if (rawStat === 'ดำเนินการแล้ว') {
+                            finalStatus = 'ดำเนินการแล้ว';
+                        } else if (rawStat === 'อยู่ระหว่างดำเนินการ') {
+                            finalStatus = 'อยู่ระหว่างดำเนินการ';
+                        } else if (rawStat === 'ไม่มีข้อเสนอแนะ') {
+                            finalStatus = 'ไม่มีข้อเสนอแนะ';
+                        } else {
+                            finalStatus = rawStat || 'อยู่ระหว่างดำเนินการ';
+                        }
+                    }
+
+                    if (recText || clarText || rawStat) {
                         const recItem = {
-                            recommendation: recText || '-',
-                            clarification: clarText || 'ยังไม่มีข้อมูลชี้แจง',
-                            status: statText,
+                            recommendation: hasRec ? recText : 'ไม่มีข้อเสนอแนะ',
+                            clarification: hasClar ? clarText : 'ยังไม่มีข้อมูลชี้แจง',
+                            status: finalStatus,
                             clarify_round: clarifyRound
                         };
 
@@ -2176,15 +2207,20 @@
                 // Phase 3: Recalculate overall status based on Clarify items and Report Col J recommendation
                 consolidatedData.forEach(p => {
                     if (p.items.length > 0) {
-                        if (p.items.every(i => i.status === 'ดำเนินการแล้ว')) {
+                        const validItems = p.items.filter(i => i.status !== 'ไม่มีข้อเสนอแนะ');
+                        if (validItems.length === 0) {
+                            p.overall_status = 'ไม่มีข้อเสนอแนะ';
+                        } else if (validItems.every(i => i.status === 'ดำเนินการแล้ว')) {
                             p.overall_status = 'ดำเนินการแล้ว';
-                        } else if (p.items.some(i => i.status === 'อยู่ระหว่างดำเนินการ')) {
+                        } else if (validItems.some(i => i.status === 'อยู่ระหว่างดำเนินการ')) {
                             p.overall_status = 'อยู่ระหว่างดำเนินการ';
+                        } else if (validItems.every(i => i.status === 'ไม่มีข้อเสนอแนะ')) {
+                            p.overall_status = 'ไม่มีข้อเสนอแนะ';
                         } else {
                             p.overall_status = 'ยังไม่ได้ชี้แจง';
                         }
                     } else {
-                        if (p.initial_rec) {
+                        if (p.initial_rec && p.initial_rec !== '-' && p.initial_rec !== 'ไม่มี' && p.initial_rec !== 'ไม่มีข้อเสนอแนะ') {
                             p.overall_status = 'ยังไม่ได้ชี้แจง';
                             p.items.push({
                                 recommendation: p.initial_rec,
@@ -2193,6 +2229,11 @@
                             });
                         } else {
                             p.overall_status = 'ไม่มีข้อเสนอแนะ';
+                            p.items.push({
+                                recommendation: 'ไม่มีข้อเสนอแนะ',
+                                clarification: '-',
+                                status: 'ไม่มีข้อเสนอแนะ'
+                            });
                         }
                     }
                 });
@@ -2989,20 +3030,29 @@
                     listElem.innerHTML = "";
                     (item.items || []).forEach((sub, idx) => {
                         const subBox = document.createElement("div");
-                        subBox.className = "p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5";
+                        subBox.className = "p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2 shadow-xs";
                         
-                        let subBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">🟡 อยู่ระหว่างดำเนินการ</span>`;
-                        if (sub.status === 'ดำเนินการแล้ว') subBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">🟢 ดำเนินการแล้ว</span>`;
+                        let subBadge = '';
+                        const normStat = String(sub.status || '').trim();
+                        if (normStat === 'ดำเนินการแล้ว') {
+                            subBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">🟢 ดำเนินการแล้ว</span>`;
+                        } else if (normStat === 'อยู่ระหว่างดำเนินการ') {
+                            subBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">🟡 อยู่ระหว่างดำเนินการ</span>`;
+                        } else if (normStat === 'ไม่มีข้อเสนอแนะ') {
+                            subBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">⚪ ไม่มีข้อเสนอแนะ</span>`;
+                        } else {
+                            subBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">🔴 ยังไม่ได้ชี้แจง</span>`;
+                        }
 
                         subBox.innerHTML = `
                             <div class="flex justify-between items-center font-bold text-slate-800">
-                                <span>ข้อเสนอแนะข้อที่ ${idx + 1}:</span>
+                                <span class="text-sm md:text-base font-bold text-slate-900">ข้อเสนอแนะข้อที่ ${idx + 1}:</span>
                                 ${subBadge}
                             </div>
-                            <p class="text-slate-700 font-medium">${sub.recommendation || '-'}</p>
-                            <div class="pt-1.5 border-t border-slate-200 text-blue-900">
-                                <strong class="block text-[11px] text-blue-700">ผลการดำเนินงานชี้แจง:</strong>
-                                <p class="whitespace-pre-line">${sub.clarification || 'ยังไม่มีข้อมูลชี้แจง'}</p>
+                            <p class="text-slate-800 font-medium text-xs md:text-sm leading-relaxed">${sub.recommendation || '-'}</p>
+                            <div class="pt-2 border-t border-slate-200 text-blue-900">
+                                <strong class="block text-sm md:text-base font-bold text-blue-800 mb-1">ชี้แจง:</strong>
+                                <p class="whitespace-pre-line text-xs md:text-sm text-slate-700 leading-relaxed">${sub.clarification || 'ยังไม่มีข้อมูลชี้แจง'}</p>
                             </div>
                         `;
                         listElem.appendChild(subBox);
