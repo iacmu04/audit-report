@@ -81,10 +81,11 @@ function setupSheets() {
 
 function doGet(e) {
   e = e || { parameter: {} };
-  setupSheets();
-
   var action = e.parameter.action || 'getData';
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (action === 'setup' || !ss.getSheetByName('Report')) {
+    setupSheets();
+  }
 
   if (action === 'getData') {
     var reportSheet = ss.getSheetByName('Report');
@@ -146,7 +147,10 @@ function doGet(e) {
 
 function doPost(e) {
   e = e || { parameter: {}, postData: { contents: '{}' } };
-  setupSheets();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss.getSheetByName('AuditReport')) {
+    setupSheets();
+  }
 
   try {
     var postData = JSON.parse(e.postData.contents || '{}');
